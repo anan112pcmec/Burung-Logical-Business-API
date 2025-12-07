@@ -160,8 +160,6 @@ type Review struct {
 	BarangInduk   BarangInduk `gorm:"foreignKey:IdBarangInduk;references:ID" json:"-"`
 	Rating        float32     `gorm:"column:rating;type:numeric(2,1);not null" json:"rating_review"`
 	Ulasan        string      `gorm:"column:ulasan;type:text" json:"ulasan_review"`
-	Like          int64       `gorm:"column:like;type:int8;default:0" json:"like_review"`
-	Dislike       int64       `gorm:"column:dislike;type:int8;default:0" json:"dislike_review"`
 	CreatedAt     time.Time   `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt     time.Time   `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt     *time.Time  `gorm:"index" json:"deleted_at,omitempty"`

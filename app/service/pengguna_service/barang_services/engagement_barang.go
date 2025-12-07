@@ -13,7 +13,6 @@ import (
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-
 )
 
 var fieldBarangViewed = "viewed_barang_induk"
@@ -692,26 +691,10 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *con
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-
-		// Insert like
-		if err := tx.Create(&models.ReviewLike{
-			IdPengguna: data.IdentitasPengguna.ID,
-			IdReview:   data.IdReview,
-		}).Error; err != nil {
-			return err
-		}
-
-		// Update kolom "like"
-		if err := tx.Model(&models.Review{}).
-			Where("id = ?", data.IdReview).
-			UpdateColumn(`"like"`, gorm.Expr(`"like" + 1`)).Error; err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
-
+	if err := db.Write.WithContext(ctx).Create(&models.ReviewLike{
+		IdPengguna: data.IdentitasPengguna.ID,
+		IdReview:   data.IdReview,
+	}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -762,24 +745,8 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-
-		// Hapus like
-		if err := tx.Delete(&models.ReviewLike{}, id_review_like).Error; err != nil {
-			return err
-		}
-
-		// Decrement kolom "like", pastikan tidak negatif
-		if err := tx.Model(&models.Review{}).
-			Where("id = ?", data.IdReview).
-			UpdateColumn(`"like"`, gorm.Expr(`CASE WHEN "like" > 0 THEN "like" - 1 ELSE 0 END`)).
-			Error; err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
-
+	// Hapus like
+	if err := db.Write.WithContext(ctx).Delete(&models.ReviewLike{}, id_review_like).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
