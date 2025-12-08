@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/meilisearch/meilisearch-go"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
@@ -27,6 +29,8 @@ type Environment struct {
 	RDSENTITYDB, RDSBARANGDB, RDSENGAGEMENTDB                                                                              int
 	MEILIHOST, MEILIKEY, MEILIPORT                                                                                         string
 	RMQ_HOST, RMQ_USER, RMQ_PASS, EXCHANGE, RMQ_PORT                                                                       string
+	MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_SIGNED_URL_EXPIRE_SEC                                        string
+	MINIO_USE_SSL                                                                                                          bool
 }
 
 type InternalDBReadWriteSystem struct {
@@ -42,6 +46,7 @@ func (e *Environment) RunConnectionEnvironment() (
 	redis_engagement *redis.Client,
 	search_engine meilisearch.ServiceManager,
 	notification *amqp091.Connection,
+	media_storage *minio.Client,
 ) {
 
 	getDsn := func(host, user, pass, name, port string) string {
@@ -170,6 +175,14 @@ func (e *Environment) RunConnectionEnvironment() (
 	notification, _ = amqp091.Dial(connStr)
 
 	search_engine = meilisearch.New(fmt.Sprintf("http://%s:%s", e.MEILIHOST, e.MEILIPORT), meilisearch.WithAPIKey(e.MEILIKEY))
+
+	media_storage, err_media := minio.New(e.MINIO_ENDPOINT, &minio.Options{
+		Creds:  credentials.NewStaticV4(e.MINIO_ACCESS_KEY, e.MINIO_SECRET_KEY, ""),
+		Secure: e.MINIO_USE_SSL,
+	})
+	if err_media != nil {
+		log.Fatal("MinIO init error:", err)
+	}
 
 	return
 }

@@ -34,9 +34,9 @@ func (BarangInduk) TableName() string {
 
 type KategoriBarang struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_kategori_barang"`
-	SellerID       int32          `gorm:"index;column:id_seller;not null" json:"id_seller_kategori_barang"`
+	SellerID       int32          `gorm:"column:id_seller;not null" json:"id_seller_kategori_barang"`
 	Seller         Seller         `gorm:"foreignKey:SellerID;references:ID" json:"-"`
-	IdBarangInduk  int32          `gorm:"index;column:id_barang_induk;not null" json:"id_barang_induk_kategori"`
+	IdBarangInduk  int32          `gorm:"column:id_barang_induk;not null" json:"id_barang_induk_kategori"`
 	BarangInduk    BarangInduk    `gorm:"foreignKey:IdBarangInduk;references:ID;constraint:OnDelete:CASCADE;" json:"-"`
 	IDAlamat       int64          `gorm:"column:id_alamat_gudang;type:int8" json:"id_alamat_gudang_kategori_barang"`
 	AlamatGudang   AlamatGudang   `gorm:"foreignKey:IDAlamat;references:ID" json:"-"`

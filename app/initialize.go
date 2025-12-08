@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/minio/minio-go/v7"
 
 	routes "github.com/anan112pcmec/Burung-backend-1/app/Routes"
 	maintain_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/maintain"
@@ -33,6 +35,7 @@ func Run() {
 	rdsentity, _ := strconv.Atoi(Getenvi("RDSENTITY", "0"))
 	rdsbarang, _ := strconv.Atoi(Getenvi("RDSBARANG", "0"))
 	rdsengagement, _ := strconv.Atoi(Getenvi("RDSENGAGEMET", "0"))
+	minioSSl, _ := strconv.ParseBool(Getenvi("MINIO_USE_SSL", "NIL"))
 
 	env := config.Environment{
 		DB_MASTER_HOST:         Getenvi("DB_MASTER_HOST", "NIL"),
@@ -64,9 +67,15 @@ func Run() {
 		RMQ_USER: "",
 		RMQ_PASS: "",
 		RMQ_PORT: "",
+
+		MINIO_ENDPOINT:              Getenvi("MINIO_ENDPOINT", "NIL"),
+		MINIO_USE_SSL:               minioSSl,
+		MINIO_ACCESS_KEY:            Getenvi("MINIO_ACCESS_KEY", "NIL"),
+		MINIO_SECRET_KEY:            Getenvi("MINIO_SECRET_KEY", "NIL"),
+		MINIO_SIGNED_URL_EXPIRE_SEC: Getenvi("MINIO_SIGNED_URL_EXPIRE_SEC", "NIL"),
 	}
 
-	db_system, db_replica_client, redis_entity_cache, redis_barang_cache, redis_engagement_cache, searchengine, _ :=
+	db_system, db_replica_client, redis_entity_cache, redis_barang_cache, redis_engagement_cache, searchengine, _, media_storage :=
 		env.RunConnectionEnvironment()
 
 	// Router utama
@@ -77,27 +86,100 @@ func Run() {
 
 	// Jalankan enums dan migrasi
 	// Migration SOT
-	if err := enums.UpEnumsEntity(db_system.Write); err != nil {
-		log.Printf("❌ Gagal UpEnumsEntity: %v", err)
-	}
-	if err := enums.UpBarangEnums(db_system.Write); err != nil {
-		log.Printf("❌ Gagal UpBarangEnums: %v", err)
-	}
-	if err := enums.UpEnumsTransaksi(db_system.Write); err != nil {
-		log.Printf("❌ Gagal UpEnumsTransaksi: %v", err)
-	}
+	initSotDatabase := func() {
+		if err := enums.UpEnumsEntity(db_system.Write); err != nil {
+			log.Printf("❌ Gagal UpEnumsEntity: %v", err)
+		}
+		if err := enums.UpBarangEnums(db_system.Write); err != nil {
+			log.Printf("❌ Gagal UpBarangEnums: %v", err)
+		}
+		if err := enums.UpEnumsTransaksi(db_system.Write); err != nil {
+			log.Printf("❌ Gagal UpEnumsTransaksi: %v", err)
+		}
 
-	migrate.UpEntity(db_system.Write)
-	migrate.UpBarang(db_system.Write)
-	migrate.UpTransaksi(db_system.Write)
-	migrate.UpEngagementEntity(db_system.Write)
-	migrate.UpSystemData(db_system.Write)
-	migrate.UpTresholdData(db_system.Write)
-	//
+		migrate.UpEntity(db_system.Write)
+		migrate.UpBarang(db_system.Write)
+		migrate.UpTransaksi(db_system.Write)
+		migrate.UpEngagementEntity(db_system.Write)
+		migrate.UpSystemData(db_system.Write)
+		migrate.UpTresholdData(db_system.Write)
+		migrate.UpMediaData(db_system.Write)
+		//
+	}
+	initSotDatabase()
 
 	// Caching data
 	maintain_cache.DataAlamatEkspedisiUp(db_system.Write)
 	maintain_cache.DataOperasionalPengirimanUp()
+	//
+
+	// Media Storage Initializing
+	initMediaStorage := func() {
+		ctx := context.Background()
+		var bucketPrivateName = []string{
+			"burung-foto-private", "burung-video-private", "burung-dokumen-private",
+		}
+
+		for i := 0; i < len(bucketPrivateName); i++ {
+			exists, err := media_storage.BucketExists(ctx, bucketPrivateName[i])
+			if err != nil {
+				fmt.Printf("Bucket %s tidak ada", bucketPrivateName[i])
+				fmt.Println(err)
+			}
+			if !exists {
+				if err := media_storage.MakeBucket(ctx, bucketPrivateName[i], minio.MakeBucketOptions{}); err != nil {
+					fmt.Printf("Gagal membuat bucket %s", bucketPrivateName[i])
+					fmt.Println(err)
+					continue
+				}
+
+			} else {
+				fmt.Printf("Bucket %s sudah ada", bucketPrivateName[i])
+			}
+		}
+
+		var bucketPublicName []string = []string{
+			"burung-foto-public", "burung-video-public", "burung-dokumen-public",
+		}
+
+		for i := 0; i < len(bucketPublicName); i++ {
+			exists, err := media_storage.BucketExists(ctx, bucketPublicName[i])
+			if err != nil {
+				fmt.Printf("Bucket %s tidak ada", bucketPublicName[i])
+				fmt.Println(err)
+			}
+
+			if !exists {
+				if err := media_storage.MakeBucket(ctx, bucketPublicName[i], minio.MakeBucketOptions{}); err != nil {
+					fmt.Printf("Gagal membuat bucket %s", bucketPublicName[i])
+					fmt.Println(err)
+					continue
+				}
+
+			} else {
+				fmt.Printf("Bucket %s sudah ada", bucketPublicName[i])
+			}
+
+			policy := fmt.Sprintf(`{
+			"Version":"2012-10-17",
+			"Statement":[
+				{
+				"Effect":"Allow",
+				"Principal":{"AWS":["*"]},
+				"Action":["s3:GetObject"],
+				"Resource":["arn:aws:s3:::%s/*"]
+				}
+			]
+		}`, bucketPublicName[i])
+
+			err = media_storage.SetBucketPolicy(ctx, bucketPublicName[i], policy)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+	initMediaStorage()
+
 	//
 
 	// Setup routes

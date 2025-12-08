@@ -291,3 +291,21 @@ func GenerateIdempotencyKey() string {
 	rand.Read(b)
 	return hex.EncodeToString(b)
 }
+
+func GenerateMediaKeyPhoto() string {
+	b := make([]byte, 12)
+	mrand.Read(b)
+	return fmt.Sprintf("%s-pto", hex.EncodeToString(b))
+}
+
+func GenerateMediaKeyVideo() string {
+	b := make([]byte, 9)
+	mrand.Read(b)
+	return fmt.Sprintf("%s-vd", hex.EncodeToString(b))
+}
+
+func GenerateMediaKeyDokumen() string {
+	b := make([]byte, 11)
+	mrand.Read(b)
+	return fmt.Sprintf("%s-dok", hex.EncodeToString(b))
+}

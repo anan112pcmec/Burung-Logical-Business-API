@@ -293,3 +293,71 @@ func UpTresholdData(db *gorm.DB) {
 
 	log.Println("All migrations treshold data completed successfully 🚀")
 }
+
+func UpMediaData(db *gorm.DB) {
+	var wg sync.WaitGroup
+	errCh := make(chan error, 31)
+
+	modelsToMigrate := []interface{}{
+		&models.MediaPenggunaProfilFoto{},
+		&models.MediaSellerProfilFoto{},
+		&models.MediaSellerBannerFoto{},
+		&models.MediaSellerTokoFisikFoto{},
+		&models.MediaKurirProfilFoto{},
+		&models.MediaEtalaseFoto{},
+		&models.MediaBarangIndukFoto{},
+		&models.MediaBarangIndukVideo{},
+		&models.MediaKategoriBarangFoto{},
+		&models.MediaDistributorDataDokumenFoto{},
+		&models.MediaDistributorDataNPWPFoto{},
+		&models.MediaDistributorDataNIBFoto{},
+		&models.MediaDistributorDataSuratKerjasamaFoto{},
+		&models.MediaBrandDataDokumenPerwakilanFoto{},
+		&models.MediaBrandDataSertifikatFoto{},
+		&models.MediaBrandDataNIBFoto{},
+		&models.MediaBrandDataNPWPFoto{},
+		&models.MediaBrandDataLogoBrandFoto{},
+		&models.MediaBrandDataSuratKerjasamaFoto{},
+		&models.MediaInformasiKendaraanKurirKendaraanFoto{},
+		&models.MediaInformasiKendaraanKurirBPKBFoto{},
+		&models.MediaInformasiKendaraanKurirSTNKFoto{},
+		&models.MediaInformasiKurirKTPFoto{},
+		&models.MediaReviewFoto{},
+		&models.MediaReviewVideo{},
+		&models.MediaTransaksiApprovedFoto{},
+		&models.MediaTransaksiApprovedVideo{},
+		&models.MediaPengirimanPickedUpFoto{},
+		&models.MediaPengirimanSampaiFoto{},
+		&models.MediaPengirimanEkspedisiApprovedFoto{},
+		&models.MediaPengirimanEkspedisiSampaiAgentFoto{},
+	}
+
+	wg.Add(len(modelsToMigrate))
+
+	for _, m := range modelsToMigrate {
+		go func(model interface{}) {
+			defer wg.Done()
+			if db.Migrator().HasTable(model) {
+				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
+				return
+			}
+
+			if err := db.AutoMigrate(model); err != nil {
+				errCh <- err
+				return
+			}
+			log.Printf("Migration success: %T ✅", model)
+		}(m)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		if err != nil {
+			log.Fatalf("Migration failed: %v", err)
+		}
+	}
+
+	log.Println("All migrations Media Data completed successfully 🚀")
+}
