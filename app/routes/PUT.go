@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/minio/minio-go/v7"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/userroute"
 )
 
-func PutHandler(db *config.InternalDBReadWriteSystem) http.HandlerFunc {
+func PutHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("PutHandler dijalankan...")
 
 		// Jika path diawali "/user/"
 		if len(r.URL.Path) >= 6 && r.URL.Path[:6] == "/user/" {
-			userroute.PutUserHandler(db, w, r)
+			userroute.PutUserHandler(db, w, r, ms)
 			return
 		}
 

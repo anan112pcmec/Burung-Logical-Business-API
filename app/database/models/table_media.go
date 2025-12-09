@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-
 )
 
 type MediaPenggunaProfilFoto struct {
@@ -20,6 +19,10 @@ type MediaPenggunaProfilFoto struct {
 
 func (MediaPenggunaProfilFoto) TableName() string {
 	return "media_pengguna_profil_foto"
+}
+
+func (MediaPenggunaProfilFoto) PathName() string {
+	return "/media-pengguna-profil-foto/"
 }
 
 type MediaSellerProfilFoto struct {

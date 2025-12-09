@@ -13,6 +13,7 @@ import (
 	"github.com/minio/minio-go/v7"
 
 	routes "github.com/anan112pcmec/Burung-backend-1/app/Routes"
+	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
 	maintain_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/maintain"
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/enums"
@@ -114,32 +115,15 @@ func Run() {
 	//
 
 	// Media Storage Initializing
-	initMediaStorage := func() {
+	data_cache.BucketFotoName = Getenvi("MINIO_PHOTOS_BUCKET", "NIL")
+	data_cache.BucketVideoName = Getenvi("MINIO_VIDEOS_BUCKET", "NIL")
+	data_cache.BucketDokumenName = Getenvi("MINIO_DOKUMENS_BUCKET", "NIL")
+	initMediaStorageDatabase := func() {
 		ctx := context.Background()
-		var bucketPrivateName = []string{
-			"burung-foto-private", "burung-video-private", "burung-dokumen-private",
-		}
-
-		for i := 0; i < len(bucketPrivateName); i++ {
-			exists, err := media_storage.BucketExists(ctx, bucketPrivateName[i])
-			if err != nil {
-				fmt.Printf("Bucket %s tidak ada", bucketPrivateName[i])
-				fmt.Println(err)
-			}
-			if !exists {
-				if err := media_storage.MakeBucket(ctx, bucketPrivateName[i], minio.MakeBucketOptions{}); err != nil {
-					fmt.Printf("Gagal membuat bucket %s", bucketPrivateName[i])
-					fmt.Println(err)
-					continue
-				}
-
-			} else {
-				fmt.Printf("Bucket %s sudah ada", bucketPrivateName[i])
-			}
-		}
-
-		var bucketPublicName []string = []string{
-			"burung-foto-public", "burung-video-public", "burung-dokumen-public",
+		var bucketPublicName = []string{
+			data_cache.BucketFotoName,
+			data_cache.BucketVideoName,
+			data_cache.BucketDokumenName,
 		}
 
 		for i := 0; i < len(bucketPublicName); i++ {
@@ -161,16 +145,16 @@ func Run() {
 			}
 
 			policy := fmt.Sprintf(`{
-			"Version":"2012-10-17",
-			"Statement":[
-				{
-				"Effect":"Allow",
-				"Principal":{"AWS":["*"]},
-				"Action":["s3:GetObject"],
-				"Resource":["arn:aws:s3:::%s/*"]
-				}
-			]
-		}`, bucketPublicName[i])
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": { "AWS": ["*"] },
+						"Action": ["s3:GetObject"],
+						"Resource": ["arn:aws:s3:::%s/*"]
+					}
+				]
+			}`, bucketPublicName[i])
 
 			err = media_storage.SetBucketPolicy(ctx, bucketPublicName[i], policy)
 			if err != nil {
@@ -178,7 +162,7 @@ func Run() {
 			}
 		}
 	}
-	initMediaStorage()
+	initMediaStorageDatabase()
 
 	//
 
@@ -196,7 +180,7 @@ func Run() {
 	)).Methods("POST")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.PutHandler(db_system),
+		routes.PutHandler(db_system, media_storage),
 	)).Methods("PUT")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(

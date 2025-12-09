@@ -37,3 +37,7 @@ var DataTarifPengiriman struct {
 }
 
 var DataTarifJenisPengiriman map[string]JenisPengiriman
+
+var BucketFotoName string
+var BucketVideoName string
+var BucketDokumenName string
