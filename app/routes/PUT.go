@@ -25,7 +25,7 @@ func PutHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client) http.Han
 
 		// Jika path diawali "/seller/"
 		if len(r.URL.Path) >= 8 && r.URL.Path[:8] == "/seller/" {
-			seller.PutSellerHandler(db, w, r)
+			seller.PutSellerHandler(db, w, r, ms)
 			return
 		}
 

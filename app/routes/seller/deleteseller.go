@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/minio/minio-go/v7"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
@@ -13,10 +15,11 @@ import (
 	seller_diskon_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services"
 	seller_etalase_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/etalase_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/jenis_seller_services"
+	seller_media_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/media_services"
 	seller_transaksi_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/transaksi_services"
 )
 
-func DeleteSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request) {
+func DeleteSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client) {
 	var hasil *response.ResponseForm
 
 	ctx := r.Context()
@@ -110,6 +113,13 @@ func DeleteSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWr
 			return
 		}
 		hasil = seller_transaksi_services.UnApproveOrderTransaksi(ctx, data, db)
+	case "/seller/media/hapus-foto-profile":
+		var data seller_media_services.PayloadHapusFotoProfilSeller
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = seller_media_services.HapusFotoProfilSeller(ctx, data, db, ms)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

@@ -5,25 +5,27 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/minio/minio-go/v7"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/userroute"
 )
 
-func DeleteHandler(db *config.InternalDBReadWriteSystem) http.HandlerFunc {
+func DeleteHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("DeleteHandler dijalankan...")
 
 		// Jika path diawali "/user/"
 		if len(r.URL.Path) >= 6 && r.URL.Path[:6] == "/user/" {
-			userroute.DeleteUserHandler(db, w, r)
+			userroute.DeleteUserHandler(db, w, r, ms)
 			return
 		}
 
 		// Jika path diawali "/seller/"
 		if len(r.URL.Path) >= 8 && r.URL.Path[:8] == "/seller/" {
-			seller.DeleteSellerHandler(db, w, r)
+			seller.DeleteSellerHandler(db, w, r, ms)
 			return
 		}
 

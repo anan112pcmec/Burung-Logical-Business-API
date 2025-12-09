@@ -36,6 +36,10 @@ type MediaSellerProfilFoto struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaSellerProfilFoto) PathName() string {
+	return "/media_seller_profil_foto/"
+}
+
 func (MediaSellerProfilFoto) TableName() string {
 	return "media_seller_foto_profil"
 }

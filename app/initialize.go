@@ -188,7 +188,7 @@ func Run() {
 	)).Methods("PATCH")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.DeleteHandler(db_system),
+		routes.DeleteHandler(db_system, media_storage),
 	)).Methods("DELETE")
 
 	// go cleanupClients()
