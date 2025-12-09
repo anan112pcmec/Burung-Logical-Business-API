@@ -1,0 +1,1277 @@
+openapi: 3.0.3
+info:
+  title: Barang Service Seller API
+  description: API untuk mengelola barang, kategori barang, dan komentar seller
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Development Server
+
+tags:
+  - name: Barang Induk
+    description: Endpoint untuk mengelola barang induk
+  - name: Kategori Barang
+    description: Endpoint untuk mengelola kategori barang
+  - name: Komentar Barang
+    description: Endpoint untuk mengelola komentar barang induk
+  - name: Child Komentar
+    description: Endpoint untuk mengelola balasan komentar
+
+paths:
+  /seller/masukan_barang:
+    post:
+      tags:
+        - Barang Induk
+      summary: Masukan barang induk baru
+      description: Menambahkan barang induk beserta kategori barang
+      operationId: masukanBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadMasukanBarangInduk'
+      responses:
+        '200':
+          description: Barang berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/edit_barang:
+    patch:
+      tags:
+        - Barang Induk
+      summary: Edit barang induk
+      description: Mengubah data barang induk
+      operationId: editBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditBarangInduk'
+      responses:
+        '200':
+          description: Barang berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Barang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/hapus_barang:
+    delete:
+      tags:
+        - Barang Induk
+      summary: Hapus barang induk
+      description: Menghapus barang induk dan kategori terkait
+      operationId: hapusBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadHapusBarangInduk'
+      responses:
+        '200':
+          description: Barang berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Barang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/tambah_kategori_barang:
+    post:
+      tags:
+        - Kategori Barang
+      summary: Tambah kategori barang
+      description: Menambahkan kategori barang pada barang induk
+      operationId: tambahKategoriBarang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadTambahKategori'
+      responses:
+        '200':
+          description: Kategori barang berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/edit_kategori_barang:
+    patch:
+      tags:
+        - Kategori Barang
+      summary: Edit kategori barang
+      description: Mengubah data kategori barang
+      operationId: editKategoriBarang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditKategori'
+      responses:
+        '200':
+          description: Kategori barang berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/hapus_kategori_barang:
+    delete:
+      tags:
+        - Kategori Barang
+      summary: Hapus kategori barang
+      description: Menghapus kategori barang
+      operationId: hapusKategoriBarang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadHapusKategori'
+      responses:
+        '200':
+          description: Kategori barang berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/edit/stok-barang:
+    patch:
+      tags:
+        - Kategori Barang
+      summary: Edit stok kategori barang
+      description: Mengubah jumlah stok kategori barang
+      operationId: editStokKategoriBarang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditStokKategoriBarang'
+      responses:
+        '200':
+          description: Stok berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/barang/down-barang-induk:
+    patch:
+      tags:
+        - Barang Induk
+      summary: Nonaktifkan barang induk
+      description: Menonaktifkan/down barang induk
+      operationId: downBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadDownBarangInduk'
+      responses:
+        '200':
+          description: Barang berhasil dinonaktifkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Barang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/barang/down-kategori-barang:
+    patch:
+      tags:
+        - Kategori Barang
+      summary: Nonaktifkan kategori barang
+      description: Menonaktifkan/down kategori barang
+      operationId: downKategoriBarang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadDownKategoriBarang'
+      responses:
+        '200':
+          description: Kategori berhasil dinonaktifkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/barang/edit-rekening-barang:
+    patch:
+      tags:
+        - Barang Induk
+      summary: Edit rekening barang induk
+      description: Mengubah rekening yang terkait dengan barang induk
+      operationId: editRekeningBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditRekeningBarangInduk'
+      responses:
+        '200':
+          description: Rekening berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Barang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/barang/edit-alamat-barang-induk:
+    patch:
+      tags:
+        - Barang Induk
+      summary: Edit alamat barang induk
+      description: Mengubah alamat gudang yang terkait dengan barang induk
+      operationId: editAlamatBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditAlamatBarangInduk'
+      responses:
+        '200':
+          description: Alamat berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Barang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/barang/edit-alamat-kategori:
+    patch:
+      tags:
+        - Kategori Barang
+      summary: Edit alamat kategori barang
+      description: Mengubah alamat gudang yang terkait dengan kategori barang
+      operationId: editAlamatBarangKategori
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditAlamatBarangKategori'
+      responses:
+        '200':
+          description: Alamat berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-barang/tambah:
+    post:
+      tags:
+        - Komentar Barang
+      summary: Tambah komentar barang
+      description: Menambahkan komentar pada barang induk
+      operationId: masukanKomentarBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadMasukanKomentarBarangInduk'
+      responses:
+        '200':
+          description: Komentar berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-barang/edit:
+    patch:
+      tags:
+        - Komentar Barang
+      summary: Edit komentar barang
+      description: Mengubah komentar barang
+      operationId: editKomentarBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditKomentarBarangInduk'
+      responses:
+        '200':
+          description: Komentar berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Komentar tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-barang/hapus:
+    delete:
+      tags:
+        - Komentar Barang
+      summary: Hapus komentar barang
+      description: Menghapus komentar barang
+      operationId: hapusKomentarBarangInduk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadHapusKomentarBarangInduk'
+      responses:
+        '200':
+          description: Komentar berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Komentar tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-child/tambah:
+    post:
+      tags:
+        - Child Komentar
+      summary: Tambah balasan komentar
+      description: Menambahkan balasan pada komentar barang
+      operationId: masukanChildKomentar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadMasukanChildKomentar'
+      responses:
+        '200':
+          description: Balasan komentar berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-child-mention/tambah:
+    post:
+      tags:
+        - Child Komentar
+      summary: Tambah balasan komentar dengan mention
+      description: Menambahkan balasan komentar dengan mention user
+      operationId: mentionChildKomentar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadMentionChildKomentar'
+      responses:
+        '200':
+          description: Balasan komentar dengan mention berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-child/edit:
+    patch:
+      tags:
+        - Child Komentar
+      summary: Edit balasan komentar
+      description: Mengubah balasan komentar
+      operationId: editChildKomentar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditChildKomentar'
+      responses:
+        '200':
+          description: Balasan komentar berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Balasan komentar tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/komentar-child/hapus:
+    delete:
+      tags:
+        - Child Komentar
+      summary: Hapus balasan komentar
+      description: Menghapus balasan komentar
+      operationId: hapusChildKomentar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadHapusChildKomentar'
+      responses:
+        '200':
+          description: Balasan komentar berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Balasan komentar tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+components:
+  schemas:
+    IdentitySeller:
+      type: object
+      required:
+        - id_seller
+        - username_seller
+        - email_seller
+      properties:
+        id_seller:
+          type: integer
+          format: int32
+          example: 12345
+        username_seller:
+          type: string
+          example: "seller_username"
+        email_seller:
+          type: string
+          format: email
+          example: "seller@example.com"
+
+    ResponseForm:
+      type: object
+      required:
+        - status
+        - service
+        - pesan
+        - response_payload
+      properties:
+        status:
+          type: integer
+          format: int32
+          example: 200
+        service:
+          type: string
+          example: "Masukan Barang"
+        pesan:
+          type: string
+          example: "Operasi berhasil"
+        response_payload:
+          nullable: true
+
+    BarangInduk:
+      type: object
+      properties:
+        id_barang_induk:
+          type: integer
+          format: int32
+        id_seller:
+          type: integer
+          format: int32
+        id_diskon:
+          type: integer
+          format: int64
+        nama:
+          type: string
+          maxLength: 200
+          example: "Laptop Gaming ROG"
+        jenis:
+          type: string
+          example: "Semua Barang"
+        deskripsi:
+          type: string
+          example: "Laptop gaming dengan spesifikasi tinggi"
+        original_kategori:
+          type: integer
+          format: int64
+        viewed:
+          type: integer
+          format: int32
+          default: 0
+        likes:
+          type: integer
+          format: int32
+          default: 0
+        total_komentar:
+          type: integer
+          format: int32
+          default: 0
+        harga_kategori_barang:
+          type: integer
+          format: int32
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    KategoriBarang:
+      type: object
+      required:
+        - nama_kategori_barang
+        - stok_kategori_barang
+        - harga_kategori_barang
+        - sku_kategori
+      properties:
+        id_kategori_barang:
+          type: integer
+          format: int64
+        id_seller_kategori_barang:
+          type: integer
+          format: int32
+        id_barang_induk_kategori:
+          type: integer
+          format: int32
+        id_alamat_gudang_kategori_barang:
+          type: integer
+          format: int64
+        id_rekening_kategori_barang:
+          type: integer
+          format: int64
+        nama_kategori_barang:
+          type: string
+          maxLength: 120
+          example: "Varian RAM 16GB"
+        deskripsi_kategori_barang:
+          type: string
+          example: "Laptop dengan RAM 16GB"
+        warna_kategori_barang:
+          type: string
+          maxLength: 50
+          example: "Black"
+        stok_kategori_barang:
+          type: integer
+          format: int32
+          example: 100
+        harga_kategori_barang:
+          type: integer
+          format: int32
+          example: 15000000
+        berat_gram_kategori_barang:
+          type: integer
+          format: int16
+          example: 2500
+        dimensi_panjang_cm_kategori_barang:
+          type: integer
+          format: int16
+          example: 40
+        dimensi_tinggi_cm_kategori_barang:
+          type: integer
+          format: int16
+          example: 30
+        sku_kategori:
+          type: string
+          maxLength: 20
+          example: "LAP-ROG-16GB"
+        is_original_kategori_barang:
+          type: boolean
+          default: false
+
+    PayloadMasukanBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - data_barang_induk
+        - data_kategori_barang_induk
+        - id_alamat_gudang
+        - id_rekening
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        data_barang_induk:
+          $ref: '#/components/schemas/BarangInduk'
+        data_kategori_barang_induk:
+          type: array
+          items:
+            $ref: '#/components/schemas/KategoriBarang'
+        id_alamat_gudang:
+          type: integer
+          format: int64
+          example: 1
+        id_rekening:
+          type: integer
+          format: int64
+          example: 1
+
+    PayloadEditBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - nama_barang
+        - jenis_barang
+        - deskripsi
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int64
+          example: 1
+        nama_barang:
+          type: string
+          example: "Laptop Gaming ROG Updated"
+        jenis_barang:
+          type: string
+          example: "Elektronik"
+        deskripsi:
+          type: string
+          example: "Deskripsi updated"
+
+    PayloadHapusBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int64
+          example: 1
+
+    PayloadTambahKategori:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk_tambah_kategori
+        - tambah_kategori_barang
+        - id_alamat_gudang
+        - id_rekening
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk_tambah_kategori:
+          type: integer
+          format: int32
+          example: 1
+        tambah_kategori_barang:
+          type: array
+          items:
+            $ref: '#/components/schemas/KategoriBarang'
+        id_alamat_gudang:
+          type: integer
+          format: int64
+          example: 1
+        id_rekening:
+          type: integer
+          format: int64
+          example: 1
+
+    PayloadEditKategori:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk_edit_kategori
+        - id_kategori_barang
+        - nama
+        - deskripsi
+        - warna
+        - dimensi_panjang
+        - dimensi_lebar
+        - sku
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk_edit_kategori:
+          type: integer
+          format: int32
+          example: 1
+        id_kategori_barang:
+          type: integer
+          format: int64
+          example: 1
+        nama:
+          type: string
+          example: "Varian RAM 32GB"
+        deskripsi:
+          type: string
+          example: "Updated description"
+        warna:
+          type: string
+          example: "Silver"
+        dimensi_panjang:
+          type: integer
+          format: int16
+          example: 45
+        dimensi_lebar:
+          type: integer
+          format: int16
+          example: 35
+        sku:
+          type: string
+          example: "LAP-ROG-32GB"
+
+    PayloadHapusKategori:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - id_kategori_barang
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int32
+          example: 1
+        id_kategori_barang:
+          type: integer
+          format: int64
+          example: 1
+
+    PayloadEditStokKategoriBarang:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - id_kategori
+        - update_stok
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int32
+          example: 1
+        id_kategori:
+          type: integer
+          format: int64
+          example: 1
+        update_stok:
+          type: integer
+          format: int64
+          example: 150
+
+    PayloadDownBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk_down
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk_down:
+          type: integer
+          format: int32
+          example: 1
+
+    PayloadDownKategoriBarang:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - id_kategori_barang
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int32
+          example: 1
+        id_kategori_barang:
+          type: integer
+          format: int64
+          example: 1
+
+    PayloadEditRekeningBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - id_rekening_seller
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int32
+          example: 1
+        id_rekening_seller:
+          type: integer
+          format: int64
+          example: 2
+
+    PayloadEditAlamatBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - id_alamat_gudang
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int32
+          example: 1
+        id_alamat_gudang:
+          type: integer
+          format: int64
+          example: 2
+
+    PayloadEditAlamatBarangKategori:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk
+        - id_kategori_barang
+        - id_alamat_gudang
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk:
+          type: integer
+          format: int32
+          example: 1
+        id_kategori_barang:
+          type: integer
+          format: int64
+          example: 1
+        id_alamat_gudang:
+          type: integer
+          format: int64
+          example: 2
+
+    PayloadMasukanKomentarBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk_masukan_komentar
+        - komentar_masukan_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk_masukan_komentar:
+          type: integer
+          format: int32
+          example: 1
+        komentar_masukan_komentar:
+          type: string
+          example: "Barang ini sangat bagus"
+
+    PayloadEditKomentarBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_komentar_edit_komentar
+        - komentar_edit_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_komentar_edit_komentar:
+          type: integer
+          format: int64
+          example: 1
+        komentar_edit_komentar:
+          type: string
+          example: "Komentar yang sudah diedit"
+
+    PayloadHapusKomentarBarangInduk:
+      type: object
+      required:
+        - identitas_seller
+        - id_komentar_hapus_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_komentar_hapus_komentar:
+          type: integer
+          format: int64
+          example: 1
+
+    PayloadMasukanChildKomentar:
+      type: object
+      required:
+        - identitas_seller
+        - id_komentar_masukan_komentar
+        - id_barang_induk_child_komentar
+        - komentar_masukan_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_komentar_masukan_komentar:
+          type: integer
+          format: int64
+          example: 1
+        id_barang_induk_child_komentar:
+          type: integer
+          format: int32
+          example: 1
+        komentar_masukan_komentar:
+          type: string
+          example: "Balasan komentar"
+
+    PayloadMentionChildKomentar:
+      type: object
+      required:
+        - identitas_seller
+        - id_barang_induk_child_komentar
+        - id_komentar_child_komentar
+        - username_mention_komentar
+        - komentar_mention_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_barang_induk_child_komentar:
+          type: integer
+          format: int32
+          example: 1
+        id_komentar_child_komentar:
+          type: integer
+          format: int64
+          example: 1
+        username_mention_komentar:
+          type: string
+          example: "@user123"
+        komentar_mention_komentar:
+          type: string
+          example: "@user123 terima kasih atas komentarnya"
+
+    PayloadEditChildKomentar:
+      type: object
+      required:
+        - identitas_seller
+        - id_child_komentar
+        - komentar_child_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_child_komentar:
+          type: integer
+          format: int64
+          example: 1
+        komentar_child_komentar:
+          type: string
+          example: "Balasan komentar yang sudah diedit"
+
+    PayloadHapusChildKomentar:
+      type: object
+      required:
+        - identitas_seller
+        - id_child_komentar
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_child_komentar:
+          type: integer
+          format: int64
+          example: 1

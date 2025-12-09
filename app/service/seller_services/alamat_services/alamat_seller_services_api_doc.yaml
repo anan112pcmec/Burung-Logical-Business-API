@@ -1,0 +1,390 @@
+openapi: 3.0.3
+info:
+  title: Alamat Seller API
+  description: API untuk mengelola alamat gudang seller
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Development Server
+
+tags:
+  - name: Alamat Gudang
+    description: Endpoint untuk mengelola alamat gudang seller
+
+paths:
+  /seller/alamat/tambah-alamat-gudang:
+    post:
+      tags:
+        - Alamat Gudang
+      summary: Tambah alamat gudang baru
+      description: Menambahkan alamat gudang baru untuk seller
+      operationId: tambahAlamatGudang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadTambahAlamatGudang'
+            example:
+              identitas_seller:
+                id_seller: 12345
+                username_seller: "seller_username"
+                email_seller: "seller@example.com"
+              panggilan_alamat: "Gudang Utama"
+              nomor_telefon: "+628123456789"
+              nama_alamat: "Jl. Raya Industri No. 123"
+              provinsi: "Jawa Barat"
+              kota: "Bandung"
+              kode_pos: "40123"
+              kode_negara: "ID"
+              deskripsi: "Gudang utama di kawasan industri"
+              longitude: 107.6191
+              latitutde: -6.9175
+      responses:
+        '200':
+          description: Alamat gudang berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+              example:
+                status: 200
+                service: "Tambah Alamat Gudang"
+                pesan: "Alamat gudang berhasil ditambahkan"
+                response_payload:
+                  id_alamat_gudang: 1
+                  panggilan_alamat: "Gudang Utama"
+        '400':
+          description: Bad Request - Data tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+              example:
+                status: 400
+                service: "Tambah Alamat Gudang"
+                pesan: "Data tidak valid"
+                response_payload: null
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/alamat/edit-alamat-Gudang:
+    patch:
+      tags:
+        - Alamat Gudang
+      summary: Edit alamat gudang
+      description: Mengubah data alamat gudang yang sudah ada
+      operationId: editAlamatGudang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadEditAlamatGudang'
+            example:
+              identitas_seller:
+                id_seller: 12345
+                username_seller: "seller_username"
+                email_seller: "seller@example.com"
+              id_alamat_gudang: 1
+              panggilan_alamat: "Gudang Utama (Updated)"
+              nomor_telefon: "+628123456789"
+              nama_alamat: "Jl. Raya Industri No. 123 Blok A"
+              provinsi: "Jawa Barat"
+              kota: "Bandung"
+              kode_pos: "40123"
+              kode_negara: "ID"
+              deskripsi: "Gudang utama di kawasan industri - diperbarui"
+              longitude: 107.6191
+              latitutde: -6.9175
+      responses:
+        '200':
+          description: Alamat gudang berhasil diupdate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+              example:
+                status: 200
+                service: "Edit Alamat Gudang"
+                pesan: "Alamat gudang berhasil diupdate"
+                response_payload:
+                  id_alamat_gudang: 1
+                  updated: true
+        '400':
+          description: Bad Request - Data tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Not Found - Alamat gudang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+              example:
+                status: 404
+                service: "Edit Alamat Gudang"
+                pesan: "Alamat gudang tidak ditemukan"
+                response_payload: null
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+  /seller/alamat/hapus-alamat-gudang:
+    delete:
+      tags:
+        - Alamat Gudang
+      summary: Hapus alamat gudang
+      description: Menghapus alamat gudang berdasarkan ID
+      operationId: hapusAlamatGudang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadHapusAlamatGudang'
+            example:
+              identitas_seller:
+                id_seller: 12345
+                username_seller: "seller_username"
+                email_seller: "seller@example.com"
+              id_hapus_alamat_gudang: 1
+      responses:
+        '200':
+          description: Alamat gudang berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+              example:
+                status: 200
+                service: "Hapus Alamat Gudang"
+                pesan: "Alamat gudang berhasil dihapus"
+                response_payload:
+                  id_alamat_gudang: 1
+                  deleted: true
+        '400':
+          description: Bad Request - Data tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+        '404':
+          description: Not Found - Alamat gudang tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+              example:
+                status: 404
+                service: "Hapus Alamat Gudang"
+                pesan: "Alamat gudang tidak ditemukan"
+                response_payload: null
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseForm'
+
+components:
+  schemas:
+    IdentitySeller:
+      type: object
+      required:
+        - id_seller
+        - username_seller
+        - email_seller
+      properties:
+        id_seller:
+          type: integer
+          format: int32
+          description: ID unik seller
+          example: 12345
+        username_seller:
+          type: string
+          description: Username seller
+          example: "seller_username"
+        email_seller:
+          type: string
+          format: email
+          description: Email seller
+          example: "seller@example.com"
+
+    ResponseForm:
+      type: object
+      required:
+        - status
+        - service
+        - pesan
+        - response_payload
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+          example: 200
+        service:
+          type: string
+          description: Nama service yang dipanggil
+          example: "Tambah Alamat Gudang"
+        pesan:
+          type: string
+          description: Pesan response
+          example: "Operasi berhasil"
+        response_payload:
+          description: Data payload response
+          nullable: true
+
+    PayloadTambahAlamatGudang:
+      type: object
+      required:
+        - identitas_seller
+        - panggilan_alamat
+        - nomor_telefon
+        - nama_alamat
+        - provinsi
+        - kota
+        - kode_pos
+        - kode_negara
+        - deskripsi
+        - longitude
+        - latitutde
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        panggilan_alamat:
+          type: string
+          description: Nama panggilan untuk alamat (label)
+          example: "Gudang Utama"
+        nomor_telefon:
+          type: string
+          description: Nomor telefon gudang
+          example: "+628123456789"
+        nama_alamat:
+          type: string
+          description: Alamat lengkap
+          example: "Jl. Raya Industri No. 123"
+        provinsi:
+          type: string
+          description: Nama provinsi
+          example: "Jawa Barat"
+        kota:
+          type: string
+          description: Nama kota
+          example: "Bandung"
+        kode_pos:
+          type: string
+          description: Kode pos
+          example: "40123"
+        kode_negara:
+          type: string
+          description: Kode negara (ISO)
+          example: "ID"
+        deskripsi:
+          type: string
+          description: Deskripsi tambahan alamat
+          example: "Gudang di kawasan industri"
+        longitude:
+          type: number
+          format: double
+          description: Koordinat longitude
+          example: 107.6191
+        latitutde:
+          type: number
+          format: double
+          description: Koordinat latitude
+          example: -6.9175
+
+    PayloadEditAlamatGudang:
+      type: object
+      required:
+        - identitas_seller
+        - id_alamat_gudang
+        - panggilan_alamat
+        - nomor_telefon
+        - nama_alamat
+        - provinsi
+        - kota
+        - kode_pos
+        - kode_negara
+        - deskripsi
+        - longitude
+        - latitutde
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_alamat_gudang:
+          type: integer
+          format: int64
+          description: ID alamat gudang yang akan diedit
+          example: 1
+        panggilan_alamat:
+          type: string
+          description: Nama panggilan untuk alamat (label)
+          example: "Gudang Utama"
+        nomor_telefon:
+          type: string
+          description: Nomor telefon gudang
+          example: "+628123456789"
+        nama_alamat:
+          type: string
+          description: Alamat lengkap
+          example: "Jl. Raya Industri No. 123"
+        provinsi:
+          type: string
+          description: Nama provinsi
+          example: "Jawa Barat"
+        kota:
+          type: string
+          description: Nama kota
+          example: "Bandung"
+        kode_pos:
+          type: string
+          description: Kode pos
+          example: "40123"
+        kode_negara:
+          type: string
+          description: Kode negara (ISO)
+          example: "ID"
+        deskripsi:
+          type: string
+          description: Deskripsi tambahan alamat
+          example: "Gudang di kawasan industri"
+        longitude:
+          type: number
+          format: double
+          description: Koordinat longitude
+          example: 107.6191
+        latitutde:
+          type: number
+          format: double
+          description: Koordinat latitude
+          example: -6.9175
+
+    PayloadHapusAlamatGudang:
+      type: object
+      required:
+        - identitas_seller
+        - id_hapus_alamat_gudang
+      properties:
+        identitas_seller:
+          $ref: '#/components/schemas/IdentitySeller'
+        id_hapus_alamat_gudang:
+          type: integer
+          format: int64
+          description: ID alamat gudang yang akan dihapus
+          example: 1

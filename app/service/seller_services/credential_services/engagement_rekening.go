@@ -11,7 +11,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/nama_bank"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/credential_services/response_credential_seller"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,9 +26,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseTambahRekeningSeller{
-				Message: "Gagal Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -58,9 +55,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
 			Services: services,
-			Payload: response_credential_seller.ResponseTambahRekeningSeller{
-				Message: "Data rekening tersebut sudah ada dan tercatat di akun Anda.",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -68,9 +63,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_seller.ResponseTambahRekeningSeller{
-				Message: "Gagal kamu sudah memiliki rekening serupa",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -88,9 +81,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseTambahRekeningSeller{
-				Message: "Gagal memproses data rekening.",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -113,18 +104,14 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseTambahRekeningSeller{
-				Message: "Gagal, server sedang sibuk. Coba lagi lain waktu.",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_seller.ResponseTambahRekeningSeller{
-			Message: "Rekening berhasil ditambahkan.",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -140,9 +127,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal Data seller tidak valid",
-			},
+			Message:  "Gagal Data seller tidak valid",
 		}
 	}
 
@@ -162,9 +147,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Data seller tidak valid",
 		}
 	}
 
@@ -172,9 +155,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal data rekening tidak valid",
-			},
+			Message:  "Gagal Data seller tidak valid",
 		}
 	}
 
@@ -188,18 +169,14 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Data seller tidak valid",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_seller.ResponseEditRekeningSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -215,9 +192,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal Data seller tidak valid",
-			},
+			Message:  "Gagal Data seller tidak valid",
 		}
 	}
 
@@ -229,9 +204,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -239,9 +212,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseEditRekeningSeller{
-				Message: "Gagal data rekening tidak valid",
-			},
+			Message:  "Gagal data rekening tidak valid",
 		}
 	}
 
@@ -265,18 +236,14 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseSetDefaultRekeningSeller{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_seller.ResponseSetDefaultRekeningSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -293,9 +260,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseHapusRekeningSeller{
-				Message: "Gagal, kredensial seller tidak valid",
-			},
+			Message:  "Gagal, kredensial seller tidak valid",
 		}
 	}
 
@@ -313,9 +278,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseHapusRekeningSeller{
-				Message: "Gagal, server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -323,9 +286,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponseHapusRekeningSeller{
-				Message: "Gagal, data rekening tidak valid",
-			},
+			Message:  "Gagal, data rekening tidak valid",
 		}
 	}
 
@@ -339,9 +300,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseHapusRekeningSeller{
-				Message: "Gagal, server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -350,8 +309,6 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_seller.ResponseHapusRekeningSeller{
-			Message: "Rekening berhasil dihapus.",
-		},
+		Message:  "Rekening berhasil dihapus.",
 	}
 }

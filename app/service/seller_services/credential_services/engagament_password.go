@@ -15,7 +15,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
-	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/credential_services/response_credential_seller"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +30,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponsePreUbahPasswordSeller{
-				Message: "Gagal Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -42,9 +39,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_seller.ResponsePreUbahPasswordSeller{
-				Message: "Password lama yang dimasukkan salah.",
-			},
+			Message:  "Password lama yang dimasukkan salah.",
 		}
 	}
 
@@ -54,9 +49,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponsePreUbahPasswordSeller{
-				Message: "Terjadi kesalahan pada server saat mengenkripsi password.",
-			},
+			Message:  "Terjadi kesalahan pada server saat mengenkripsi password.",
 		}
 	}
 
@@ -67,9 +60,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_credential_seller.ResponsePreUbahPasswordSeller{
-				Message: "Gagal data tidak valid coba hubungi cs",
-			},
+			Message:  "Gagal data tidak valid coba hubungi cs",
 		}
 	}
 
@@ -98,9 +89,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponsePreUbahPasswordSeller{
-				Message: "Gagal menyimpan data OTP. Coba lagi nanti.",
-			},
+			Message:  "Gagal menyimpan data OTP. Coba lagi nanti.",
 		}
 	}
 
@@ -110,9 +99,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_seller.ResponsePreUbahPasswordSeller{
-			Message: "Kode OTP telah dikirim ke email Anda. Silakan cek email untuk melanjutkan proses ubah password.",
-		},
+		Message:  "Kode OTP telah dikirim ke email Anda. Silakan cek email untuk melanjutkan proses ubah password.",
 	}
 }
 
@@ -129,9 +116,7 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
-			Payload: response_credential_seller.ResponseValidateUbahPasswordSeller{
-				Message: "OTP tidak ditemukan.",
-			},
+			Message:  "OTP tidak ditemukan.",
 		}
 	}
 
@@ -145,9 +130,7 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_seller.ResponseValidateUbahPasswordSeller{
-				Message: "OTP tidak valid atau sudah kadaluarsa.",
-			},
+			Message:  "OTP tidak valid atau sudah kadaluarsa.",
 		}
 	}
 
@@ -162,9 +145,7 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_seller.ResponseValidateUbahPasswordSeller{
-				Message: "Terjadi kesalahan pada server saat mengubah password.",
-			},
+			Message:  "Terjadi kesalahan pada server saat mengubah password.",
 		}
 	}
 
@@ -172,8 +153,6 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_seller.ResponseValidateUbahPasswordSeller{
-			Message: "Password berhasil diubah.",
-		},
+		Message:  "Password berhasil diubah.",
 	}
 }

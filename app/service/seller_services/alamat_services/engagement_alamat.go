@@ -11,8 +11,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	response_alamat_services_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/alamat_services/response_alamat_service_seller"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +29,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseTambahAlamatGudang{
-				Message: "Kredensial seller tidak valid.",
-			},
+			Message:  "Kredensial seller tidak valid.",
 		}
 	}
 
@@ -61,9 +57,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseTambahAlamatGudang{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -71,9 +65,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseTambahAlamatGudang{
-				Message: "Gagal Kamu sudah memiliki alamat dengan nama yang sama",
-			},
+			Message:  "Gagal Kamu sudah memiliki alamat dengan nama yang sama",
 		}
 	}
 
@@ -95,17 +87,13 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseTambahAlamatGudang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_alamat_services_seller.ResponseTambahAlamatGudang{
-			Message: "Alamat gudang berhasil ditambahkan.",
-		},
+		Message:  "Alamat gudang berhasil ditambahkan.",
 	}
 }
 
@@ -124,9 +112,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseEditAlamatGudang{
-				Message: "Kredensial seller tidak valid.",
-			},
+			Message:  "Kredensial seller tidak valid.",
 		}
 	}
 
@@ -154,9 +140,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseEditAlamatGudang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -164,9 +148,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseEditAlamatGudang{
-				Message: "Gagal Data alamat tidak valid",
-			},
+			Message:  "Gagal Data alamat tidak valid",
 		}
 	}
 
@@ -214,9 +196,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseEditAlamatGudang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -224,9 +204,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_alamat_services_seller.ResponseEditAlamatGudang{
-			Message: "Alamat gudang berhasil diubah.",
-		},
+		Message:  "Alamat gudang berhasil diubah.",
 	}
 }
 
@@ -245,9 +223,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-				Message: "Kredensial seller tidak valid.",
-			},
+			Message:  "Kredensial seller tidak valid.",
 		}
 	}
 
@@ -260,9 +236,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -270,9 +244,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-				Message: "Gagal masukan data alamat tidak valid",
-			},
+			Message:  "Gagal masukan data alamat tidak valid",
 		}
 	}
 
@@ -283,9 +255,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -293,9 +263,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-				Message: "Gagal kamu tidak bisa menghapus alamat ini karna masih digunakan oleh beberapa barangmu alihkan terlebih dahulu",
-			},
+			Message:  "Gagal kamu tidak bisa menghapus alamat ini karna masih digunakan oleh beberapa barangmu alihkan terlebih dahulu",
 		}
 	}
 
@@ -331,16 +299,12 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-				Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-			},
+			Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 		}
 	}
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_alamat_services_seller.ResponseHapusAlamatGudang{
-			Message: "Alamat gudang berhasil dihapus.",
-		},
+		Message:  "Alamat gudang berhasil dihapus.",
 	}
 }

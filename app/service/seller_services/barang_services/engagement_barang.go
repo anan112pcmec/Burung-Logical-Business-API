@@ -14,8 +14,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/seller_dedication"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	response_seller_barang_service "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/barang_services/response_barang_service"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,9 +28,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanBarangInduk{
-				Message: "Gagal memasukkan barang karena kredensial seller tidak valid",
-			},
+			Message:  "Gagal memasukkan barang karena kredensial seller tidak valid",
 		}
 	}
 
@@ -56,9 +52,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanBarangInduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -67,7 +61,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
 			Services: services,
-			Payload:  "Gagal: Nama barang sudah terdaftar untuk seller ini",
+			Message:  "Gagal: Nama barang sudah terdaftar untuk seller ini",
 		}
 	}
 
@@ -83,8 +77,9 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 
 	if !success || harga_original <= 0 {
 		return &response.ResponseForm{
-			Status:  http.StatusBadRequest,
-			Payload: "Harga original tidak boleh 0",
+			Status:   http.StatusBadRequest,
+			Services: services,
+			Message:  "Harga original tidak boleh 0",
 		}
 	}
 
@@ -165,18 +160,14 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanBarangInduk{
-				Message: "Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseMasukanBarangInduk{
-			Message: "Barang berhasil ditambahkan.",
-		},
+		Message:  "Barang berhasil ditambahkan.",
 	}
 }
 
@@ -192,9 +183,7 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditBarangInduk{
-				Message: "Gagal: Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal: Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -206,9 +195,7 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditBarangInduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -216,9 +203,7 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditBarangInduk{
-				Message: "Gagal data barang tidak valid",
-			},
+			Message:  "Gagal data barang tidak valid",
 		}
 	}
 
@@ -232,18 +217,14 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditBarangInduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditBarangInduk{
-			Message: "Barang Berhasil Diubah.",
-		},
+		Message:  "Barang Berhasil Diubah.",
 	}
 }
 
@@ -261,9 +242,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusBarangInduk{
-				Message: "Gagal: Kredensial seller tidak valid",
-			},
+			Message:  "Gagal: Kredensial seller tidak valid",
 		}
 	}
 
@@ -275,9 +254,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusBarangInduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -285,9 +262,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusBarangInduk{
-				Message: "Gagal data barang tidak valid",
-			},
+			Message:  "Gagal data barang tidak valid",
 		}
 	}
 
@@ -299,7 +274,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload:  "Terjadi kesalahan pada database",
+			Message:  "Terjadi kesalahan pada database",
 		}
 	}
 
@@ -308,9 +283,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusBarangInduk{
-				Message: fmt.Sprintf("Masih ada %d varian dalam transaksi"),
-			},
+			Message:  "Masih ada varian dalam transaksi",
 		}
 	}
 
@@ -342,18 +315,14 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusBarangInduk{
-				Message: "Gagal menghapus barang.",
-			},
+			Message:  "Gagal menghapus barang.",
 		}
 	}
 	// Kembalikan respons sukses
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseHapusBarangInduk{
-			Message: "Barang berhasil dihapus.",
-		},
+		Message:  "Barang berhasil dihapus.",
 	}
 }
 
@@ -370,9 +339,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal: kredensial seller tidak valid",
-			},
+			Message:  "Gagal: kredensial seller tidak valid",
 		}
 	}
 
@@ -385,9 +352,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -395,9 +360,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal data barang tidak valid",
-			},
+			Message:  "Gagal data barang tidak valid",
 		}
 	}
 
@@ -409,9 +372,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -419,9 +380,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal data Alamat Tidak Valid",
-			},
+			Message:  "Gagal data Alamat Tidak Valid",
 		}
 	}
 
@@ -433,9 +392,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -443,9 +400,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal Data Rekening Tidak Valid",
-			},
+			Message:  "Gagal Data Rekening Tidak Valid",
 		}
 	}
 
@@ -527,9 +482,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseTambahKategori{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -539,9 +492,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseTambahKategori{
-			Message: "Kategori barang berhasil ditambahkan (async-safe).",
-		},
+		Message:  "Kategori barang berhasil ditambahkan (async-safe).",
 	}
 }
 
@@ -557,9 +508,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKategori{
-				Message: "Gagal Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -572,9 +521,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKategori{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -582,9 +529,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKategori{
-				Message: "Gagal data kategori barang tidak valid",
-			},
+			Message:  "Gagal data kategori barang tidak valid",
 		}
 	}
 
@@ -617,9 +562,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKategori{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -627,9 +570,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditKategori{
-			Message: "Kategori barang berhasil diubah.",
-		},
+		Message:  "Kategori barang berhasil diubah.",
 	}
 }
 
@@ -646,9 +587,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKategori{
-				Message: "Gagal: Kredensial seller tidak valid",
-			},
+			Message:  "Gagal: Kredensial seller tidak valid",
 		}
 	}
 
@@ -661,9 +600,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusKategori{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -671,9 +608,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusKategori{
-				Message: "Gagal data kategori barang tidak valid",
-			},
+			Message:  "Gagal data kategori barang tidak valid",
 		}
 	}
 
@@ -689,9 +624,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusKategori{
-				Message: "Gagal Kategori ini masih ada dalam transaksi yang belum selesai, Down kan dulu",
-			},
+			Message:  "Gagal Kategori ini masih ada dalam transaksi yang belum selesai, Down kan dulu",
 		}
 	}
 
@@ -713,9 +646,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusKategori{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -725,9 +656,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseHapusKategori{
-			Message: "Kategori barang berhasil dihapus (soft delete manual).",
-		},
+		Message:  "Kategori barang berhasil dihapus (soft delete manual).",
 	}
 }
 
@@ -742,9 +671,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditStokBarang{
-				Message: "Gagal: kredensial seller tidak valid",
-			},
+			Message:  "Gagal: kredensial seller tidak valid",
 		}
 	}
 
@@ -757,9 +684,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditStokBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -767,9 +692,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditStokBarang{
-				Message: "Gagal data kategori barang tidak ditemukan",
-			},
+			Message:  "Gagal data kategori barang tidak ditemukan",
 		}
 	}
 
@@ -780,9 +703,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditStokBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -806,9 +727,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditStokBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -817,9 +736,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		return &response.ResponseForm{
 			Status:   http.StatusNotModified,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditStokBarang{
-				Message: "Gagal Stok nya sama saja",
-			},
+			Message:  "Gagal Stok nya sama saja",
 		}
 	}
 
@@ -843,9 +760,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
-				Payload: response_seller_barang_service.ResponseEditStokBarang{
-					Message: "Gagal server sedang sibuk coba lagi lain waktu",
-				},
+				Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 			}
 		}
 
@@ -859,9 +774,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
-				Payload: response_seller_barang_service.ResponseEditStokBarang{
-					Message: "Gagal server sedang sibuk coba lagi lain waktu",
-				},
+				Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 			}
 		}
 		var buat_varian_baru []models.VarianBarang
@@ -890,9 +803,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
-				Payload: response_seller_barang_service.ResponseEditStokBarang{
-					Message: "Gagal server sedang sibuk coba lagi lain waktu",
-				},
+				Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 			}
 		}
 	}
@@ -900,9 +811,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditStokBarang{
-			Message: "Proses update stok sedang berjalan",
-		},
+		Message:  "Proses update stok sedang berjalan",
 	}
 }
 
@@ -913,9 +822,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownBarang{
-				Message: "Gagal Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -927,9 +834,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -937,9 +842,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownBarang{
-				Message: "Gagal data Barang Induk Tidak Valid",
-			},
+			Message:  "Gagal data Barang Induk Tidak Valid",
 		}
 	}
 
@@ -963,9 +866,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -973,9 +874,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseDownBarang{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -986,9 +885,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownBarang{
-				Message: "Gagal Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -1001,9 +898,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownKategori{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1011,9 +906,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownKategori{
-				Message: "Gagal data kategori barang tidak valid",
-			},
+			Message:  "Gagal data kategori barang tidak valid",
 		}
 	}
 
@@ -1032,9 +925,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseDownKategori{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1042,9 +933,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseDownKategori{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1055,9 +944,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-				Message: "Gagal Kredensial Seller Tidak Valid",
-			},
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -1069,9 +956,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-				Message: "Gagal Server sedang dibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang dibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1079,9 +964,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-				Message: "Gagal data rekening tidak valid",
-			},
+			Message:  "Gagal data rekening tidak valid",
 		}
 	}
 
@@ -1093,9 +976,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1103,9 +984,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-				Message: "Gagal Barang tidak ditemukan",
-			},
+			Message:  "Gagal Barang tidak ditemukan",
 		}
 	}
 
@@ -1116,18 +995,14 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditRekeningBarangInduk{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1141,9 +1016,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-				Message: "Gagal, kredensial seller tidak valid.",
-			},
+			Message:  "Gagal, kredensial seller tidak valid.",
 		}
 	}
 
@@ -1156,9 +1029,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-				Message: "Gagal Server sedang sibuk coba lagi nanti",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi nanti",
 		}
 	}
 
@@ -1167,9 +1038,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-				Message: "Gagal, barang induk tidak ditemukan atau kredensial seller tidak valid.",
-			},
+			Message:  "Gagal, barang induk tidak ditemukan atau kredensial seller tidak valid.",
 		}
 	}
 
@@ -1183,9 +1052,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-				Message: "Gagal, server sedang sibuk. Coba lagi nanti.",
-			},
+			Message:  "Gagal, server sedang sibuk. Coba lagi nanti.",
 		}
 	}
 
@@ -1193,9 +1060,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-				Message: "Gagal, kredensial alamat tidak valid.",
-			},
+			Message:  "Gagal, kredensial alamat tidak valid.",
 		}
 	}
 
@@ -1205,18 +1070,14 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-				Message: "Gagal, server sedang sibuk. Coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk. Coba lagi lain waktu",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditAlamatBarangInduk{
-			Message: "Alamat gudang berhasil diubah.",
-		},
+		Message:  "Alamat gudang berhasil diubah.",
 	}
 }
 
@@ -1230,9 +1091,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-				Message: "Gagal, kredensial seller tidak valid.",
-			},
+			Message:  "Gagal, kredensial seller tidak valid.",
 		}
 	}
 
@@ -1244,9 +1103,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1255,9 +1112,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-				Message: "Gagal, barang induk tidak ditemukan atau kredensial seller tidak valid.",
-			},
+			Message:  "Gagal, barang induk tidak ditemukan atau kredensial seller tidak valid.",
 		}
 	}
 
@@ -1271,9 +1126,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-				Message: "Gagal, server sedang sibuk. Coba lagi nanti.",
-			},
+			Message:  "Gagal, server sedang sibuk. Coba lagi nanti.",
 		}
 	}
 
@@ -1281,9 +1134,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-				Message: "Gagal, kredensial alamat tidak valid.",
-			},
+			Message:  "Gagal, kredensial alamat tidak valid.",
 		}
 	}
 
@@ -1294,18 +1145,14 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-				Message: "Gagal, server sedang sibuk. Coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk. Coba lagi lain waktu",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditAlamatBarangKategori{
-			Message: "Alamat gudang berhasil diubah.",
-		},
+		Message:  "Alamat gudang berhasil diubah.",
 	}
 }
 
@@ -1319,9 +1166,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanKomentarBarangSeller{
-				Message: "Gagal Barang Tidak Ada",
-			},
+			Message:  "Gagal Barang Tidak Ada",
 		}
 	}
 
@@ -1339,18 +1184,14 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanKomentarBarangSeller{
-				Message: "Gagal Memposting Komentar",
-			},
+			Message:  "Gagal Memposting Komentar",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseMasukanKomentarBarangSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1362,9 +1203,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKomentarBarangSeller{
-				Message: "Gagal data seller tidak valid",
-			},
+			Message:  "Gagal data seller tidak valid",
 		}
 	}
 
@@ -1376,18 +1215,14 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditKomentarBarangSeller{
-				Message: "Gagal Mengedit Komentar",
-			},
+			Message:  "Gagal Mengedit Komentar",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditKomentarBarangSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1410,18 +1245,14 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusKomentarBarangSeller{
-				Message: "Gagal Menghapus Komentar",
-			},
+			Message:  "Gagal Menghapus Komentar",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseHapusKomentarBarangSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1436,9 +1267,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanKomentarBarangSeller{
-				Message: "Gagal Barang Tidak Ada",
-			},
+			Message:  "Gagal Barang Tidak Ada",
 		}
 	}
 
@@ -1455,18 +1284,14 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanChildKomentar{
-				Message: "Gagal Mengunggah Komentar",
-			},
+			Message:  "Gagal Mengunggah Komentar",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseMasukanChildKomentar{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1482,9 +1307,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMasukanKomentarBarangSeller{
-				Message: "Gagal Barang Tidak Ada",
-			},
+			Message:  "Gagal Barang Tidak Ada",
 		}
 	}
 
@@ -1503,18 +1326,14 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseMentionChildKomentar{
-				Message: "Gagal Membalas Komentar",
-			},
+			Message:  "Gagal Membalas Komentar",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseMentionChildKomentar{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1529,18 +1348,14 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseEditChildKomentar{
-				Message: "Gagal Mengedit Komentar",
-			},
+			Message:  "Gagal Mengedit Komentar",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseEditChildKomentar{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -1554,16 +1369,12 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_seller_barang_service.ResponseHapusChildKomentar{
-				Message: "Gagal Menghapus Komentar",
-			},
+			Message:  "Gagal Menghapus Komentar",
 		}
 	}
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_seller_barang_service.ResponseHapusChildKomentar{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
