@@ -55,6 +55,10 @@ type MediaSellerBannerFoto struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaSellerBannerFoto) PathName() string {
+	return "media_seller_banner_foto"
+}
+
 func (MediaSellerBannerFoto) TableName() string {
 	return "media_seller_banner_foto"
 }
@@ -67,6 +71,10 @@ type MediaSellerTokoFisikFoto struct {
 	Format    string         `gorm:"column:format;type:varchar(20);not null" json:"format"`
 	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+func (MediaSellerTokoFisikFoto) PathName() string {
+	return "media_seller_toko_fisik_foto"
 }
 
 func (MediaSellerTokoFisikFoto) TableName() string {
