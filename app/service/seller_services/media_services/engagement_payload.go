@@ -32,9 +32,40 @@ type PayloadTambahkanFotoTokoFisikSeller struct {
 }
 
 type PayloadHapusFotoTokoFisikSeller struct {
-	IdentitasSeller          identity_seller.IdentitySeller `json:"identitas_seller"`
-	IdDataMediaFotoTokoFisik []struct {
-		IdMedia  int64  `json:"id_media"`
+	IdentitasSeller        identity_seller.IdentitySeller `json:"identitas_seller"`
+	DataMediaFotoTokoFisik []struct {
+		IdMedia  int64  `json:"id_media_seller_fisik_toko"`
 		KeyMedia string `json:"key"`
-	} `json:"id_data_media_dan_key"`
+	} `json:"data_media_dan_key"`
+}
+
+type PayloadUbahFotoEtalase struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdEtalase       int64                          `json:"id_etalase"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusFotoEtalase struct {
+	IdentitasSeller    identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdMediaEtalaseFoto int64                          `json:"id_media_etalase_foto"`
+	KeyFoto            string                         `json:"key_foto"`
+}
+
+type PayloadTambahBarangIndukFoto struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBarangInduk   int32                          `json:"id_barang_induk"`
+	Ekstensi        []string                       `json:"ekstensi"`
+}
+
+type PayloadHapusBarangIndukFoto struct {
+	IdentitasSeller          identity_seller.IdentitySeller `json:"identitas_seller"`
+	DataMediaBarangIndukFoto []struct {
+		IdMedia  int64  `json:"id_media_barang_induk_foto"`
+		KeyMedia string `json:"key"`
+	} `json:"data_media_dan_key"`
+}
+
+type PayloadUbahVideoBarangInduk struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	Ekstensi        string                         `json:"ekstensi"`
 }

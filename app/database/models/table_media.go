@@ -56,7 +56,7 @@ type MediaSellerBannerFoto struct {
 }
 
 func (MediaSellerBannerFoto) PathName() string {
-	return "media_seller_banner_foto"
+	return "/media_seller_banner_foto/"
 }
 
 func (MediaSellerBannerFoto) TableName() string {
@@ -74,7 +74,7 @@ type MediaSellerTokoFisikFoto struct {
 }
 
 func (MediaSellerTokoFisikFoto) PathName() string {
-	return "media_seller_toko_fisik_foto"
+	return "/media_seller_toko_fisik_foto/"
 }
 
 func (MediaSellerTokoFisikFoto) TableName() string {
@@ -92,6 +92,10 @@ type MediaKurirProfilFoto struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaKurirProfilFoto) PathName() string {
+	return "/media_kurir_profil_foto/"
+}
+
 func (MediaKurirProfilFoto) TableName() string {
 	return "media_kurir_profil_foto"
 }
@@ -107,6 +111,10 @@ type MediaEtalaseFoto struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaEtalaseFoto) PathName() string {
+	return "/media_etalase_foto/"
+}
+
 func (MediaEtalaseFoto) TableName() string {
 	return "media_etalase_foto"
 }
@@ -119,6 +127,10 @@ type MediaBarangIndukFoto struct {
 	Format        string         `gorm:"column:format;type:varchar(20);not null" json:"format"`
 	CreatedAt     time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+func (MediaBarangIndukFoto) PathName() string {
+	return "/media_barang_induk_foto/"
 }
 
 func (MediaBarangIndukFoto) TableName() string {
