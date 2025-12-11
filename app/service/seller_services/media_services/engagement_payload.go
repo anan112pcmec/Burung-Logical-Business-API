@@ -2,6 +2,7 @@ package seller_media_services
 
 import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/identity_seller"
+
 )
 
 type PayloadUbahFotoProfilSeller struct {
@@ -67,5 +68,77 @@ type PayloadHapusBarangIndukFoto struct {
 
 type PayloadUbahVideoBarangInduk struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBarangInduk   int64                          `json:"id_barang_induk"`
 	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusVideoBarangInduk struct {
+	IdentitasSeller         identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdMediaBarangIndukVideo int64                          `json:"id_media_barang_induk_video"`
+	KeyFoto                 string                         `json:"key_foto"`
+}
+
+type PayloadUbahKategoriBarangFoto struct {
+	IdentitasSeller  identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBarangInduk    int64                          `json:"id_barang_induk"`
+	IdKategoriBarang int64                          `json:"id_kategori_barang"`
+	Ekstensi         string                         `json:"ekstensi"`
+}
+
+type PayloadHapusKategoriBarangFoto struct {
+	IdentitasSeller           identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdMediaKategoriBarangFoto int64                          `json:"id_media_kategori_barang_foto"`
+	KeyFoto                   string                         `json:"key_foto"`
+}
+
+type PayloadMediaDistributorDataDokumen struct {
+	IdentitasSeller   identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData int64                          `json:"id_distributor_data"`
+	Ekstensi          string                         `json:"ekstensi"`
+}
+
+type PayloadHapusMediaDistributorDataDokumen struct {
+	IdentitasSeller               identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData             int64                          `json:"id_distributor_data"`
+	IdMediaDistributorDataDokumen int64                          `json:"id_media_distributor_data_dokumen"`
+	KeyFoto                       string                         `json:"key_foto"`
+}
+
+type PayloadTambahMediaDistributorDataNPWPFoto struct {
+	IdentitasSeller   identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData int64                          `json:"id_distributor_data"`
+	Ekstensi          string                         `json:"ekstensi"`
+}
+
+type PayloadHapusMediaDistributorDataNPWPFoto struct {
+	IdentitasSeller                identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData              int64                          `json:"id_distributor_data"`
+	IdMediaDistributorDataNPWPFoto int64                          `json:"id_media_distributor_data_npwp_foto"`
+	KeyFoto                        string                         `json:"key_foto"`
+}
+
+type PayloadTambahDistributorDataNIBFoto struct {
+	IdentitasSeller   identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData int64                          `json:"id_distributor_data"`
+	Ekstensi          string                         `json:"ekstensi"`
+}
+
+type PayloadHapusDistributorDataNIBFoto struct {
+	IdentitasSeller               identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData             int64                          `json:"id_distributor_data"`
+	IdMediaDistributorDataNIBFoto int64                          `json:"id_media_distributor_data_nib_foto"`
+	KeyFoto                       string                         `json:"key_foto"`
+}
+
+type PayloadTambahDistributorDataSuratKerjasamaDokumen struct {
+	IdentitasSeller   identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData int64                          `json:"id_distributor_data"`
+	Ekstensi          string                         `json:"ekstensi"`
+}
+
+type PayloadHapusDistributotDataSuratKerjasamaDokumen struct {
+	IdentitasSeller                             identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdDistributorData                           int64                          `json:"id_distributor_data"`
+	IdMediaDistributorDataSuratkerjasamaDokumen int64                          `json:"id_media_distributor_data_surate_kerjasama_dokumen"`
+	KeyFoto                                     string                         `json:"key_foto"`
 }

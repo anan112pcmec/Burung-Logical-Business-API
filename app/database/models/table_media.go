@@ -148,6 +148,10 @@ type MediaBarangIndukVideo struct {
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaBarangIndukVideo) PathName() string {
+	return "/media_barang_induk_video/"
+}
+
 func (MediaBarangIndukVideo) TableName() string {
 	return "media_barang_induk_video"
 }
@@ -165,11 +169,15 @@ type MediaKategoriBarangFoto struct {
 	DeletedAt        gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaKategoriBarangFoto) PathName() string {
+	return "/media_kategori_barang_foto/"
+}
+
 func (MediaKategoriBarangFoto) TableName() string {
 	return "media_kategori_barang_foto"
 }
 
-type MediaDistributorDataDokumenFoto struct {
+type MediaDistributorDataDokumen struct {
 	ID                int64           `gorm:"primaryKey;autoIncrement" json:"id_media_ditributor_data_dokumen_foto"`
 	IdDistributorData int64           `gorm:"column:id_distributor_data;not null" json:"id_distributor_data"`
 	DistributorData   DistributorData `gorm:"foreignKey:IdDistributorData;references:ID" json:"-"`
@@ -180,8 +188,12 @@ type MediaDistributorDataDokumenFoto struct {
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-func (MediaDistributorDataDokumenFoto) TableName() string {
-	return "media_distributor_data_dokumen_foto"
+func (MediaDistributorDataDokumen) PathName() string {
+	return "/media_distributor_data_dokumen/"
+}
+
+func (MediaDistributorDataDokumen) TableName() string {
+	return "media_distributor_data_dokumen"
 }
 
 type MediaDistributorDataNPWPFoto struct {
@@ -193,6 +205,10 @@ type MediaDistributorDataNPWPFoto struct {
 	CreatedAt         time.Time       `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt         time.Time       `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+func (MediaDistributorDataNPWPFoto) PathName() string {
+	return "/media_distributor_data_npwp_foto/"
 }
 
 func (MediaDistributorDataNPWPFoto) TableName() string {
@@ -210,12 +226,16 @@ type MediaDistributorDataNIBFoto struct {
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaDistributorDataNIBFoto) PathName() string {
+	return "/media_distributor_data_nib_foto/"
+}
+
 func (MediaDistributorDataNIBFoto) TableName() string {
 	return "media_distributor_data_nib_foto"
 }
 
-type MediaDistributorDataSuratKerjasamaFoto struct {
-	ID                int64           `gorm:"primaryKey;autoIncrement" json:"id_media_ditributor_data_surat_kerjasama_foto"`
+type MediaDistributorDataSuratKerjasamaDokumen struct {
+	ID                int64           `gorm:"primaryKey;autoIncrement" json:"id_media_ditributor_data_surat_kerjasama_dokumen"`
 	IdDistributorData int64           `gorm:"column:id_distributor_data;not null" json:"id_distributor_data"`
 	DistributorData   DistributorData `gorm:"foreignKey:IdDistributorData;references:ID" json:"-"`
 	Key               string          `gorm:"column:key;type:text;not null" json:"key"`
@@ -225,8 +245,8 @@ type MediaDistributorDataSuratKerjasamaFoto struct {
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-func (MediaDistributorDataSuratKerjasamaFoto) TableName() string {
-	return "media_distributor_data_surat_kerjasama_foto"
+func (MediaDistributorDataSuratKerjasamaDokumen) TableName() string {
+	return "media_distributor_data_surat_kerjasama_dokumen"
 }
 
 type MediaBrandDataDokumenPerwakilanFoto struct {
