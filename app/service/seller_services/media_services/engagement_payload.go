@@ -2,7 +2,6 @@ package seller_media_services
 
 import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/identity_seller"
-
 )
 
 type PayloadUbahFotoProfilSeller struct {
@@ -136,9 +135,86 @@ type PayloadTambahDistributorDataSuratKerjasamaDokumen struct {
 	Ekstensi          string                         `json:"ekstensi"`
 }
 
-type PayloadHapusDistributotDataSuratKerjasamaDokumen struct {
+type PayloadHapusDistributorDataSuratKerjasamaDokumen struct {
 	IdentitasSeller                             identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdDistributorData                           int64                          `json:"id_distributor_data"`
 	IdMediaDistributorDataSuratkerjasamaDokumen int64                          `json:"id_media_distributor_data_surate_kerjasama_dokumen"`
 	KeyFoto                                     string                         `json:"key_foto"`
+}
+
+type PayloadTambahBrandDataPerwakilanDokumen struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData     int64                          `json:"id_brand_data"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusBrandDataPerwakilanDokumen struct {
+	IdentitasSeller                   identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData                       int64                          `json:"id_brand_data"`
+	IdMediaBrandDataPerwakilanDokumen int64                          `json:"id_media_brand_data_perwakilan_dokumen"`
+	KeyFoto                           string                         `json:"key_foto"`
+}
+
+type PayloadTambahBrandDataSertifikatFoto struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData     int64                          `json:"id_brand_data"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusBrandDataSertifikatFoto struct {
+	IdentitasSeller                identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData                    int64                          `json:"id_brand_data"`
+	IdMediaBrandDataSertifikatFoto int64                          `json:"id_media_brand_data_sertifikat_foto"`
+	KeyFoto                        string                         `json:"key_foto"`
+}
+
+type PayloadTambahMediaBrandDataNIBFoto struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData     int64                          `json:"id_brand_data"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusMediaBrandDataNIBFoto struct {
+	IdentitasSeller         identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData             int64                          `json:"id_brand_data"`
+	IdMediaBrandDataNIBFoto int64                          `json:"id_media_brand_data_nib_foto"`
+	KeyFoto                 string                         `json:"key_foto"`
+}
+
+type PayloadTambahMediaBrandDataNPWPFoto struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData     int64                          `json:"id_brand_data"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusMediaBrandDataNPWPFoto struct {
+	IdentitasSeller          identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData              int64                          `json:"id_brand_data"`
+	IdMediaBrandDataNPWPFoto int64                          `json:"id_media_brand_data_npwp_foto"`
+	KeyFoto                  string                         `json:"key_foto"`
+}
+
+type PayloadTambahMediaBrandDataLogoFoto struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData     int64                          `json:"id_brand_data"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusMediaBrandDataLogoFoto struct {
+	IdentitasSeller               identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData                   int64                          `json:"id_brand_data"`
+	IdMediaBrandDataLogoBrandFoto int64                          `json:"id_media_brand_data_logo_foto"`
+	KeyFoto                       string                         `json:"key_foto"`
+}
+
+type PayloadTambahBrandDataSuratKerjasamaDokumen struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData     int64                          `json:"id_brand_data"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadHapusBrandDataSuratKerjasamaDokumen struct {
+	IdentitasSeller                       identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBrandData                           int64                          `json:"id_brand_data"`
+	IdMediaBrandDataSuratKerjasamaDokumen int64                          `json:"id_media_brand_data_surat_kerjasama_dokumen"`
 }

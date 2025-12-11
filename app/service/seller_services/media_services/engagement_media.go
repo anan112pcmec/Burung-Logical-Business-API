@@ -1459,3 +1459,981 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 		Message:  "Berhasil",
 	}
 }
+
+func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahDistributorDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahDistributorDataSuratKerjasamaDokumen"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_data_distributor int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.DistributorData{}).Select("id").Where(&models.DistributorData{
+		ID:       data.IdDistributorData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_data_distributor == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_distributor_data_surat_kerjasama_dokumen int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaDistributorDataSuratKerjasamaDokumen{}).Select("id").Where(&models.MediaDistributorDataSuratKerjasamaDokumen{
+		IdDistributorData: id_data_distributor,
+	}).Limit(1).Scan(&id_media_distributor_data_surat_kerjasama_dokumen).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaDistributorDataSuratKerjasamaDokumen{}.PathName() + strconv.Itoa(int(id_data_distributor)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_distributor_data_surat_kerjasama_dokumen == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaDistributorDataSuratKerjasamaDokumen{
+			IdDistributorData: id_data_distributor,
+			Key:               keyz,
+			Format:            data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaDistributorDataSuratKerjasamaDokumen{}).Where(&models.MediaDistributorDataSuratKerjasamaDokumen{
+			ID: id_media_distributor_data_surat_kerjasama_dokumen,
+		}).Updates(&models.MediaDistributorDataSuratKerjasamaDokumen{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data PayloadHapusDistributorDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusDistributorDataSuratKerjasamaDataDokumen"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_distributor int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.DistributorData{}).Select("id").Where(&models.DistributorData{
+		ID:       data.IdDistributorData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_data_distributor == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data distributor tidak ditemukan",
+		}
+	}
+
+	var id_media_distributor_data_surat_kerjasama_dokumen int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaDistributorDataSuratKerjasamaDokumen{}).Select("id").Where(&models.MediaDistributorDataSuratKerjasamaDokumen{
+		IdDistributorData: id_data_distributor,
+	}).Limit(1).Scan(&id_media_distributor_data_surat_kerjasama_dokumen).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_media_distributor_data_surat_kerjasama_dokumen == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaDistributorDataSuratKerjasamaDokumen{}).Where(&models.MediaDistributorDataSuratKerjasamaDokumen{
+		ID: id_media_distributor_data_surat_kerjasama_dokumen,
+	}).Delete(&models.MediaDistributorDataSuratKerjasamaDokumen{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
+func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBrandDataPerwakilanDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahBrandDataPerwakilanDokumen"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if !media_ekstension.DokumenValidExt[strings.ToLower(data.Ekstensi)] {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_brand_data_perwakilan_dokumen int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataPerwakilanDokumen{}).Select("id").Where(&models.MediaBrandDataPerwakilanDokumen{
+		IdBrandData: id_data_brand,
+	}).Limit(1).Scan(&id_media_brand_data_perwakilan_dokumen).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaBrandDataPerwakilanDokumen{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketDokumenName, keyz, time.Minute*2)
+
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_perwakilan_dokumen == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaBrandDataPerwakilanDokumen{
+			IdBrandData: id_data_brand,
+			Key:         keyz,
+			Format:      data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataPerwakilanDokumen{}).Where(&models.MediaBrandDataPerwakilanDokumen{
+			ID: id_media_brand_data_perwakilan_dokumen,
+		}).Updates(&models.MediaBrandDataPerwakilanDokumen{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		UrlUpload: url.String(),
+		Key:       keyz,
+	}
+}
+
+func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapusBrandDataPerwakilanDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusMediaBrandDataPerwakilanDokumen"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data brand tidak ditemukan",
+		}
+	}
+
+	var id_media_brand_data_perwakilan_dokumen int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataPerwakilanDokumen{}).Select("id").Where(&models.MediaBrandDataPerwakilanDokumen{
+		ID:  data.IdMediaBrandDataPerwakilanDokumen,
+		Key: data.KeyFoto,
+	}).Limit(1).Scan(&id_media_brand_data_perwakilan_dokumen).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_media_brand_data_perwakilan_dokumen == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data dokumen tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataPerwakilanDokumen{}).Select("id").Where(&models.MediaBrandDataPerwakilanDokumen{
+		ID: id_media_brand_data_perwakilan_dokumen,
+	}).Delete(&models.MediaBrandDataPerwakilanDokumen{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
+func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahBrandDataSertifikatFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahMediaBrandDataSertifikatFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if !media_ekstension.PhotoValidExt[strings.ToLower(data.Ekstensi)] {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_brand_data_sertifikat_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSertifikatFoto{}).Select("id").Where(&models.MediaBrandDataSertifikatFoto{
+		IdBrandData: id_data_brand,
+	}).Limit(1).Scan(&id_media_brand_data_sertifikat_foto).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaBrandDataSertifikatFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_sertifikat_foto == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaBrandDataSertifikatFoto{
+			IdBrandData: id_data_brand,
+			Key:         keyz,
+			Format:      data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataSertifikatFoto{}).Where(&models.MediaBrandDataSertifikatFoto{
+			ID: id_media_brand_data_sertifikat_foto,
+		}).Updates(&models.MediaBrandDataSertifikatFoto{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBrandDataSertifikatFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusMediaBrandDataSertifikatFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data brand tidak ditemukan",
+		}
+	}
+
+	var id_media_brand_data_sertifikat_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSertifikatFoto{}).Select("id").Where(&models.MediaBrandDataSertifikatFoto{
+		ID: data.IdMediaBrandDataSertifikatFoto,
+	}).Limit(1).Scan(&id_media_brand_data_sertifikat_foto).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_media_brand_data_sertifikat_foto == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataSertifikatFoto{}).Where(&models.MediaBrandDataSertifikatFoto{
+		ID: id_media_brand_data_sertifikat_foto,
+	}).Delete(&models.MediaBrandDataSertifikatFoto{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
+func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBrandDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahMediaBrandDataNIBFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if !media_ekstension.PhotoValidExt[strings.ToLower(data.Ekstensi)] {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_brand_data_nib_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataNIBFoto{}).Select("id").Where(&models.MediaBrandDataNIBFoto{
+		IdBrandData: id_data_brand,
+	}).Limit(1).Scan(&id_media_brand_data_nib_foto).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaBrandDataNIBFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_nib_foto == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaBrandDataNIBFoto{
+			IdBrandData: id_data_brand,
+			Key:         keyz,
+			Format:      data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataNIBFoto{}).Where(&models.MediaBrandDataNIBFoto{
+			ID: id_media_brand_data_nib_foto,
+		}).Updates(&models.MediaBrandDataNIBFoto{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrandDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusMediaBrandDataNIBFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data brand tidak ditemukan",
+		}
+	}
+
+	var id_media_data_nib_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataNIBFoto{}).Select("id").Where(&models.MediaBrandDataNIBFoto{
+		ID:          data.IdMediaBrandDataNIBFoto,
+		IdBrandData: id_data_brand,
+		Key:         data.KeyFoto,
+	}).Limit(1).Scan(&id_media_data_nib_foto).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_media_data_nib_foto == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataNIBFoto{}).Where(&models.MediaBrandDataNIBFoto{
+		ID: id_media_data_nib_foto,
+	}).Delete(&models.MediaBrandDataNIBFoto{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
+func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahMediaBrandNPWPFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if !media_ekstension.PhotoValidExt[strings.ToLower(data.Ekstensi)] {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_brand_data_npwp_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataNPWPFoto{}).Select("id").Where(&models.MediaBrandDataNPWPFoto{
+		IdBrandData: id_data_brand,
+	}).Limit(1).Scan(&id_media_brand_data_npwp_foto).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaBrandDataNPWPFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_npwp_foto == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaBrandDataNPWPFoto{
+			IdBrandData: id_data_brand,
+			Key:         keyz,
+			Format:      data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataNPWPFoto{}).Where(&models.MediaBrandDataNPWPFoto{
+			ID: id_media_brand_data_npwp_foto,
+		}).Updates(&models.MediaBrandDataNPWPFoto{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusMediaBrandNPWPFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data brand tidak ditemukan",
+		}
+	}
+
+	var id_media_brand_data_npwp_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataNPWPFoto{}).Select("id").Where(&models.MediaBrandDataNPWPFoto{
+		ID: data.IdMediaBrandDataNPWPFoto,
+	}).Limit(1).Scan(&id_media_brand_data_npwp_foto).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_media_brand_data_npwp_foto == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataNPWPFoto{}).Where(&models.MediaBrandDataNPWPFoto{
+		ID: id_media_brand_data_npwp_foto,
+	}).Delete(&models.MediaBrandDataNPWPFoto{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
+func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBrandDataLogoFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahMediaBrandDataLogoBrandFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if !media_ekstension.PhotoValidExt[strings.ToLower(data.Ekstensi)] {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_brand_data_logo_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataLogoFoto{}).Select("id").Where(&models.MediaBrandDataLogoFoto{
+		IdBrandData: id_data_brand,
+	}).Limit(1).Scan(&id_media_brand_data_logo_foto).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_logo_foto == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaBrandDataLogoFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_logo_foto == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaBrandDataLogoFoto{
+			IdBrandData: data.IdBrandData,
+			Key:         keyz,
+			Format:      data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataLogoFoto{}).Where(&models.MediaBrandDataLogoFoto{
+			ID: id_media_brand_data_logo_foto,
+		}).Updates(&models.MediaBrandDataLogoFoto{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDataLogoFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusMediaBrandDataLogo"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data brand tidak ditemukan",
+		}
+	}
+
+	var id_media_brand_data_logo int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataLogoFoto{}).Select("id").Where(&models.MediaBrandDataLogoFoto{
+		ID:          data.IdMediaBrandDataLogoBrandFoto,
+		IdBrandData: id_data_brand,
+		Key:         data.KeyFoto,
+	}).Limit(1).Scan(&id_media_brand_data_logo).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_logo == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataLogoFoto{}).Where(&models.MediaBrandDataLogoFoto{
+		ID: id_media_brand_data_logo,
+	}).Delete(&models.MediaBrandDataLogoFoto{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
+func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahBrandDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahBrandDataSuratKerjasamaDokumen"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	if !media_ekstension.PhotoValidExt[strings.ToLower(data.Ekstensi)] {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_brand_data_surat_kerjasama_dokumen int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Select("id").Where(&models.MediaBrandDataSuratKerjasamaFoto{
+		IdBrandData: id_data_brand,
+	}).Limit(1).Scan(&id_media_brand_data_surat_kerjasama_dokumen).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaBrandDataSuratKerjasamaDokumen{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
+
+	return &response.ResponseMediaUpload{
+		Status:   http.StatusOK,
+		Services: services,
+	}
+}

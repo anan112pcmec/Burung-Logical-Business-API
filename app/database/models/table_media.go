@@ -245,20 +245,28 @@ type MediaDistributorDataSuratKerjasamaDokumen struct {
 	DeletedAt         gorm.DeletedAt  `gorm:"index" json:"deleted_at,omitempty"`
 }
 
+func (MediaDistributorDataSuratKerjasamaDokumen) PathName() string {
+	return "/media_distributor_data_surat_kerjasama_dokumen/"
+}
+
 func (MediaDistributorDataSuratKerjasamaDokumen) TableName() string {
 	return "media_distributor_data_surat_kerjasama_dokumen"
 }
 
-type MediaBrandDataDokumenPerwakilanFoto struct {
-	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_media_brand_data_dokumen_perwakilan_foto"`
+type MediaBrandDataPerwakilanDokumen struct {
+	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_media_brand_data_perwakilan_dokumen"`
 	IdBrandData int64     `gorm:"column:id_brand_data" json:"id_brand_data"`
 	BrandData   BrandData `gorm:"foreignKey:IdBrandData;references:ID" json:"-"`
 	Key         string    `gorm:"column:key;type:text;not null" json:"key"`
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
-func (MediaBrandDataDokumenPerwakilanFoto) TableName() string {
-	return "media_brand_data_dokumen_perwakilan_foto"
+func (MediaBrandDataPerwakilanDokumen) PathName() string {
+	return "/media_brand_data_perwakilan_dokumen/"
+}
+
+func (MediaBrandDataPerwakilanDokumen) TableName() string {
+	return "media_brand_data_perwakilan_dokumen"
 }
 
 type MediaBrandDataSertifikatFoto struct {
@@ -267,6 +275,10 @@ type MediaBrandDataSertifikatFoto struct {
 	BrandData   BrandData `gorm:"foreignKey:IdBrandData;references:ID" json:"-"`
 	Key         string    `gorm:"column:key;type:text;not null" json:"key"`
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
+}
+
+func (MediaBrandDataSertifikatFoto) PathName() string {
+	return "/media_brand_data_sertifikat_foto/"
 }
 
 func (MediaBrandDataSertifikatFoto) TableName() string {
@@ -281,8 +293,12 @@ type MediaBrandDataNIBFoto struct {
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaBrandDataNIBFoto) PathName() string {
+	return "/media_brand_data_nib_foto/"
+}
+
 func (MediaBrandDataNIBFoto) TableName() string {
-	return "media_brand_data_dokumen_nib_foto"
+	return "media_brand_data_nib_foto"
 }
 
 type MediaBrandDataNPWPFoto struct {
@@ -293,32 +309,44 @@ type MediaBrandDataNPWPFoto struct {
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaBrandDataNPWPFoto) PathName() string {
+	return "/media_brand_data_npwp_foto/"
+}
+
 func (MediaBrandDataNPWPFoto) TableName() string {
 	return "media_brand_data_npwp_foto"
 }
 
-type MediaBrandDataLogoBrandFoto struct {
-	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_media_brand_data_logo_brand_foto"`
+type MediaBrandDataLogoFoto struct {
+	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_media_brand_data_logo_foto"`
 	IdBrandData int64     `gorm:"column:id_brand_data" json:"id_brand_data"`
 	BrandData   BrandData `gorm:"foreignKey:IdBrandData;references:ID" json:"-"`
 	Key         string    `gorm:"column:key;type:text;not null" json:"key"`
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
-func (MediaBrandDataLogoBrandFoto) TableName() string {
-	return "media_brand_data_logo_brand_foto"
+func (MediaBrandDataLogoFoto) PathName() string {
+	return "/media_brand_data_logo_foto/"
 }
 
-type MediaBrandDataSuratKerjasamaFoto struct {
-	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_media_brand_data_surat_kerjasama_foto"`
+func (MediaBrandDataLogoFoto) TableName() string {
+	return "media_brand_data_logo_foto"
+}
+
+type MediaBrandDataSuratKerjasamaDokumen struct {
+	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_media_brand_data_surat_kerjasama_dokumen"`
 	IdBrandData int64     `gorm:"column:id_brand_data" json:"id_brand_data"`
 	BrandData   BrandData `gorm:"foreignKey:IdBrandData;references:ID" json:"-"`
 	Key         string    `gorm:"column:key;type:text;not null" json:"key"`
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
-func (MediaBrandDataSuratKerjasamaFoto) TableName() string {
-	return "media_brand_data_surat_kerjasama_foto"
+func (MediaBrandDataSuratKerjasamaDokumen) PathName() string {
+	return "/media_brand_data_surat_kerjasama_dokumen/"
+}
+
+func (MediaBrandDataSuratKerjasamaDokumen) TableName() string {
+	return "media_brand_data_surat_kerjasama_dokumen"
 }
 
 type MediaInformasiKendaraanKurirKendaraanFoto struct {
