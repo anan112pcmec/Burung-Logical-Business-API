@@ -2421,7 +2421,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 	}
 
 	var id_media_brand_data_surat_kerjasama_dokumen int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Select("id").Where(&models.MediaBrandDataSuratKerjasamaFoto{
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Select("id").Where(&models.MediaBrandDataSuratKerjasamaDokumen{
 		IdBrandData: id_data_brand,
 	}).Limit(1).Scan(&id_media_brand_data_surat_kerjasama_dokumen).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -2432,8 +2432,111 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 
 	keyz := models.MediaBrandDataSuratKerjasamaDokumen{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
 
+	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_brand_data_surat_kerjasama_dokumen == 0 {
+		if err := db.Write.WithContext(ctx).Create(&models.MediaBrandDataSuratKerjasamaDokumen{
+			IdBrandData: id_data_brand,
+			Key:         keyz,
+			Format:      data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&models.MediaBrandDataSuratKerjasamaDokumen{
+			ID: id_media_brand_data_surat_kerjasama_dokumen,
+		}).Updates(&models.MediaBrandDataSuratKerjasamaDokumen{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+	}
+
 	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusBrandDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+	services := "HapusBrandDataSuratKerjasamaDokumen"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data seller tidak ditemukan",
+		}
+	}
+
+	var id_data_brand int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+		ID:       data.IdBrandData,
+		SellerId: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+	if id_data_brand == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data brand tidak ditemukan",
+		}
+	}
+
+	var id_media_brand_data_surat_kerjasama_dokumen int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&models.MediaBrandDataSuratKerjasamaDokumen{
+		ID:          data.IdMediaBrandDataSuratKerjasamaDokumen,
+		IdBrandData: id_data_brand,
+		Key:         data.KeyFoto,
+	}).Limit(1).Scan(&id_media_brand_data_surat_kerjasama_dokumen).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_media_brand_data_surat_kerjasama_dokumen == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&models.MediaBrandDataSuratKerjasamaDokumen{
+		ID: id_media_brand_data_surat_kerjasama_dokumen,
+	}).Delete(&models.MediaBrandDataSuratKerjasamaDokumen{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
+		Message:  "Berhasil",
 	}
 }

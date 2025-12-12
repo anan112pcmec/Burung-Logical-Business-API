@@ -1002,7 +1002,7 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 		}
 	}
 
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatGudang{}).Where(&models.AlamatGudang{
+	if err := db.Read.WithContext(ctx).Model(&models.AlamatGudang{}).Select("kota").Where(&models.AlamatGudang{
 		ID: dataTransaksi.IdAlamatGudang,
 	}).Limit(1).Take(&NamaKotaSeller).Error; err != nil {
 		return &response.ResponseForm{

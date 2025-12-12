@@ -217,4 +217,5 @@ type PayloadHapusBrandDataSuratKerjasamaDokumen struct {
 	IdentitasSeller                       identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBrandData                           int64                          `json:"id_brand_data"`
 	IdMediaBrandDataSuratKerjasamaDokumen int64                          `json:"id_media_brand_data_surat_kerjasama_dokumen"`
+	KeyFoto                               string                         `json:"key_foto"`
 }
