@@ -357,6 +357,10 @@ type MediaInformasiKendaraanKurirKendaraanFoto struct {
 	Format                    string                  `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaInformasiKendaraanKurirKendaraanFoto) PathName() string {
+	return "/media_informasi_kendaraan_kurir_kendaraan_foto/"
+}
+
 func (MediaInformasiKendaraanKurirKendaraanFoto) TableName() string {
 	return "media_informasi_kendaraan_kurir_kendaraan_foto"
 }
@@ -369,6 +373,10 @@ type MediaInformasiKendaraanKurirBPKBFoto struct {
 	Format                    string                  `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaInformasiKendaraanKurirBPKBFoto) PathName() string {
+	return "/media_informasi_kendaraan_kurir_bpkb_foto/"
+}
+
 func (MediaInformasiKendaraanKurirBPKBFoto) TableName() string {
 	return "media_informasi_kendaraan_kurir_bpkb_foto"
 }
@@ -379,6 +387,10 @@ type MediaInformasiKendaraanKurirSTNKFoto struct {
 	InformasiKendaraanKurir   InformasiKendaraanKurir `gorm:"foreignKey:IdInformasiKendaraanKurir;references:ID" json:"-"`
 	Key                       string                  `gorm:"column:key;type:text;not null" json:"key"`
 	Format                    string                  `gorm:"column:format;type:varchar(20);not null" json:"format"`
+}
+
+func (MediaInformasiKendaraanKurirSTNKFoto) PathName() string {
+	return "/media_informasi_kendaraan_kurir_stnk_foto/"
 }
 
 func (MediaInformasiKendaraanKurirSTNKFoto) TableName() string {
