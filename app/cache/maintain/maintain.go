@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 func DataAlamatEkspedisiUp(db *gorm.DB) {

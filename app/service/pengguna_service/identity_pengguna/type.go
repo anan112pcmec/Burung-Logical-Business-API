@@ -5,8 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
-
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 type IdentityPengguna struct {

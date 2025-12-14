@@ -219,3 +219,15 @@ type PayloadHapusBrandDataSuratKerjasamaDokumen struct {
 	IdMediaBrandDataSuratKerjasamaDokumen int64                          `json:"id_media_brand_data_surat_kerjasama_dokumen"`
 	KeyFoto                               string                         `json:"key_foto"`
 }
+
+type PayloadTambahMediaTransaksiApprovedFoto struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdTransaksi     int64                          `json:"id_transaksi"`
+	Ekstensi        string                         `json:"ekstensi"`
+}
+
+type PayloadTambahMediaTransaksiApprovedVideo struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdTransaksi     int64                          `json:"id_transaksi"`
+	Ekstensi        string                         `json:"ekstensi"`
+}

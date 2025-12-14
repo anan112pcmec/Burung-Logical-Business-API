@@ -9,10 +9,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/barang"
-	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/seller_dedication"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
+	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 

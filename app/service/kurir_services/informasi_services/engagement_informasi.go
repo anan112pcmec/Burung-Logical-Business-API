@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_informasi_services_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services/response_informasi_services"
 )

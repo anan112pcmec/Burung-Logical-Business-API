@@ -1,6 +1,6 @@
 package threshold
 
-import "github.com/anan112pcmec/Burung-backend-1/app/database/models"
+import "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 
 type ThresholdTransaksiSeller struct {
 	ID           int64         `gorm:"primaryKey;autoIncrement" json:"id_threshold_transaksi_seller"`

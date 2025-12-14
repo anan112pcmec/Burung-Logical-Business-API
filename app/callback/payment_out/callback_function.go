@@ -5,9 +5,8 @@ import (
 	"net/http"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
-
+	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *config.InternalDBReadWriteSystem) int16 {

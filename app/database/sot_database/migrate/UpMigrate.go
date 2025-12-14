@@ -6,8 +6,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/threshold"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 )
 
 func UpEntity(db *gorm.DB) {
@@ -328,7 +328,7 @@ func UpMediaData(db *gorm.DB) {
 		&models.MediaTransaksiApprovedVideo{},
 		&models.MediaPengirimanPickedUpFoto{},
 		&models.MediaPengirimanSampaiFoto{},
-		&models.MediaPengirimanEkspedisiApprovedFoto{},
+		&models.MediaPengirimanEkspedisiPickedUpFoto{},
 		&models.MediaPengirimanEkspedisiSampaiAgentFoto{},
 	}
 

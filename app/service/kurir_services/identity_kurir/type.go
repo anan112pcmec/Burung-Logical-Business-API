@@ -5,8 +5,8 @@ import (
 
 	"gorm.io/gorm"
 
-	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 type IdentitasKurir struct {

@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/enums/entity/seller"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services/response_diskon_services_seller"
 )

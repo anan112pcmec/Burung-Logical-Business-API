@@ -405,6 +405,10 @@ type MediaInformasiKurirKTPFoto struct {
 	Format           string         `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaInformasiKurirKTPFoto) PathName() string {
+	return "/media_informasi_kurir_ktp_foto/"
+}
+
 func (MediaInformasiKurirKTPFoto) TableName() string {
 	return "media_informasi_kurir_ktp_foto"
 }
@@ -415,6 +419,10 @@ type MediaReviewFoto struct {
 	Review   Review `gorm:"foreignKey:IdReview;references:ID" json:"-"`
 	Key      string `gorm:"column:key;type:text;not null" json:"key"`
 	Format   string `gorm:"column:format;type:varchar(20);not null" json:"format"`
+}
+
+func (MediaReviewFoto) PathName() string {
+	return "/media_review_foto/"
 }
 
 func (MediaReviewFoto) TableName() string {
@@ -429,6 +437,10 @@ type MediaReviewVideo struct {
 	Format   string `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaReviewVideo) PathName() string {
+	return "/media_review_video/"
+}
+
 func (MediaReviewVideo) TableName() string {
 	return "media_review_video"
 }
@@ -439,6 +451,10 @@ type MediaTransaksiApprovedFoto struct {
 	Transaksi   Transaksi `gorm:"foreignKey:IdTransaksi;references:ID" json:"-"`
 	Key         string    `gorm:"column:key;type:text;not null" json:"key"`
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
+}
+
+func (MediaTransaksiApprovedFoto) PathName() string {
+	return "/media_transaksi_approved_foto/"
 }
 
 func (MediaTransaksiApprovedFoto) TableName() string {
@@ -453,6 +469,10 @@ type MediaTransaksiApprovedVideo struct {
 	Format      string    `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaTransaksiApprovedVideo) PathName() string {
+	return "/media_transaksi_approved_video/"
+}
+
 func (MediaTransaksiApprovedVideo) TableName() string {
 	return "media_transaksi_approved_video"
 }
@@ -463,6 +483,10 @@ type MediaPengirimanPickedUpFoto struct {
 	Pengiriman   Pengiriman `gorm:"foreignKey:IdPengiriman;references:ID" json:"-"`
 	Key          string     `gorm:"column:key;type:text;not null" json:"key"`
 	Format       string     `gorm:"column:format;type:varchar(20);not null" json:"format"`
+}
+
+func (MediaPengirimanPickedUpFoto) PathName() string {
+	return "/media_pengiriman_picked_up_foto/"
 }
 
 func (MediaPengirimanPickedUpFoto) TableName() string {
@@ -477,11 +501,16 @@ type MediaPengirimanSampaiFoto struct {
 	Format       string     `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
+func (MediaPengirimanSampaiFoto) PathName() string {
+	return "/media_pengiriman_sampai_foto/"
+
+}
+
 func (MediaPengirimanSampaiFoto) TableName() string {
 	return "media_pengiriman_sampai_foto"
 }
 
-type MediaPengirimanEkspedisiApprovedFoto struct {
+type MediaPengirimanEkspedisiPickedUpFoto struct {
 	ID                    int64               `gorm:"primaryKey;autoIncrement" json:"id_media_pengiriman_ekspedisi_approved_foto"`
 	IdPengirimanEkspedisi int64               `gorm:"column:id_pengiriman_ekspedisi;not null" json:"id_pengiriman_ekspedisi"`
 	PengirimanEkspedisi   PengirimanEkspedisi `gorm:"foreignKey:IdPengirimanEkspedisi;references:ID" json:"-"`
@@ -489,8 +518,12 @@ type MediaPengirimanEkspedisiApprovedFoto struct {
 	Format                string              `gorm:"column:format;type:varchar(20);not null" json:"format"`
 }
 
-func (MediaPengirimanEkspedisiApprovedFoto) TableName() string {
-	return "media_pengiriman_ekspedisi_approved_foto"
+func (MediaPengirimanEkspedisiPickedUpFoto) PathName() string {
+	return "/media_pengiriman_ekspedisi_picked_up_foto/"
+}
+
+func (MediaPengirimanEkspedisiPickedUpFoto) TableName() string {
+	return "media_pengiriman_ekspedisi_picked_up_foto"
 }
 
 type MediaPengirimanEkspedisiSampaiAgentFoto struct {
@@ -499,6 +532,10 @@ type MediaPengirimanEkspedisiSampaiAgentFoto struct {
 	PengirimanEkspedisi   PengirimanEkspedisi `gorm:"foreignKey:IdPengirimanEkspedisi;references:ID" json:"-"`
 	Key                   string              `gorm:"column:key;type:text;not null" json:"key"`
 	Format                string              `gorm:"column:format;type:varchar(20);not null" json:"format"`
+}
+
+func (MediaPengirimanEkspedisiSampaiAgentFoto) PathName() string {
+	return "/media_pengiriman_ekspedisi_sampai_agent_foto/"
 }
 
 func (MediaPengirimanEkspedisiSampaiAgentFoto) TableName() string {

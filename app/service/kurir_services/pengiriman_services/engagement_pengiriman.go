@@ -13,12 +13,12 @@ import (
 	payment_out_constanta "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip"
 	payment_out_disbursment "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip/disbursment"
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/entity/kurir"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/nama_kota"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/nama_provinsi"
-	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/pengiriman"
-	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/enums/transaksi"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/kurir"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
+	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
+	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 

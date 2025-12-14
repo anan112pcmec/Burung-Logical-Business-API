@@ -53,6 +53,30 @@ type PayloadTambahMediaInformasiKurirKTPFoto struct {
 
 type PayloadHapusMediaInformasiKurirKTPFoto struct {
 	IdentitasKurir               identity_kurir.IdentitasKurir `json:"identitas_kurir"`
-	IdMediaInformasiKurirKTPFoto string                        `json:"id_media_informasi_kurir_ktp_foto"`
+	IdMediaInformasiKurirKTPFoto int64                         `json:"id_media_informasi_kurir_ktp_foto"`
 	KeyFoto                      string                        `json:"key_foto"`
+}
+
+type PayloadTambahPengirimanPickedUpFoto struct {
+	IdentitasKurir identity_kurir.IdentitasKurir `json:"identitas_kurir"`
+	IdPengiriman   int64                         `json:"id_pengiriman"`
+	Ekstensi       string                        `json:"ekstensi"`
+}
+
+type PayloadTambahPengirimanSampaiFoto struct {
+	IdentitasKurir identity_kurir.IdentitasKurir `json:"identitas_kurir"`
+	IdPengiriman   int64                         `json:"id_pengiriman"`
+	Ekstensi       string                        `json:"ekstensi"`
+}
+
+type PayloadTambahPengirimanEkspedisiPickedUpFoto struct {
+	IdentitasKurir        identity_kurir.IdentitasKurir `json:"identitas_kurir"`
+	IdPengirimanEkspedisi int64                         `json:"id_pengiriman"`
+	Ekstensi              string                        `json:"ekstensi"`
+}
+
+type PayloadTambahPengirimanEkspedisiSampaiAgentFoto struct {
+	IdentitasKurir        identity_kurir.IdentitasKurir `json:"identitas_kurir"`
+	IdPengirimanEkspedisi int64                         `json:"id_pengiriman"`
+	Ekstensi              string                        `json:"ekstensi"`
 }

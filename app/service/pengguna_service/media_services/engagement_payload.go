@@ -12,3 +12,25 @@ type PayloadHapusFotoProfilPengguna struct {
 	IdMediaDataPengguna int64                              `json:"id_media_foto_profil_pengguna"`
 	KeyFoto             string                             `json:"key_foto"`
 }
+
+type PayloadTambahMediaReviewFoto struct {
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	IdReviewData      int64                              `json:"id_review_data"`
+	Ekstensi          []string                           `json:"ekstensi"`
+}
+
+type PayloadHapusMediaReviewFoto struct {
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	IdReviewData      int64                              `json:"id_review_data"`
+}
+
+type PayloadTambahMediaReviewVideo struct {
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	IdReviewData      int64                              `json:"id_review_data"`
+	Ekstensi          string                             `json:"ekstensi"`
+}
+
+type PayloadHapusMediaReviewVideo struct {
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	KeyVideo          string                             `json:"key_video"`
+}

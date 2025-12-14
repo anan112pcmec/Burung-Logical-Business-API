@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/nama_bank"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 

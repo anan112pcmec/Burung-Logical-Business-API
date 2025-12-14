@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,14 +9,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/minio/minio-go/v7"
 
 	routes "github.com/anan112pcmec/Burung-backend-1/app/Routes"
-	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
 	maintain_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/maintain"
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/enums"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/migrate"
+	media_storage_database_migrate "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/migrate"
+	enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/migrate"
 )
 
 func Getenvi(key, fallback string) string {
@@ -115,55 +113,7 @@ func Run() {
 	//
 
 	// Media Storage Initializing
-	data_cache.BucketFotoName = Getenvi("MINIO_PHOTOS_BUCKET", "NIL")
-	data_cache.BucketVideoName = Getenvi("MINIO_VIDEOS_BUCKET", "NIL")
-	data_cache.BucketDokumenName = Getenvi("MINIO_DOKUMENS_BUCKET", "NIL")
-	initMediaStorageDatabase := func() {
-		ctx := context.Background()
-		var bucketPublicName = []string{
-			data_cache.BucketFotoName,
-			data_cache.BucketVideoName,
-			data_cache.BucketDokumenName,
-		}
-
-		for i := 0; i < len(bucketPublicName); i++ {
-			exists, err := media_storage.BucketExists(ctx, bucketPublicName[i])
-			if err != nil {
-				fmt.Printf("Bucket %s tidak ada", bucketPublicName[i])
-				fmt.Println(err)
-			}
-
-			if !exists {
-				if err := media_storage.MakeBucket(ctx, bucketPublicName[i], minio.MakeBucketOptions{}); err != nil {
-					fmt.Printf("Gagal membuat bucket %s", bucketPublicName[i])
-					fmt.Println(err)
-					continue
-				}
-
-			} else {
-				fmt.Printf("Bucket %s sudah ada", bucketPublicName[i])
-			}
-
-			policy := fmt.Sprintf(`{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Effect": "Allow",
-						"Principal": { "AWS": ["*"] },
-						"Action": ["s3:GetObject"],
-						"Resource": ["arn:aws:s3:::%s/*"]
-					}
-				]
-			}`, bucketPublicName[i])
-
-			err = media_storage.SetBucketPolicy(ctx, bucketPublicName[i], policy)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
-	initMediaStorageDatabase()
-
+	media_storage_database_migrate.MigrateBucketMediaStorage(media_storage)
 	//
 
 	// Setup routes

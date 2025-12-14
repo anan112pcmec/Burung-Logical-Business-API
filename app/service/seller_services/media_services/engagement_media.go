@@ -11,10 +11,11 @@ import (
 
 	"github.com/minio/minio-go/v7"
 
-	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/enums/media_ekstension"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
+	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
+	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -53,7 +54,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 	// Generate presigned URL
 	url, err := ms.PresignedPutObject(
 		ctx,
-		data_cache.BucketFotoName,
+		media_storage_database_seeders.BucketFotoName,
 		keyz,
 		time.Minute*10,
 	)
@@ -184,7 +185,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 	// Generate presigned URL
 	url, err := ms.PresignedPutObject(
 		ctx,
-		data_cache.BucketFotoName,
+		media_storage_database_seeders.BucketFotoName,
 		keyz,
 		time.Minute*10,
 	)
@@ -314,7 +315,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 			strconv.Itoa(int(data.IdentitasSeller.IdSeller)) + "/" +
 			helper.GenerateMediaKeyPhoto() + "." + ext
 
-		url, errPPO := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*10)
+		url, errPPO := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*10)
 		if errPPO != nil {
 			return &response.ResponseMediaUploadBurst{
 				Status:   http.StatusInternalServerError,
@@ -384,7 +385,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 			ctxRemove, cancel := context.WithTimeout(ctx, 2*time.Second)
 			defer cancel()
 
-			if err := ms.RemoveObject(ctxRemove, data_cache.BucketFotoName, data.DataMediaFotoTokoFisik[angka].KeyMedia, minio.RemoveObjectOptions{
+			if err := ms.RemoveObject(ctxRemove, media_storage_database_seeders.BucketFotoName, data.DataMediaFotoTokoFisik[angka].KeyMedia, minio.RemoveObjectOptions{
 				ForceDelete: true,
 			}); err != nil {
 				errChan <- fmt.Errorf("gagal")
@@ -465,7 +466,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 
 	keyz := models.MediaEtalaseFoto{}.PathName() + strconv.Itoa(int(id_data_etalase)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -629,7 +630,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 
 		keyz := models.MediaBarangIndukFoto{}.PathName() + strconv.Itoa(int(id_data_barang_induk)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi[i]
 
-		url, err := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+		url, err := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 		if err != nil {
 			return &response.ResponseMediaUploadBurst{
 				Status:   http.StatusInternalServerError,
@@ -761,7 +762,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 
 	keyz := models.MediaBarangIndukVideo{}.PathName() + strconv.Itoa(int(id_barang_induk)) + "/" + helper.GenerateMediaKeyVideo() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketVideoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketVideoName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -917,7 +918,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 
 	keyz := models.MediaKategoriBarangFoto{}.PathName() + strconv.Itoa(int(data.IdKategoriBarang)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, url_err := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, url_err := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if url_err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -1056,7 +1057,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 
 	keyz := models.MediaDistributorDataDokumen{}.PathName() + strconv.Itoa(int(data.IdDistributorData)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketDokumenName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketDokumenName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -1204,7 +1205,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 
 	keyz := models.MediaDistributorDataNPWPFoto{}.PathName() + strconv.Itoa(int(id_data_distributor)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -1351,7 +1352,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 
 	keyz := models.MediaDistributorDataNIBFoto{}.PathName() + strconv.Itoa(int(id_data_distributor)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
@@ -1500,7 +1501,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 
 	keyz := models.MediaDistributorDataSuratKerjasamaDokumen{}.PathName() + strconv.Itoa(int(id_data_distributor)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -1654,7 +1655,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 
 	keyz := models.MediaBrandDataPerwakilanDokumen{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketDokumenName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketDokumenName, keyz, time.Minute*2)
 
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
@@ -1809,7 +1810,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 
 	keyz := models.MediaBrandDataSertifikatFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
@@ -1963,7 +1964,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 
 	keyz := models.MediaBrandDataNIBFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -2118,7 +2119,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 
 	keyz := models.MediaBrandDataNPWPFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
@@ -2279,7 +2280,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 
 	keyz := models.MediaBrandDataLogoFoto{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
@@ -2432,7 +2433,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 
 	keyz := models.MediaBrandDataSuratKerjasamaDokumen{}.PathName() + strconv.Itoa(int(id_data_brand)) + "/" + helper.GenerateMediaKeyDokumen() + "." + data.Ekstensi
 
-	url, err_url := ms.PresignedPutObject(ctx, data_cache.BucketFotoName, keyz, time.Minute*2)
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
@@ -2538,5 +2539,153 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 		Status:   http.StatusOK,
 		Services: services,
 		Message:  "Berhasil",
+	}
+}
+
+func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMediaTransaksiApprovedFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahMediaTransaksiApprovedFoto"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_data_transaksi int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.Transaksi{}).Select("id").Where(&models.Transaksi{
+		ID:     data.IdTransaksi,
+		Status: transaksi_enums.Diproses,
+	}).Limit(1).Scan(&id_data_transaksi).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_data_transaksi == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_transaksi_approved_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaTransaksiApprovedFoto{}).Select("id").Where(&models.MediaTransaksiApprovedFoto{
+		IdTransaksi: id_data_transaksi,
+	}).Limit(1).Scan(&id_media_transaksi_approved_foto).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_transaksi_approved_foto != 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaTransaksiApprovedFoto{}.PathName() + strconv.Itoa(int(id_data_transaksi)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&models.MediaTransaksiApprovedFoto{
+		IdTransaksi: id_data_transaksi,
+		Key:         keyz,
+		Format:      data.Ekstensi,
+	}).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTransaksiApprovedVideo, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+	services := "TambahTransaksiApprovedVideo"
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_data_transaksi int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.Transaksi{}).Select("id").Where(&models.Transaksi{
+		ID:     data.IdTransaksi,
+		Status: transaksi_enums.Diproses,
+	}).Limit(1).Scan(&id_data_transaksi).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_data_transaksi == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_transaksi_approved_video int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaTransaksiApprovedVideo{}).Select("id").Where(&models.MediaTransaksiApprovedVideo{
+		IdTransaksi: id_data_transaksi,
+	}).Limit(1).Scan(&id_media_transaksi_approved_video).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_transaksi_approved_video != 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	keyz := models.MediaTransaksiApprovedVideo{}.PathName() + strconv.Itoa(int(id_data_transaksi)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketVideoName, keyz, time.Minute*2)
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&models.MediaTransaksiApprovedFoto{
+		IdTransaksi: id_data_transaksi,
+		Key:         keyz,
+		Format:      data.Ekstensi,
+	}).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
 	}
 }

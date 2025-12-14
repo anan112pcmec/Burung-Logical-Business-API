@@ -5,8 +5,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/models"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/threshold"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 )
 
 type IdentitySeller struct {
