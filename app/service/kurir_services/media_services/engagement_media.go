@@ -14,7 +14,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-
 )
 
 func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
@@ -79,6 +78,54 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 		Services:  services,
 		UrlUpload: minIOUrl,
 		Key:       keyz,
+	}
+}
+
+func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+	services := "HapusKurirProfilFoto"
+
+	if _, status := data.IdentitasKurir.Validating(ctx, db.Read); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data kurir tidak ditemukan",
+		}
+	}
+
+	var id_data_media_foto_profil_kurir int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.MediaKurirProfilFoto{}).Select("id").Where(&models.MediaKurirProfilFoto{
+		ID:  data.IdMediaKurirProfilFoto,
+		Key: data.KeyFoto,
+	}).Limit(1).Scan(&id_data_media_foto_profil_kurir).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_data_media_foto_profil_kurir == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := db.Read.WithContext(ctx).Model(&models.MediaKurirProfilFoto{}).Where(&models.MediaKurirProfilFoto{
+		ID: data.IdMediaKurirProfilFoto,
+	}).Delete(&models.MediaKurirProfilFoto{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
 	}
 }
 
@@ -856,7 +903,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 
 }
 
-func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data PayloadTambahPengirimanEkspedisiPickedUpFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data PayloadTambahPengirimanEkspedisiSampaiAgentFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
 	services := "TambahMediaPengirimanSampaiAgentFoto"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read); !status {

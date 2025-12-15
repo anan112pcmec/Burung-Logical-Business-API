@@ -172,19 +172,19 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 	}
 }
 
-func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUploadBurst {
+func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
 	services := "TambahMediaReviewFoto"
 	const LimitPhoto = 5
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
 		}
 	}
 
 	if len(data.Ekstensi) > LimitPhoto {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 		}
@@ -195,14 +195,14 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		ID:         data.IdReviewData,
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(1).Scan(&id_data_review_produk).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
 	if id_data_review_produk == 0 {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
 		}
@@ -212,14 +212,14 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	if err := db.Read.WithContext(ctx).Model(&models.MediaReviewFoto{}).Select("id").Where(&models.MediaReviewFoto{
 		IdReview: id_data_review_produk,
 	}).Limit(1).Scan(&id_media_review_foto).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
 	if id_media_review_foto != 0 {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 		}
@@ -231,7 +231,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 
 	for i := 0; i < totalData; i++ {
 		if !media_ekstension.PhotoValidExt[data.Ekstensi[i]] {
-			return &response.ResponseMediaUploadBurst{
+			return &response.ResponseMediaUpload{
 				Status:   http.StatusUnauthorized,
 				Services: services,
 			}
@@ -240,7 +240,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		keyz := models.MediaReviewFoto{}.PathName() + strconv.Itoa(int(id_data_review_produk)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi[i]
 
 		if url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2); err_url != nil {
-			return &response.ResponseMediaUploadBurst{
+			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
 			}
@@ -259,13 +259,13 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	}
 
 	if err := db.Write.WithContext(ctx).CreateInBatches(&simpanDataFotoReview, totalData).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
-	return &response.ResponseMediaUploadBurst{
+	return &response.ResponseMediaUpload{
 		Status:    http.StatusOK,
 		Services:  services,
 		UrlAndKey: keyzAndUrl,

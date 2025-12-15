@@ -8,21 +8,15 @@ type ResponseForm struct {
 }
 
 type ResponseMediaUpload struct {
-	Status    int32  `json:"status"`
-	Services  string `json:"service"`
-	UrlUpload string `json:"upload_url"`
-	Key       string `json:"key"`
-	Type      string `json:"type"`
+	Status    int32       `json:"status"`
+	Services  string      `json:"service"`
+	UrlUpload string      `json:"upload_url"`
+	Key       string      `json:"key"`
+	Type      string      `json:"type"`
+	UrlAndKey []UrlAndKey `json:"url_and_key"`
 }
 
 type UrlAndKey struct {
 	UrlUpload string `json:"upload_url"`
 	Key       string `json:"key"`
-}
-
-type ResponseMediaUploadBurst struct {
-	Status    int32       `json:"status"`
-	Services  string      `json:"service"`
-	UrlAndKey []UrlAndKey `json:"url_and_key"`
-	Type      string      `json:"type"`
 }

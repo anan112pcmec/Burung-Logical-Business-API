@@ -18,13 +18,28 @@ func PutUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter,
 	ctx := r.Context()
 
 	switch r.URL.Path {
-	case "/user/media/upload-foto-profile":
+	case "/user/media/ubah-foto-profile":
 		var data pengguna_media_services.PayloadUbahFotoProfilPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 		hasil = pengguna_media_services.UbahFotoProfilPengguna(ctx, data, db, ms)
+	case "/user/media/tambah-foto-review-barang":
+		var data pengguna_media_services.PayloadTambahMediaReviewFoto
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_media_services.TambahMediaReviewFoto(ctx, data, db, ms)
+	case "/user/media/tambah-video-review-barang":
+		var data pengguna_media_services.PayloadTambahMediaReviewVideo
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_media_services.TambahMediaReviewVideo(ctx, data, db, ms)
+
 	}
 
 	w.Header().Set("Content-Type", "application/json")

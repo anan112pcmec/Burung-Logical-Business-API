@@ -100,7 +100,7 @@ type PayloadHapusMediaDistributorDataDokumen struct {
 	IdentitasSeller               identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdDistributorData             int64                          `json:"id_distributor_data"`
 	IdMediaDistributorDataDokumen int64                          `json:"id_media_distributor_data_dokumen"`
-	KeyFoto                       string                         `json:"key_foto"`
+	KeyDokumen                    string                         `json:"key_foto"`
 }
 
 type PayloadTambahMediaDistributorDataNPWPFoto struct {
@@ -139,7 +139,7 @@ type PayloadHapusDistributorDataSuratKerjasamaDokumen struct {
 	IdentitasSeller                             identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdDistributorData                           int64                          `json:"id_distributor_data"`
 	IdMediaDistributorDataSuratkerjasamaDokumen int64                          `json:"id_media_distributor_data_surate_kerjasama_dokumen"`
-	KeyFoto                                     string                         `json:"key_foto"`
+	KeyDokumen                                  string                         `json:"key_foto"`
 }
 
 type PayloadTambahBrandDataPerwakilanDokumen struct {
@@ -152,7 +152,7 @@ type PayloadHapusBrandDataPerwakilanDokumen struct {
 	IdentitasSeller                   identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBrandData                       int64                          `json:"id_brand_data"`
 	IdMediaBrandDataPerwakilanDokumen int64                          `json:"id_media_brand_data_perwakilan_dokumen"`
-	KeyFoto                           string                         `json:"key_foto"`
+	KeyDokumen                        string                         `json:"key_foto"`
 }
 
 type PayloadTambahBrandDataSertifikatFoto struct {
@@ -217,7 +217,7 @@ type PayloadHapusBrandDataSuratKerjasamaDokumen struct {
 	IdentitasSeller                       identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBrandData                           int64                          `json:"id_brand_data"`
 	IdMediaBrandDataSuratKerjasamaDokumen int64                          `json:"id_media_brand_data_surat_kerjasama_dokumen"`
-	KeyFoto                               string                         `json:"key_foto"`
+	KeyDokumen                            string                         `json:"key_foto"`
 }
 
 type PayloadTambahMediaTransaksiApprovedFoto struct {

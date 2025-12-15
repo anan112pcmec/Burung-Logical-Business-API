@@ -18,6 +18,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+
 )
 
 func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
@@ -280,11 +281,11 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 	}
 }
 
-func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFotoTokoFisikSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUploadBurst {
+func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFotoTokoFisikSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
 	services := "TambahkanFotoTokoFisikSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
 		}
@@ -293,7 +294,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 	totalData := len(data.Ekstensi)
 
 	if totalData > 20 {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusRequestEntityTooLarge,
 			Services: services,
 		}
@@ -305,7 +306,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 	for i := 0; i < totalData; i++ {
 		ext := strings.ToLower(data.Ekstensi[i])
 		if !media_ekstension.PhotoValidExt[ext] {
-			return &response.ResponseMediaUploadBurst{
+			return &response.ResponseMediaUpload{
 				Status:   http.StatusBadRequest,
 				Services: services,
 			}
@@ -317,7 +318,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 
 		url, errPPO := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*10)
 		if errPPO != nil {
-			return &response.ResponseMediaUploadBurst{
+			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
 			}
@@ -336,13 +337,13 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 	}
 
 	if err := db.Write.WithContext(ctx).CreateInBatches(&DataFotoSave, totalData).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
-	return &response.ResponseMediaUploadBurst{
+	return &response.ResponseMediaUpload{
 		Status:    http.StatusOK,
 		Services:  services,
 		UrlAndKey: DataUrlAndKeyResponse,
@@ -555,12 +556,12 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 	}
 }
 
-func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarangIndukFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUploadBurst {
+func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarangIndukFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
 	services := "TambahkanMediaBarangIndukFoto"
 	const Limit uint8 = 10
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
 		}
@@ -571,14 +572,14 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 		ID:       data.IdBarangInduk,
 		SellerID: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_barang_induk).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
 	if id_data_barang_induk == 0 {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
 		}
@@ -587,7 +588,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 	dataLength := len(data.Ekstensi)
 
 	if dataLength > 10 {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 		}
@@ -600,7 +601,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 	if err := db.Read.WithContext(ctx).Model(&models.MediaBarangIndukFoto{}).Select("id").Where(&models.MediaBarangIndukFoto{
 		IdBarangInduk: int64(data.IdBarangInduk),
 	}).Limit(int(Limit)).Scan(&idsDataMediaBarangInduk).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
@@ -608,7 +609,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 
 	ExistPhoto := len(idsDataMediaBarangInduk)
 	if ExistPhoto >= int(Limit) {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 		}
@@ -622,7 +623,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 
 	for i := 0; i < uploadCount; i++ {
 		if !media_ekstension.PhotoValidExt[data.Ekstensi[i]] {
-			return &response.ResponseMediaUploadBurst{
+			return &response.ResponseMediaUpload{
 				Status:   http.StatusBadRequest,
 				Services: services,
 			}
@@ -632,7 +633,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 
 		url, err := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 		if err != nil {
-			return &response.ResponseMediaUploadBurst{
+			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
 			}
@@ -651,13 +652,13 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 	}
 
 	if err := db.Write.WithContext(ctx).CreateInBatches(&DataMediaBarangIndukFoto, uploadCount).Error; err != nil {
-		return &response.ResponseMediaUploadBurst{
+		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
-	return &response.ResponseMediaUploadBurst{
+	return &response.ResponseMediaUpload{
 		Status:    http.StatusOK,
 		Services:  services,
 		UrlAndKey: DataUrlAndKeyUpload,
@@ -1131,7 +1132,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 	var id_media_distributor_data_dokumen int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.MediaDistributorDataDokumen{}).Select("id").Where(&models.MediaDistributorDataDokumen{
 		ID:  data.IdMediaDistributorDataDokumen,
-		Key: data.KeyFoto,
+		Key: data.KeyDokumen,
 	}).Limit(1).Scan(&id_media_distributor_data_dokumen).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -1145,6 +1146,14 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data dokumen tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, data.KeyDokumen, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1292,6 +1301,14 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, data.KeyFoto, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1444,6 +1461,14 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 		}
 	}
 
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, data.KeyFoto, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
 	if err := db.Write.WithContext(ctx).Model(&models.MediaDistributorDataNIBFoto{}).Where(&models.MediaDistributorDataNIBFoto{
 		ID: id_data_media_distributor_nib_foto,
 	}).Delete(&models.MediaDistributorDataNIBFoto{}).Error; err != nil {
@@ -1576,6 +1601,7 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 	var id_media_distributor_data_surat_kerjasama_dokumen int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.MediaDistributorDataSuratKerjasamaDokumen{}).Select("id").Where(&models.MediaDistributorDataSuratKerjasamaDokumen{
 		IdDistributorData: id_data_distributor,
+		Key:               data.KeyDokumen,
 	}).Limit(1).Scan(&id_media_distributor_data_surat_kerjasama_dokumen).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -1589,6 +1615,14 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, data.KeyDokumen, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -1730,7 +1764,7 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 	var id_media_brand_data_perwakilan_dokumen int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataPerwakilanDokumen{}).Select("id").Where(&models.MediaBrandDataPerwakilanDokumen{
 		ID:  data.IdMediaBrandDataPerwakilanDokumen,
-		Key: data.KeyFoto,
+		Key: data.KeyDokumen,
 	}).Limit(1).Scan(&id_media_brand_data_perwakilan_dokumen).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -1744,6 +1778,14 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data dokumen tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, data.KeyDokumen, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -2056,6 +2098,14 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 		}
 	}
 
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, data.KeyFoto, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
 	if err := db.Write.WithContext(ctx).Model(&models.MediaBrandDataNIBFoto{}).Where(&models.MediaBrandDataNIBFoto{
 		ID: id_media_data_nib_foto,
 	}).Delete(&models.MediaBrandDataNIBFoto{}).Error; err != nil {
@@ -2207,6 +2257,14 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, data.KeyFoto, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -2508,7 +2566,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 	if err := db.Read.WithContext(ctx).Model(&models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&models.MediaBrandDataSuratKerjasamaDokumen{
 		ID:          data.IdMediaBrandDataSuratKerjasamaDokumen,
 		IdBrandData: id_data_brand,
-		Key:         data.KeyFoto,
+		Key:         data.KeyDokumen,
 	}).Limit(1).Scan(&id_media_brand_data_surat_kerjasama_dokumen).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -2522,6 +2580,14 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, data.KeyDokumen, minio.RemoveObjectOptions{}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
