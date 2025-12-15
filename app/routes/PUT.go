@@ -31,7 +31,7 @@ func PutHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client) http.Han
 
 		// Jika path diawali "/kurir/"
 		if len(r.URL.Path) >= 7 && r.URL.Path[:7] == "/kurir/" {
-			kurir.PutKurirHandler(db, w, r)
+			kurir.PutKurirHandler(db, w, r, ms)
 			return
 		}
 

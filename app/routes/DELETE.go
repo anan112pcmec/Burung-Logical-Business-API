@@ -31,7 +31,7 @@ func DeleteHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client) http.
 
 		// Jika path diawali "/kurir/"
 		if len(r.URL.Path) >= 7 && r.URL.Path[:7] == "/kurir/" {
-			kurir.DeleteKurirHandler(db, w, r)
+			kurir.DeleteKurirHandler(db, w, r, ms)
 			return
 		}
 

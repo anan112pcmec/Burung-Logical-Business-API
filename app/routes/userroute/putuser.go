@@ -43,6 +43,6 @@ func PutUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(int(hasil.Status))
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(hasil)
 }

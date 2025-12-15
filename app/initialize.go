@@ -14,6 +14,7 @@ import (
 	maintain_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/maintain"
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	media_storage_database_migrate "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/migrate"
+	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/migrate"
 )
@@ -113,6 +114,9 @@ func Run() {
 	//
 
 	// Media Storage Initializing
+	media_storage_database_seeders.BucketFotoName = Getenvi("MINIO_PHOTOS_BUCKET", "NIL")
+	media_storage_database_seeders.BucketVideoName = Getenvi("MINIO_VIDEOS_BUCKET", "NIL")
+	media_storage_database_seeders.BucketDokumenName = Getenvi("MINIO_DOKUMENS_BUCKET", "NIL")
 	media_storage_database_migrate.MigrateBucketMediaStorage(media_storage)
 	//
 

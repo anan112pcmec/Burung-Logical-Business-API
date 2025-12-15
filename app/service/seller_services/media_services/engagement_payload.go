@@ -26,11 +26,13 @@ type PayloadHapusFotoBannerSeller struct {
 	KeyFoto                 string                         `json:"key_foto"`
 }
 
+// Skipped
 type PayloadTambahkanFotoTokoFisikSeller struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
 	Ekstensi        []string                       `json:"ekstensi"`
 }
 
+// Skipped
 type PayloadHapusFotoTokoFisikSeller struct {
 	IdentitasSeller        identity_seller.IdentitySeller `json:"identitas_seller"`
 	DataMediaFotoTokoFisik []struct {
@@ -51,12 +53,14 @@ type PayloadHapusFotoEtalase struct {
 	KeyFoto            string                         `json:"key_foto"`
 }
 
+// Skipped
 type PayloadTambahBarangIndukFoto struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBarangInduk   int32                          `json:"id_barang_induk"`
 	Ekstensi        []string                       `json:"ekstensi"`
 }
 
+// Skipped
 type PayloadHapusBarangIndukFoto struct {
 	IdentitasSeller          identity_seller.IdentitySeller `json:"identitas_seller"`
 	DataMediaBarangIndukFoto []struct {
@@ -74,7 +78,7 @@ type PayloadUbahVideoBarangInduk struct {
 type PayloadHapusVideoBarangInduk struct {
 	IdentitasSeller         identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdMediaBarangIndukVideo int64                          `json:"id_media_barang_induk_video"`
-	KeyFoto                 string                         `json:"key_foto"`
+	KeyVideo                string                         `json:"key_video"`
 }
 
 type PayloadUbahKategoriBarangFoto struct {
@@ -100,7 +104,7 @@ type PayloadHapusMediaDistributorDataDokumen struct {
 	IdentitasSeller               identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdDistributorData             int64                          `json:"id_distributor_data"`
 	IdMediaDistributorDataDokumen int64                          `json:"id_media_distributor_data_dokumen"`
-	KeyDokumen                    string                         `json:"key_foto"`
+	KeyDokumen                    string                         `json:"key_dokumen"`
 }
 
 type PayloadTambahMediaDistributorDataNPWPFoto struct {
@@ -139,7 +143,7 @@ type PayloadHapusDistributorDataSuratKerjasamaDokumen struct {
 	IdentitasSeller                             identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdDistributorData                           int64                          `json:"id_distributor_data"`
 	IdMediaDistributorDataSuratkerjasamaDokumen int64                          `json:"id_media_distributor_data_surate_kerjasama_dokumen"`
-	KeyDokumen                                  string                         `json:"key_foto"`
+	KeyDokumen                                  string                         `json:"key_dokumen"`
 }
 
 type PayloadTambahBrandDataPerwakilanDokumen struct {
@@ -152,7 +156,7 @@ type PayloadHapusBrandDataPerwakilanDokumen struct {
 	IdentitasSeller                   identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBrandData                       int64                          `json:"id_brand_data"`
 	IdMediaBrandDataPerwakilanDokumen int64                          `json:"id_media_brand_data_perwakilan_dokumen"`
-	KeyDokumen                        string                         `json:"key_foto"`
+	KeyDokumen                        string                         `json:"key_dokumen"`
 }
 
 type PayloadTambahBrandDataSertifikatFoto struct {
@@ -217,7 +221,7 @@ type PayloadHapusBrandDataSuratKerjasamaDokumen struct {
 	IdentitasSeller                       identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBrandData                           int64                          `json:"id_brand_data"`
 	IdMediaBrandDataSuratKerjasamaDokumen int64                          `json:"id_media_brand_data_surat_kerjasama_dokumen"`
-	KeyDokumen                            string                         `json:"key_foto"`
+	KeyDokumen                            string                         `json:"key_dokumen"`
 }
 
 type PayloadTambahMediaTransaksiApprovedFoto struct {

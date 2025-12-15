@@ -18,7 +18,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-
 )
 
 func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
@@ -27,13 +26,6 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
-			Services: services,
-		}
-	}
-
-	if !media_ekstension.PhotoValidExt[data.Ekstensi] {
-		return &response.ResponseMediaUpload{
-			Status:   http.StatusBadRequest,
 			Services: services,
 		}
 	}
@@ -60,6 +52,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 		time.Minute*10,
 	)
 	if err != nil {
+		fmt.Println("Kena disini")
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -818,7 +811,7 @@ func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangIndu
 	var id_data_media_barang_induk_video int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.MediaBarangIndukVideo{}).Select("id").Where(&models.MediaBarangIndukVideo{
 		ID:  data.IdMediaBarangIndukVideo,
-		Key: data.KeyFoto,
+		Key: data.KeyVideo,
 	}).Limit(1).Scan(&id_data_media_barang_induk_video).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
