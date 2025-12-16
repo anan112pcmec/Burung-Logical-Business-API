@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 )
 
 func UpEntity(db *gorm.DB) {
@@ -257,11 +257,10 @@ func UpSystemData(db *gorm.DB) {
 
 func UpTresholdData(db *gorm.DB) {
 	var wg sync.WaitGroup
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 1)
 
 	modelsToMigrate := []interface{}{
-		&threshold.ThresholdTransaksiSeller{},
-		&threshold.ThresholdOrderSeller{},
+		&sot_threshold.ThresholdOrderSeller{},
 	}
 
 	wg.Add(len(modelsToMigrate))
@@ -330,6 +329,47 @@ func UpMediaData(db *gorm.DB) {
 		&models.MediaPengirimanSampaiFoto{},
 		&models.MediaPengirimanEkspedisiPickedUpFoto{},
 		&models.MediaPengirimanEkspedisiSampaiAgentFoto{},
+	}
+
+	wg.Add(len(modelsToMigrate))
+
+	for _, m := range modelsToMigrate {
+		go func(model interface{}) {
+			defer wg.Done()
+			if db.Migrator().HasTable(model) {
+				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
+				return
+			}
+
+			if err := db.AutoMigrate(model); err != nil {
+				errCh <- err
+				return
+			}
+			log.Printf("Migration success: %T ✅", model)
+		}(m)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		if err != nil {
+			log.Fatalf("Migration failed: %v", err)
+		}
+	}
+
+	log.Println("All migrations Media Data completed successfully 🚀")
+}
+
+func UpThresholdTable(db *gorm.DB) {
+	var wg sync.WaitGroup
+	errCh := make(chan error, 31)
+
+	modelsToMigrate := []interface{}{
+		sot_threshold.PenggunaThreshold{},
+		sot_threshold.KurirThreshold{},
+		sot_threshold.SellerThreshold{},
+		sot_threshold.KategoriBarangThreshold{},
 	}
 
 	wg.Add(len(modelsToMigrate))

@@ -14,7 +14,7 @@ import (
 	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
@@ -50,7 +50,7 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 	}
 
 	var id_threshold int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&threshold.ThresholdOrderSeller{}).Select("id").Where(&threshold.ThresholdOrderSeller{
+	if err := db.Read.WithContext(ctx).Model(&sot_threshold.ThresholdOrderSeller{}).Select("id").Where(&sot_threshold.ThresholdOrderSeller{
 		IdSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_threshold).Error; err != nil {
 		return &response.ResponseForm{
@@ -69,7 +69,7 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 			}
 		}
 
-		if err := db.Read.WithContext(ctx).Model(&threshold.ThresholdOrderSeller{}).Select("id").Where(&threshold.ThresholdOrderSeller{
+		if err := db.Read.WithContext(ctx).Model(&sot_threshold.ThresholdOrderSeller{}).Select("id").Where(&sot_threshold.ThresholdOrderSeller{
 			IdSeller: data.IdentitasSeller.IdSeller,
 		}).Limit(1).Scan(&id_threshold).Error; err != nil {
 			return &response.ResponseForm{
@@ -91,8 +91,8 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 			return err
 		}
 
-		if err := tx.Model(&threshold.ThresholdOrderSeller{}).
-			Where(&threshold.ThresholdOrderSeller{ID: id_threshold}).
+		if err := tx.Model(&sot_threshold.ThresholdOrderSeller{}).
+			Where(&sot_threshold.ThresholdOrderSeller{ID: id_threshold}).
 			Updates(map[string]interface{}{
 				"total":    gorm.Expr("total + ?", 1),
 				"diproses": gorm.Expr("diproses + ?", 1),
@@ -228,7 +228,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 
 	var id_data_threshold int64 = 0
 
-	if err := db.Read.WithContext(ctx).Model(&threshold.ThresholdOrderSeller{}).Select("id").Where(&threshold.ThresholdOrderSeller{
+	if err := db.Read.WithContext(ctx).Model(&sot_threshold.ThresholdOrderSeller{}).Select("id").Where(&sot_threshold.ThresholdOrderSeller{
 		IdSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return &response.ResponseForm{
@@ -253,7 +253,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 			return err
 		}
 
-		if err := tx.Model(&threshold.ThresholdOrderSeller{}).Where(&threshold.ThresholdOrderSeller{
+		if err := tx.Model(&sot_threshold.ThresholdOrderSeller{}).Where(&sot_threshold.ThresholdOrderSeller{
 			ID: id_data_threshold,
 		}).Updates(map[string]interface{}{
 			"diproses": gorm.Expr("diproses - ?", 1),

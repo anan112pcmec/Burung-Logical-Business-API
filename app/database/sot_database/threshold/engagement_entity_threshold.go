@@ -1,0 +1,604 @@
+package sot_threshold
+
+import (
+	"context"
+	"fmt"
+
+	"gorm.io/gorm"
+
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold_seeders_nama "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_threshold"
+type BrandDataThreshold struct {
+	ID          int64            `gorm:"primaryKey;autoIncrement" json:"id_brand_data_threshold"`
+	IdBrandData int64            `gorm:"column:id_brand_data;index;not null" json:"id_brand_data"`
+	BrandData   models.BrandData `gorm:"foreignKey:IdBrandData;references:ID" json:"-"`
+
+	MediaBrandDataLogoBrandFoto         int32 `gorm:"column:media_brand_data_logo_brand_foto;type:int4;default:0" json:"media_brand_data_logo_brand_foto"`
+	MediaBrandDataNibFoto               int32 `gorm:"column:media_brand_data_nib_foto;type:int4;default:0" json:"media_brand_data_nib_foto"`
+	MediaBrandDataNpwpFoto              int32 `gorm:"column:media_brand_data_npwp_foto;type:int4;default:0" json:"media_brand_data_npwp_foto"`
+	MediaBrandDataPerwakilanDokumen     int32 `gorm:"column:media_brand_data_perwakilan_dokumen;type:int4;default:0" json:"media_brand_data_perwakilan_dokumen"`
+	MediaBrandDataSertifikatFoto        int32 `gorm:"column:media_brand_data_sertifikat_foto;type:int4;default:0" json:"media_brand_data_sertifikat_foto"`
+	MediaBrandDataSuratKerjasamaDokumen int32 `gorm:"column:media_brand_data_surat_kerjasama_dokumen;type:int4;default:0" json:"media_brand_data_surat_kerjasama_dokumen"`
+}
+
+func (BrandDataThreshold) TableName() string {
+	return sot_threshold_seeders_nama.BrandDataThreshold
+}
+
+func (b BrandDataThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&BrandDataThreshold{}).Select("id").Where(&BrandDataThreshold{
+		IdBrandData: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&BrandDataThreshold{
+		IdBrandData: id_fk,
+	}).Error
+}
+
+func (b BrandDataThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (b BrandDataThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (b BrandDataThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (b BrandDataThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+type DistributorDataThreshold struct {
+	ID                int64                  `gorm:"primaryKey;autoIncrement" json:"id_distributor_data_threshold"`
+	IdDistributorData int64                  `gorm:"column:id_distributor_data;index;not null" json:"id_distributor_data"`
+	DistributorData   models.DistributorData `gorm:"foreignKey:IdDistributorData;references:ID" json:"-"`
+
+	MediaDistributorDataDokumen               int32 `gorm:"column:media_distributor_data_dokumen;type:int4;default:0" json:"media_distributor_data_dokumen"`
+	MediaDistributorDataNibFoto               int32 `gorm:"column:media_distributor_data_nib_foto;type:int4;default:0" json:"media_distributor_data_nib_foto"`
+	MediaDistributorDataNpwpFoto              int32 `gorm:"column:media_distributor_data_npwp_foto;type:int4;default:0" json:"media_distributor_data_npwp_foto"`
+	MediaDistributorDataSuratKerjasamaDokumen int32 `gorm:"column:media_distributor_data_surat_kerjasama_dokumen;type:int4;default:0" json:"media_distributor_data_surat_kerjasama_dokumen"`
+}
+
+func (DistributorDataThreshold) TableName() string {
+	return sot_threshold_seeders_nama.DistributorDataThreshold
+}
+
+func (d DistributorDataThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&DistributorDataThreshold{}).Select("id").Where(&DistributorDataThreshold{
+		IdDistributorData: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&DistributorDataThreshold{
+		IdDistributorData: id_fk,
+	}).Error
+}
+
+func (d DistributorDataThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (d DistributorDataThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (d DistributorDataThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (d DistributorDataThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+// 13. EtalaseThreshold
+type EtalaseThreshold struct {
+	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id_etalase_threshold"`
+	IdEtalase int64          `gorm:"column:id_etalase;index;not null" json:"id_etalase"`
+	Etalase   models.Etalase `gorm:"foreignKey:IdEtalase;references:ID" json:"-"`
+
+	BarangKeEtalase  int32 `gorm:"column:barang_ke_etalase;type:int4;default:0" json:"barang_ke_etalase"`
+	MediaEtalaseFoto int32 `gorm:"column:media_etalase_foto;type:int4;default:0" json:"media_etalase_foto"`
+}
+
+func (EtalaseThreshold) TableName() string {
+	return sot_threshold_seeders_nama.EtalaseThreshold
+}
+
+func (e EtalaseThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&EtalaseThreshold{}).Select("id").Where(&EtalaseThreshold{
+		IdEtalase: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&EtalaseThreshold{
+		IdEtalase: id_fk,
+	}).Error
+}
+
+func (e EtalaseThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (e EtalaseThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (e EtalaseThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (e EtalaseThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+// 14. ReviewThreshold
+type ReviewThreshold struct {
+	ID       int64         `gorm:"primaryKey;autoIncrement" json:"id_review_threshold"`
+	IdReview int64         `gorm:"column:id_review;index;not null" json:"id_review"`
+	Review   models.Review `gorm:"foreignKey:IdReview;references:ID" json:"-"`
+
+	MediaReviewFoto  int32 `gorm:"column:media_review_foto;type:int4;default:0" json:"media_review_foto"`
+	MediaReviewVideo int32 `gorm:"column:media_review_video;type:int4;default:0" json:"media_review_video"`
+	ReviewDislike    int32 `gorm:"column:review_dislike;type:int4;default:0" json:"review_dislike"`
+}
+
+func (ReviewThreshold) TableName() string {
+	return sot_threshold_seeders_nama.ReviewThreshold
+}
+
+func (r ReviewThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&ReviewThreshold{}).Select("id").Where(&ReviewThreshold{
+		IdReview: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&ReviewThreshold{
+		IdReview: id_fk,
+	}).Error
+}
+
+func (r ReviewThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (r ReviewThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (r ReviewThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (r ReviewThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+// 15. InformasiKendaraanKurirThreshold
+type InformasiKendaraanKurirThreshold struct {
+	ID                        int64                          `gorm:"primaryKey;autoIncrement" json:"id_informasi_kendaraan_kurir_threshold"`
+	IdInformasiKendaraanKurir int64                          `gorm:"column:id_informasi_kendaraan_kurir;index;not null" json:"id_informasi_kendaraan_kurir"`
+	InformasiKendaraanKurir   models.InformasiKendaraanKurir `gorm:"foreignKey:IdInformasiKendaraanKurir;references:ID" json:"-"`
+
+	MediaBpkbFoto      int32 `gorm:"column:media_informasi_kendaraan_kurir_bpkb_foto;type:int4;default:0" json:"media_informasi_kendaraan_kurir_bpkb_foto"`
+	MediaKendaraanFoto int32 `gorm:"column:media_informasi_kendaraan_kurir_kendaraan_foto;type:int4;default:0" json:"media_informasi_kendaraan_kurir_kendaraan_foto"`
+	MediaStnkFoto      int32 `gorm:"column:media_informasi_kendaraan_kurir_stnk_foto;type:int4;default:0" json:"media_informasi_kendaraan_kurir_stnk_foto"`
+}
+
+func (InformasiKendaraanKurirThreshold) TableName() string {
+	return sot_threshold_seeders_nama.InformasiKendaraanKurirThreshold
+}
+
+func (i InformasiKendaraanKurirThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&InformasiKendaraanKurirThreshold{}).Select("id").Where(&InformasiKendaraanKurirThreshold{
+		IdInformasiKendaraanKurir: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&InformasiKendaraanKurirThreshold{
+		IdInformasiKendaraanKurir: id_fk,
+	}).Error
+}
+
+func (i InformasiKendaraanKurirThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKendaraanKurirThreshold{}).Where(&InformasiKendaraanKurirThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (i InformasiKendaraanKurirThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKendaraanKurirThreshold{}).Where(&InformasiKendaraanKurirThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (i InformasiKendaraanKurirThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKendaraanKurirThreshold{}).Where(&InformasiKendaraanKurirThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (i InformasiKendaraanKurirThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKendaraanKurirThreshold{}).Where(&InformasiKendaraanKurirThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+// 16. BidKurirDataThreshold
+type BidKurirDataThreshold struct {
+	ID             int64               `gorm:"primaryKey;autoIncrement" json:"id_bid_kurir_data_threshold"`
+	IdBidKurirData int64               `gorm:"column:id_bid_kurir_data;index;not null" json:"id_bid_kurir_data"`
+	BidKurirData   models.BidKurirData `gorm:"foreignKey:IdBidKurirData;references:ID" json:"-"`
+
+	BidKurirEksScheduler    int32 `gorm:"column:bid_kurir_eks_scheduler;type:int4;default:0" json:"bid_kurir_eks_scheduler"`
+	BidKurirNonEksScheduler int32 `gorm:"column:bid_kurir_non_eks_scheduler;type:int4;default:0" json:"bid_kurir_non_eks_scheduler"`
+}
+
+func (BidKurirDataThreshold) TableName() string {
+	return sot_threshold_seeders_nama.BidKurirDataThreshold
+}
+
+// 17. DiskonProdukThreshold
+type DiskonProdukThreshold struct {
+	ID             int64               `gorm:"primaryKey;autoIncrement" json:"id_diskon_produk_threshold"`
+	IdDiskonProduk int64               `gorm:"column:id_diskon_produk;index;not null" json:"id_diskon_produk"`
+	DiskonProduk   models.DiskonProduk `gorm:"foreignKey:IdDiskonProduk;references:ID" json:"-"`
+
+	BarangDiDiskon int32 `gorm:"column:barang_di_diskon;type:int4;default:0" json:"barang_di_diskon"`
+}
+
+func (DiskonProdukThreshold) TableName() string {
+	return sot_threshold_seeders_nama.DiskonProdukThreshold
+}
+
+// 18. KomentarThreshold
+type KomentarThreshold struct {
+	ID         int64           `gorm:"primaryKey;autoIncrement" json:"id_komentar_threshold"`
+	IdKomentar int64           `gorm:"column:id_komentar;index;not null" json:"id_komentar"`
+	Komentar   models.Komentar `gorm:"foreignKey:IdKomentar;references:ID" json:"-"`
+
+	KomentarChild int32 `gorm:"column:komentar_child;type:int4;default:0" json:"komentar_child"`
+}
+
+func (KomentarThreshold) TableName() string {
+	return sot_threshold_seeders_nama.KomentarThreshold
+}
+
+// 19. InformasiKurirThreshold
+type InformasiKurirThreshold struct {
+	ID               int64                 `gorm:"primaryKey;autoIncrement" json:"id_informasi_kurir_threshold"`
+	IdInformasiKurir int64                 `gorm:"column:id_informasi_kurir;index;not null" json:"id_informasi_kurir"`
+	InformasiKurir   models.InformasiKurir `gorm:"foreignKey:IdInformasiKurir;references:ID" json:"-"`
+
+	MediaKtpFoto int32 `gorm:"column:media_informasi_kurir_ktp_foto;type:int4;default:0" json:"media_informasi_kurir_ktp_foto"`
+}
+
+func (InformasiKurirThreshold) TableName() string {
+	return sot_threshold_seeders_nama.InformasiKurirThreshold
+}
+
+// 20. PembayaranThreshold
+
+// 21. RekeningSellerThreshold
+type RekeningSellerThreshold struct {
+	ID               int64                 `gorm:"primaryKey;autoIncrement" json:"id_rekening_seller_threshold"`
+	IdRekeningSeller int64                 `gorm:"column:id_rekening_seller;index;not null" json:"id_rekening_seller"`
+	RekeningSeller   models.RekeningSeller `gorm:"foreignKey:IdRekeningSeller;references:ID" json:"-"`
+
+	KategoriBarang int32 `gorm:"column:kategori_barang;type:int4;default:0" json:"kategori_barang"`
+}
+
+func (RekeningSellerThreshold) TableName() string {
+	return sot_threshold_seeders_nama.RekeningSellerThreshold
+}
+
+type AlamatGudangThreshold struct {
+	ID             int64               `gorm:"primaryKey;autoIncrement" json:"id_alamat_gudang_threshold"`
+	IdAlamatGudang int64               `gorm:"column:id_alamat_gudang;index;not null" json:"id_alamat_gudang"`
+	AlamatGudang   models.AlamatGudang `gorm:"foreignKey:IdAlamatGudang;references:ID" json:"-"`
+
+	KategoriBarang      int32 `gorm:"column:kategori_barang;type:int4;default:0" json:"kategori_barang"`
+	Pengiriman          int32 `gorm:"column:pengiriman;type:int4;default:0" json:"pengiriman"`
+	PengirimanEkspedisi int32 `gorm:"column:pengiriman_ekspedisi;type:int4;default:0" json:"pengiriman_ekspedisi"`
+	Transaksi           int32 `gorm:"column:transaksi;type:int4;default:0" json:"transaksi"`
+}
+
+func (AlamatGudangThreshold) TableName() string {
+	return sot_threshold_seeders_nama.AlamatGudangThreshold
+}
+
+type AlamatPenggunaThreshold struct {
+	ID               int64                 `gorm:"primaryKey;autoIncrement" json:"id_alamat_pengguna_threshold"`
+	IdAlamatPengguna int64                 `gorm:"column:id_alamat_pengguna;index;not null" json:"id_alamat_pengguna"`
+	AlamatPengguna   models.AlamatPengguna `gorm:"foreignKey:IdAlamatPengguna;references:ID" json:"-"`
+
+	Pengiriman int32 `gorm:"column:pengiriman;type:int4;default:0" json:"pengiriman"`
+	Transaksi  int32 `gorm:"column:transaksi;type:int4;default:0" json:"transaksi"`
+}
+
+func (AlamatPenggunaThreshold) TableName() string {
+	return sot_threshold_seeders_nama.AlamatPenggunaThreshold
+}
+
+// 22. AlamatEkspedisiThreshold
+type AlamatEkspedisiThreshold struct {
+	ID                int64                  `gorm:"primaryKey;autoIncrement" json:"id_alamat_ekspedisi_threshold"`
+	IdAlamatEkspedisi int64                  `gorm:"column:id_alamat_ekspedisi;index;not null" json:"id_alamat_ekspedisi"`
+	AlamatEkspedisi   models.AlamatEkspedisi `gorm:"foreignKey:IdAlamatEkspedisi;references:ID" json:"-"`
+
+	PengirimanEkspedisi int32 `gorm:"column:pengiriman_ekspedisi;type:int4;default:0" json:"pengiriman_ekspedisi"`
+}
+
+func (AlamatEkspedisiThreshold) TableName() string {
+	return sot_threshold_seeders_nama.AlamatEkspedisiThreshold
+}

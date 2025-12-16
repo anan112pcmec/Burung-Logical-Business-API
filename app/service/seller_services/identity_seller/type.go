@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 )
 
 type IdentitySeller struct {
@@ -17,30 +17,15 @@ type IdentitySeller struct {
 
 func (i IdentitySeller) UpThreshold(ctx context.Context, db *gorm.DB) bool {
 
-	var id_data_transaksi_threshold int64 = 0
-	if err := db.WithContext(ctx).Model(&threshold.ThresholdTransaksiSeller{}).Select("id").Where(&threshold.ThresholdTransaksiSeller{
-		IdSeller: i.IdSeller,
-	}).Limit(1).Scan(&id_data_transaksi_threshold).Error; err != nil {
-		return false
-	}
-
-	if id_data_transaksi_threshold == 0 {
-		if err := db.WithContext(ctx).Create(&threshold.ThresholdTransaksiSeller{
-			IdSeller: i.IdSeller,
-		}).Error; err != nil {
-			return false
-		}
-	}
-
 	var id_data_order int64 = 0
-	if err := db.WithContext(ctx).Model(&threshold.ThresholdOrderSeller{}).Select("id").Where(&threshold.ThresholdOrderSeller{
+	if err := db.WithContext(ctx).Model(&sot_threshold.ThresholdOrderSeller{}).Select("id").Where(&sot_threshold.ThresholdOrderSeller{
 		IdSeller: i.IdSeller,
 	}).Limit(1).Scan(&id_data_order).Error; err != nil {
 		return false
 	}
 
 	if id_data_order == 0 {
-		if err := db.WithContext(ctx).Create(&threshold.ThresholdOrderSeller{
+		if err := db.WithContext(ctx).Create(&sot_threshold.ThresholdOrderSeller{
 			IdSeller: i.IdSeller,
 		}).Error; err != nil {
 			return false

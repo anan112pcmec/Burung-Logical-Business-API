@@ -38,6 +38,7 @@ type Transaksi struct {
 	IdAlamatPengguna    int64          `gorm:"index;column:id_alamat_pengguna;not null" json:"id_alamat_pengguna"`
 	AlamatPengguna      AlamatPengguna `gorm:"foreignKey:IdAlamatPengguna;references:ID" json:"-"`
 	IdAlamatGudang      int64          `gorm:"index;column:id_alamat_gudang;type:int8;not null" json:"id_alamat_gudang"`
+	AlamatGudang        AlamatGudang   `gorm:"foreignKey:IdAlamatGudang;references:ID" json:"-"`
 	IdAlamatEkspedisi   int64          `gorm:"column:id_alamat_ekspedisi;type:int8;not null" json:"id_alamat_ekspedisi"`
 	IdPembayaran        int64          `gorm:"column:id_pembayaran;not null" json:"id_pembayaran"`
 	Pembayaran          Pembayaran     `gorm:"foreignKey:IdPembayaran;references:ID" json:"-"`
