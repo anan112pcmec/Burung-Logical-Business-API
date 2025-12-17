@@ -8,6 +8,8 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold_seeders_nama "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_threshold"
+)
+
 type BrandDataThreshold struct {
 	ID          int64            `gorm:"primaryKey;autoIncrement" json:"id_brand_data_threshold"`
 	IdBrandData int64            `gorm:"column:id_brand_data;index;not null" json:"id_brand_data"`
@@ -508,6 +510,88 @@ func (BidKurirDataThreshold) TableName() string {
 	return sot_threshold_seeders_nama.BidKurirDataThreshold
 }
 
+func (b BidKurirDataThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&BidKurirDataThreshold{}).Select("id").Where(&BidKurirDataThreshold{
+		IdBidKurirData: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&BidKurirDataThreshold{
+		IdBidKurirData: id_fk,
+	}).Error
+}
+
+func (b BidKurirDataThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&BidKurirDataThreshold{}).Where(&BidKurirDataThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (b BidKurirDataThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&BidKurirDataThreshold{}).Where(&BidKurirDataThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (b BidKurirDataThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&BidKurirDataThreshold{}).Where(&BidKurirDataThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (b BidKurirDataThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&BidKurirDataThreshold{}).Where(&BidKurirDataThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
 // 17. DiskonProdukThreshold
 type DiskonProdukThreshold struct {
 	ID             int64               `gorm:"primaryKey;autoIncrement" json:"id_diskon_produk_threshold"`
@@ -519,6 +603,88 @@ type DiskonProdukThreshold struct {
 
 func (DiskonProdukThreshold) TableName() string {
 	return sot_threshold_seeders_nama.DiskonProdukThreshold
+}
+
+func (d DiskonProdukThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Select("id").Where(&DiskonProdukThreshold{
+		IdDiskonProduk: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&DiskonProdukThreshold{
+		IdDiskonProduk: id_fk,
+	}).Error
+}
+
+func (d DiskonProdukThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (d DiskonProdukThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (d DiskonProdukThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (d DiskonProdukThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
 }
 
 // 18. KomentarThreshold
@@ -534,6 +700,88 @@ func (KomentarThreshold) TableName() string {
 	return sot_threshold_seeders_nama.KomentarThreshold
 }
 
+func (k KomentarThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&KomentarThreshold{}).Select("id").Where(&KomentarThreshold{
+		IdKomentar: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&KomentarThreshold{
+		IdKomentar: id_fk,
+	}).Error
+}
+
+func (k KomentarThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (k KomentarThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (k KomentarThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (k KomentarThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
 // 19. InformasiKurirThreshold
 type InformasiKurirThreshold struct {
 	ID               int64                 `gorm:"primaryKey;autoIncrement" json:"id_informasi_kurir_threshold"`
@@ -545,6 +793,88 @@ type InformasiKurirThreshold struct {
 
 func (InformasiKurirThreshold) TableName() string {
 	return sot_threshold_seeders_nama.InformasiKurirThreshold
+}
+
+func (i InformasiKurirThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&InformasiKurirThreshold{}).Select("id").Where(&InformasiKurirThreshold{
+		IdInformasiKurir: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&InformasiKurirThreshold{
+		IdInformasiKurir: id_fk,
+	}).Error
+}
+
+func (i InformasiKurirThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKurirThreshold{}).Where(&InformasiKurirThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (i InformasiKurirThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKurirThreshold{}).Where(&InformasiKurirThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (i InformasiKurirThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKurirThreshold{}).Where(&InformasiKurirThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (i InformasiKurirThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&InformasiKurirThreshold{}).Where(&InformasiKurirThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
 }
 
 // 20. PembayaranThreshold
@@ -562,6 +892,88 @@ func (RekeningSellerThreshold) TableName() string {
 	return sot_threshold_seeders_nama.RekeningSellerThreshold
 }
 
+func (r RekeningSellerThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Select("id").Where(&RekeningSellerThreshold{
+		IdRekeningSeller: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&RekeningSellerThreshold{
+		IdRekeningSeller: id_fk,
+	}).Error
+}
+
+func (r RekeningSellerThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (r RekeningSellerThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (r RekeningSellerThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (r RekeningSellerThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
 type AlamatGudangThreshold struct {
 	ID             int64               `gorm:"primaryKey;autoIncrement" json:"id_alamat_gudang_threshold"`
 	IdAlamatGudang int64               `gorm:"column:id_alamat_gudang;index;not null" json:"id_alamat_gudang"`
@@ -575,6 +987,88 @@ type AlamatGudangThreshold struct {
 
 func (AlamatGudangThreshold) TableName() string {
 	return sot_threshold_seeders_nama.AlamatGudangThreshold
+}
+
+func (a AlamatGudangThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Select("id").Where(&AlamatGudangThreshold{
+		IdAlamatGudang: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&AlamatGudangThreshold{
+		IdAlamatGudang: id_fk,
+	}).Error
+}
+
+func (a AlamatGudangThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Where(&AlamatGudangThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (a AlamatGudangThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Where(&AlamatGudangThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (a AlamatGudangThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Where(&AlamatGudangThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (a AlamatGudangThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Where(&AlamatGudangThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
 }
 
 type AlamatPenggunaThreshold struct {
@@ -601,4 +1095,86 @@ type AlamatEkspedisiThreshold struct {
 
 func (AlamatEkspedisiThreshold) TableName() string {
 	return sot_threshold_seeders_nama.AlamatEkspedisiThreshold
+}
+
+func (a AlamatEkspedisiThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&AlamatEkspedisiThreshold{}).Select("id").Where(&AlamatEkspedisiThreshold{
+		IdAlamatEkspedisi: id_fk,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&AlamatEkspedisiThreshold{
+		IdAlamatEkspedisi: id_fk,
+	}).Error
+}
+
+func (a AlamatEkspedisiThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatEkspedisiThreshold{}).Where(&AlamatEkspedisiThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (a AlamatEkspedisiThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatEkspedisiThreshold{}).Where(&AlamatEkspedisiThreshold{
+		ID: id_fk,
+	}).Updates(updates).Error
+}
+
+func (a AlamatEkspedisiThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatEkspedisiThreshold{}).Where(&AlamatEkspedisiThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (a AlamatEkspedisiThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatEkspedisiThreshold{}).Where(&AlamatEkspedisiThreshold{
+		ID: id_fk,
+	}).Updates(
+		updates,
+	).Error
 }

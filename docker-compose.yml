@@ -6,7 +6,6 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq_burung_message_broker
@@ -14,7 +13,12 @@ services:
       - "5672:5672"
       - "15672:15672"
     restart: unless-stopped
-
+    environment:
+      RABBITMQ_DEFAULT_USER: burung_user
+      RABBITMQ_DEFAULT_PASS: burung_pass
+      RABBITMQ_LOAD_DEFINITIONS: /etc/rabbitmq/definitions_vhost_rmq.json
+    volumes:
+      - ./definitions_vhost_rmq.json:/etc/rabbitmq/definitions_vhost_rmq.json:ro
   meilisearch:
     image: getmeili/meilisearch:latest
     container_name: meilisearch_burung_search_engine

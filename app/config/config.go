@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/meilisearch/meilisearch-go"
@@ -13,6 +14,10 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	mb_cud_queue_provisioning "github.com/anan112pcmec/Burung-backend-1/app/message_broker/provisioning/cud_exchange/queue"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+
 )
 
 const (
@@ -45,7 +50,7 @@ func (e *Environment) RunConnectionEnvironment() (
 	redis_barang *redis.Client,
 	redis_engagement *redis.Client,
 	search_engine meilisearch.ServiceManager,
-	notification *amqp091.Connection,
+	cud_publisher *mb_cud_publisher.Publisher,
 	media_storage *minio.Client,
 ) {
 
@@ -171,8 +176,34 @@ func (e *Environment) RunConnectionEnvironment() (
 		DB:       e.RDSENGAGEMENTDB,
 	})
 
-	connStr := fmt.Sprintf("amqp://%s:%s@%s:%s/", e.RMQ_USER, e.RMQ_PASS, e.RMQ_HOST, e.RMQ_PORT)
-	notification, _ = amqp091.Dial(connStr)
+	connStr := fmt.Sprintf(
+		"amqp://%s:%s@%s:%s/internal_system_burung",
+		e.RMQ_USER,
+		e.RMQ_PASS,
+		e.RMQ_HOST,
+		e.RMQ_PORT,
+	)
+	message_broker, _ := amqp091.Dial(connStr)
+	cud_ch, err := message_broker.Channel()
+	if err != nil {
+		log.Fatalf("Failed to open a channel: %v", err)
+	}
+	cud_publisher = &mb_cud_publisher.Publisher{
+		Ch: cud_ch,
+		QueueCreate: &mb_cud_queue_provisioning.CreateQueue{
+			ExchangeName: "mb.cud",
+			QueueBind:    "create",
+		},
+		QueueUpdate: &mb_cud_queue_provisioning.UpdateQueue{
+			ExchangeName: "mb.cud",
+			QueueBind:    "update",
+		},
+		QueueDelete: &mb_cud_queue_provisioning.DeleteQueue{
+			ExchangeName: "mb.cud",
+			QueueBind:    "delete",
+		},
+		Mu: sync.Mutex{},
+	}
 
 	search_engine = meilisearch.New(fmt.Sprintf("http://%s:%s", e.MEILIHOST, e.MEILIPORT), meilisearch.WithAPIKey(e.MEILIKEY))
 

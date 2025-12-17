@@ -17,6 +17,7 @@ import (
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/migrate"
+	mb_cud_exchange_provisioning "github.com/anan112pcmec/Burung-backend-1/app/message_broker/provisioning/cud_exchange"
 )
 
 func Getenvi(key, fallback string) string {
@@ -63,10 +64,10 @@ func Run() {
 		MEILIPORT:       Getenvi("MEILIPORT", "NIL"),
 		MEILIKEY:        Getenvi("MEILIKEY", "NIL"),
 
-		RMQ_HOST: "",
-		RMQ_USER: "",
-		RMQ_PASS: "",
-		RMQ_PORT: "",
+		RMQ_HOST: Getenvi("RMQ_HOST", "NIL"),
+		RMQ_USER: Getenvi("RMQ_USER", "NIL"),
+		RMQ_PASS: Getenvi("RMQ_PASS", "NIL"),
+		RMQ_PORT: Getenvi("RMQ_PORT", "NIL"),
 
 		MINIO_ENDPOINT:              Getenvi("MINIO_ENDPOINT", "NIL"),
 		MINIO_USE_SSL:               minioSSl,
@@ -75,7 +76,7 @@ func Run() {
 		MINIO_SIGNED_URL_EXPIRE_SEC: Getenvi("MINIO_SIGNED_URL_EXPIRE_SEC", "NIL"),
 	}
 
-	db_system, db_replica_client, redis_entity_cache, redis_barang_cache, redis_engagement_cache, searchengine, _, media_storage :=
+	db_system, db_replica_client, redis_entity_cache, redis_barang_cache, redis_engagement_cache, searchengine, cud_publisher, media_storage :=
 		env.RunConnectionEnvironment()
 
 	// Router utama
@@ -107,6 +108,30 @@ func Run() {
 		//
 	}
 	initSotDatabase()
+
+	// Message Broker
+
+	if err := mb_cud_exchange_provisioning.ProvisionExchangeCUD(cud_publisher.Ch); err != nil {
+		fmt.Println("Gagal membuat exchange create update delete: ", err)
+		return
+	}
+
+	if err := cud_publisher.QueueCreate.ProvisioningQueues(cud_publisher.Ch); err != nil {
+		fmt.Println("Gagal membuat Queue Create: ", err)
+		return
+	}
+
+	if err := cud_publisher.QueueUpdate.ProvisioningQueues(cud_publisher.Ch); err != nil {
+		fmt.Println("Gagal membuat update queue: ", err)
+		return
+	}
+
+	if err := cud_publisher.QueueDelete.ProvisioningQueues(cud_publisher.Ch); err != nil {
+		fmt.Println("Gagal membuat queue Delete: ", err)
+		return
+	}
+
+	//
 
 	// Caching data
 	maintain_cache.DataAlamatEkspedisiUp(db_system.Write)
@@ -153,4 +178,6 @@ func Run() {
 	if err := http.ListenAndServe(port, Router); err != nil {
 		log.Fatalf("Gagal menjalankan server: %v", err)
 	}
+
+	defer cud_publisher.Ch.Close()
 }

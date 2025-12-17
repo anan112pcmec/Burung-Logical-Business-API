@@ -1,0 +1,29 @@
+{
+  "vhosts": [
+    { "name": "notificationing_burung" },
+    { "name": "internal_system_burung" }
+  ],
+  "users": [
+    {
+      "name": "burung_user",
+      "password": "burung_pass",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "burung_user",
+      "vhost": "notificationing_burung",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "burung_user",
+      "vhost": "internal_system_burung",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}
