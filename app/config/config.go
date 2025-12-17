@@ -17,7 +17,7 @@ import (
 
 	mb_cud_queue_provisioning "github.com/anan112pcmec/Burung-backend-1/app/message_broker/provisioning/cud_exchange/queue"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
-
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 )
 
 const (
@@ -192,15 +192,33 @@ func (e *Environment) RunConnectionEnvironment() (
 		Ch: cud_ch,
 		QueueCreate: &mb_cud_queue_provisioning.CreateQueue{
 			ExchangeName: "mb.cud",
-			QueueBind:    "create",
+			QueueName:    mb_cud_seeders.Create,
+			QueueBind:    mb_cud_queue_provisioning.CreateQueue{}.BindingName(),
+			Durable:      true,
+			AutoDelete:   false,
+			Internal:     false,
+			NoWait:       false,
+			Exclusive:    false,
 		},
 		QueueUpdate: &mb_cud_queue_provisioning.UpdateQueue{
 			ExchangeName: "mb.cud",
-			QueueBind:    "update",
+			QueueName:    mb_cud_seeders.Update,
+			QueueBind:    mb_cud_queue_provisioning.UpdateQueue{}.BindingName(),
+			Durable:      true,
+			AutoDelete:   false,
+			Internal:     false,
+			NoWait:       false,
+			Exclusive:    false,
 		},
 		QueueDelete: &mb_cud_queue_provisioning.DeleteQueue{
 			ExchangeName: "mb.cud",
-			QueueBind:    "delete",
+			QueueName:    mb_cud_seeders.Delete,
+			QueueBind:    mb_cud_queue_provisioning.DeleteQueue{}.BindingName(),
+			Durable:      true,
+			AutoDelete:   false,
+			Internal:     false,
+			NoWait:       false,
+			Exclusive:    false,
 		},
 		Mu: sync.Mutex{},
 	}

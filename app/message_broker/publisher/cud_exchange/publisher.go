@@ -11,7 +11,7 @@ import (
 )
 
 func CreatePublish[
-	T mb_serializer.PublishPayloadJson | mb_serializer.PublishPayloadProto,
+	T *mb_serializer.PublishPayloadJson | *mb_serializer.PublishPayloadProto,
 ](
 	ctx context.Context,
 	Publish *Publisher,
@@ -26,19 +26,24 @@ func CreatePublish[
 
 	switch v := any(Payload).(type) {
 
-	case mb_serializer.PublishPayloadJson:
-		b, err := json.Marshal(v)
+	case *mb_serializer.PublishPayloadJson:
+		b, err := json.Marshal(v.Payload)
 		if err != nil {
 			return fmt.Errorf("json marshal failed: %w", err)
 		}
 		body = b
 		contentType = "application/json"
+		headers = amqp091.Table{
+			"table_name": v.TableName,
+			"protocol":   v.Protocol,
+		}
 
-	case mb_serializer.PublishPayloadProto:
+	case *mb_serializer.PublishPayloadProto:
 		body = v.Payload
 		contentType = "application/x-protobuf"
 		headers = amqp091.Table{
 			"table_name": v.TableName,
+			"protocol":   v.Protocol,
 		}
 
 	default:
@@ -64,7 +69,7 @@ func CreatePublish[
 }
 
 func UpdatePublish[
-	T mb_serializer.PublishPayloadJson | mb_serializer.PublishPayloadProto,
+	T *mb_serializer.PublishPayloadJson | *mb_serializer.PublishPayloadProto,
 ](
 	ctx context.Context,
 	Publish *Publisher,
@@ -79,19 +84,24 @@ func UpdatePublish[
 
 	switch v := any(Payload).(type) {
 
-	case mb_serializer.PublishPayloadJson:
-		b, err := json.Marshal(v)
+	case *mb_serializer.PublishPayloadJson:
+		b, err := json.Marshal(v.Payload)
 		if err != nil {
 			return fmt.Errorf("json marshal failed: %w", err)
 		}
 		body = b
 		contentType = "application/json"
+		headers = amqp091.Table{
+			"table_name": v.TableName,
+			"protocol":   v.Protocol,
+		}
 
-	case mb_serializer.PublishPayloadProto:
+	case *mb_serializer.PublishPayloadProto:
 		body = v.Payload
 		contentType = "application/x-protobuf"
 		headers = amqp091.Table{
 			"table_name": v.TableName,
+			"protocol":   v.Protocol,
 		}
 
 	default:
@@ -117,7 +127,7 @@ func UpdatePublish[
 }
 
 func DeletePublish[
-	T mb_serializer.PublishPayloadJson | mb_serializer.PublishPayloadProto,
+	T *mb_serializer.PublishPayloadJson | *mb_serializer.PublishPayloadProto,
 ](
 	ctx context.Context,
 	Publish *Publisher,
@@ -132,19 +142,24 @@ func DeletePublish[
 
 	switch v := any(Payload).(type) {
 
-	case mb_serializer.PublishPayloadJson:
-		b, err := json.Marshal(v)
+	case *mb_serializer.PublishPayloadJson:
+		b, err := json.Marshal(v.Payload)
 		if err != nil {
 			return fmt.Errorf("json marshal failed: %w", err)
 		}
 		body = b
 		contentType = "application/json"
+		headers = amqp091.Table{
+			"table_name": v.TableName,
+			"protocol":   v.Protocol,
+		}
 
-	case mb_serializer.PublishPayloadProto:
+	case *mb_serializer.PublishPayloadProto:
 		body = v.Payload
 		contentType = "application/x-protobuf"
 		headers = amqp091.Table{
 			"table_name": v.TableName,
+			"protocol":   v.Protocol,
 		}
 
 	default:

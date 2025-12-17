@@ -15,7 +15,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	media_storage_database_migrate "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/migrate"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
-	enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/migrate"
 	mb_cud_exchange_provisioning "github.com/anan112pcmec/Burung-backend-1/app/message_broker/provisioning/cud_exchange"
 )
