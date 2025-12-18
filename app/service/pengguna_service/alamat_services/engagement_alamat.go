@@ -2,13 +2,22 @@ package pengguna_alamat_services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
@@ -16,10 +25,10 @@ import (
 // Fungsi Masukan Alamat Pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPengguna, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanAlamatPengguna"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -84,7 +93,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 
 	helper.SanitasiKoordinat(&data.Latitude, &data.Longitude)
 
-	if err := db.Write.WithContext(ctx).Create(&models.AlamatPengguna{
+	Alamatpengguna := models.AlamatPengguna{
 		IDPengguna:      data.IdentitasPengguna.ID,
 		PanggilanAlamat: data.PanggilanAlamat,
 		NamaAlamat:      data.NamaAlamat,
@@ -96,13 +105,42 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		KodeNegara:      data.KodeNegara,
 		Longitude:       data.Longitude,
 		Latitude:        data.Latitude,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&Alamatpengguna).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Ap models.AlamatPengguna, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		threshold_pengguna := sot_threshold.PenggunaThreshold{
+			IdPengguna: Ap.IDPengguna,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := threshold_pengguna.Increment(konteks, Trh, stsk_pengguna.AlamatPengguna); err != nil {
+			fmt.Println("gagal incr threshold pengguna")
+		}
+
+		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
+			IdAlamatPengguna: Ap.ID,
+		}
+
+		if err := threshold_alamat.Inisialisasi(konteks, Trh); err != nil {
+			fmt.Println("Gagal membuat threshold alamat pengguna")
+		}
+
+		publishNewAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(Ap).SetTableName(Ap.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, publishNewAlamat); err != nil {
+			fmt.Println("gagal publish create alamat ke message broker")
+		}
+	}(Alamatpengguna, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -111,10 +149,10 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 	}
 }
 
-func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditAlamatPengguna"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -206,6 +244,26 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		}
 	}
 
+	go func(idAlamat int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		ap := models.AlamatPengguna{}
+		if err := Read.WithContext(konteks).Model(&models.AlamatPengguna{}).Where(&models.AlamatPengguna{
+			ID: idAlamat,
+		}).Limit(1).Take(&ap).Error; err != nil {
+			fmt.Println("Gagal Mendapatkan alamat pengguna untuk publish")
+			return
+		}
+
+		publishUpdateAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(ap).SetTableName(ap.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, publishUpdateAlamat); err != nil {
+			fmt.Println("gagal publish update alamat ke message broker")
+			return
+		}
+	}(data.IdAlamatPengguna, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -217,10 +275,10 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 // Fungsi Hapus Alamat Pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusAlamatPengguna"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusOK,
 			Services: services,
@@ -228,11 +286,11 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		}
 	}
 
-	var id_alamat_pengguna int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatPengguna{}).Select("id").Where(&models.AlamatPengguna{
+	var alamat_pengguna models.AlamatPengguna
+	if err := db.Read.WithContext(ctx).Model(&models.AlamatPengguna{}).Where(&models.AlamatPengguna{
 		ID:         data.IdAlamatPengguna,
 		IDPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Scan(&id_alamat_pengguna).Error; err != nil {
+	}).Limit(1).Scan(&alamat_pengguna).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -240,7 +298,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		}
 	}
 
-	if id_alamat_pengguna == 0 {
+	if alamat_pengguna.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -282,6 +340,33 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Ap models.AlamatPengguna, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		threshold_pengguna := sot_threshold.PenggunaThreshold{
+			IdPengguna: Ap.IDPengguna,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := threshold_pengguna.Decrement(konteks, Trh, stsk_pengguna.AlamatPengguna); err != nil {
+			fmt.Println("gagal decr threshold pengguna")
+		}
+
+		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
+			IdAlamatPengguna: Ap.ID,
+		}
+
+		if err := db.Write.WithContext(konteks).Delete(&threshold_alamat).Error; err != nil {
+			fmt.Println("gagal menghapus threshold alamat")
+		}
+
+		publishDeleteAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(Ap).SetTableName(Ap.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, publishDeleteAlamat); err != nil {
+			fmt.Println("gagal publish hapus alamat ke message broker")
+		}
+	}(alamat_pengguna, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,

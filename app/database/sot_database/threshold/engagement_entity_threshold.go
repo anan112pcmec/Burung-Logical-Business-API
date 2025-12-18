@@ -310,6 +310,7 @@ type ReviewThreshold struct {
 
 	MediaReviewFoto  int32 `gorm:"column:media_review_foto;type:int4;default:0" json:"media_review_foto"`
 	MediaReviewVideo int32 `gorm:"column:media_review_video;type:int4;default:0" json:"media_review_video"`
+	ReviewLike       int32 `gorm:"column:review_like;type:int4;default:0" json:"review_like"`
 	ReviewDislike    int32 `gorm:"column:review_dislike;type:int4;default:0" json:"review_dislike"`
 }
 
@@ -317,10 +318,10 @@ func (ReviewThreshold) TableName() string {
 	return sot_threshold_seeders_nama.ReviewThreshold
 }
 
-func (r ReviewThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (r *ReviewThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&ReviewThreshold{}).Select("id").Where(&ReviewThreshold{
-		IdReview: id_fk,
+		IdReview: r.IdReview,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -330,11 +331,11 @@ func (r ReviewThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm
 	}
 
 	return db.WithContext(ctx).Create(&ReviewThreshold{
-		IdReview: id_fk,
+		IdReview: r.IdReview,
 	}).Error
 }
 
-func (r ReviewThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (r *ReviewThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -346,11 +347,11 @@ func (r ReviewThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB
 	}
 
 	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
-		ID: id_fk,
+		IdReview: r.IdReview,
 	}).Updates(updates).Error
 }
 
-func (r ReviewThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (r *ReviewThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -361,11 +362,11 @@ func (r ReviewThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB
 	}
 
 	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
-		ID: id_fk,
+		IdReview: r.IdReview,
 	}).Updates(updates).Error
 }
 
-func (r ReviewThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (r *ReviewThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -376,13 +377,13 @@ func (r ReviewThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *g
 	}
 
 	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
-		ID: id_fk,
+		IdReview: r.IdReview,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (r ReviewThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (r *ReviewThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -393,7 +394,7 @@ func (r ReviewThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *g
 	}
 
 	return db.WithContext(ctx).Model(&ReviewThreshold{}).Where(&ReviewThreshold{
-		ID: id_fk,
+		IdReview: r.IdReview,
 	}).Updates(
 		updates,
 	).Error
@@ -700,10 +701,10 @@ func (KomentarThreshold) TableName() string {
 	return sot_threshold_seeders_nama.KomentarThreshold
 }
 
-func (k KomentarThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (k *KomentarThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&KomentarThreshold{}).Select("id").Where(&KomentarThreshold{
-		IdKomentar: id_fk,
+		IdKomentar: k.IdKomentar,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -713,11 +714,11 @@ func (k KomentarThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *go
 	}
 
 	return db.WithContext(ctx).Create(&KomentarThreshold{
-		IdKomentar: id_fk,
+		IdKomentar: k.IdKomentar,
 	}).Error
 }
 
-func (k KomentarThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (k *KomentarThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -729,11 +730,11 @@ func (k KomentarThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.
 	}
 
 	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
-		ID: id_fk,
+		IdKomentar: k.IdKomentar,
 	}).Updates(updates).Error
 }
 
-func (k KomentarThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (k *KomentarThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -744,11 +745,11 @@ func (k KomentarThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.
 	}
 
 	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
-		ID: id_fk,
+		IdKomentar: k.IdKomentar,
 	}).Updates(updates).Error
 }
 
-func (k KomentarThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (k *KomentarThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -759,13 +760,13 @@ func (k KomentarThreshold) CustomIncrement(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
-		ID: id_fk,
+		IdKomentar: k.IdKomentar,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (k KomentarThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (k *KomentarThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -776,7 +777,7 @@ func (k KomentarThreshold) CustomDecrement(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Model(&KomentarThreshold{}).Where(&KomentarThreshold{
-		ID: id_fk,
+		IdKomentar: k.IdKomentar,
 	}).Updates(
 		updates,
 	).Error
@@ -1082,6 +1083,88 @@ type AlamatPenggunaThreshold struct {
 
 func (AlamatPenggunaThreshold) TableName() string {
 	return sot_threshold_seeders_nama.AlamatPenggunaThreshold
+}
+
+func (a *AlamatPenggunaThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&AlamatPenggunaThreshold{}).Select("id").Where(&AlamatPenggunaThreshold{
+		IdAlamatPengguna: a.IdAlamatPengguna,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&AlamatPenggunaThreshold{
+		IdAlamatPengguna: a.IdAlamatPengguna,
+	}).Error
+}
+
+func (a *AlamatPenggunaThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatPenggunaThreshold{}).Where(&AlamatPenggunaThreshold{
+		IdAlamatPengguna: a.IdAlamatPengguna,
+	}).Updates(updates).Error
+}
+
+func (a *AlamatPenggunaThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatPenggunaThreshold{}).Where(&AlamatPenggunaThreshold{
+		IdAlamatPengguna: a.IdAlamatPengguna,
+	}).Updates(updates).Error
+}
+
+func (a *AlamatPenggunaThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatPenggunaThreshold{}).Where(&AlamatPenggunaThreshold{
+		IdAlamatPengguna: a.IdAlamatPengguna,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (a *AlamatPenggunaThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&AlamatPenggunaThreshold{}).Where(&AlamatPenggunaThreshold{
+		IdAlamatPengguna: a.IdAlamatPengguna,
+	}).Updates(
+		updates,
+	).Error
 }
 
 // 22. AlamatEkspedisiThreshold

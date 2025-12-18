@@ -1,4 +1,4 @@
-package mb_serializer
+package mb_cud_serializer
 
 type PublishPayloadProto struct {
 	TableName string `json:"table_name"`

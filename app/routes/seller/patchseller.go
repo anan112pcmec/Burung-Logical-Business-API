@@ -8,6 +8,7 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	seller_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/alamat_services"
 	seller_service "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/barang_services"
@@ -20,7 +21,7 @@ import (
 	seller_transaksi_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/transaksi_services"
 )
 
-func PatchSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_engagement *redis.Client) {
+func PatchSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth *redis.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
 
 	ctx := r.Context()
@@ -67,14 +68,14 @@ func PatchSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWri
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_credential_services.PreUbahPasswordSeller(ctx, data, db, rds_engagement)
+		hasil = seller_credential_services.PreUbahPasswordSeller(ctx, data, db, rds_auth)
 	case "/seller/credential/validate-password-otp":
 		var data seller_credential_services.PayloadValidateUbahPasswordSellerOTP
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_credential_services.ValidateUbahPasswordSeller(data, db, rds_engagement)
+		hasil = seller_credential_services.ValidateUbahPasswordSeller(data, db, rds_auth)
 
 	case "/seller/alamat/edit-alamat-gudang":
 		var data seller_alamat_services.PayloadEditAlamatGudang
@@ -187,7 +188,7 @@ func PatchSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWri
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_transaksi_services.ApproveOrderTransaksi(ctx, data, db, rds_engagement)
+		hasil = seller_transaksi_services.ApproveOrderTransaksi(ctx, data, db, rds_auth)
 	case "/seller/transaction/kirim-barang":
 		var data seller_transaksi_services.PayloadKirimOrderTransaksi
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

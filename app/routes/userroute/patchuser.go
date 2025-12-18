@@ -8,6 +8,7 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	pengguna_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/alamat_services"
 	pengguna_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
@@ -17,7 +18,7 @@ import (
 	pengguna_transaction_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services"
 )
 
-func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_barang *redis.Client, rds_engagement *redis.Client) {
+func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
 	ctx := r.Context()
 
@@ -28,35 +29,35 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.LikesBarang(ctx, data, db)
+		hasil = pengguna_service.LikesBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/unlikes-barang":
 		var data pengguna_service.PayloadUnlikeBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.UnlikeBarang(ctx, data, db)
+		hasil = pengguna_service.UnlikeBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-barang/edit":
 		var data pengguna_service.PayloadEditKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.EditKomentarBarang(ctx, data, db)
+		hasil = pengguna_service.EditKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/edit":
 		var data pengguna_service.PayloadEditChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.EditChildKomentar(ctx, data, db)
+		hasil = pengguna_service.EditChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/edit":
 		var data pengguna_service.PayloadEditDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.EditKeranjangBarang(ctx, data, db)
+		hasil = pengguna_service.EditKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/profiling/personal-update":
 		var data pengguna_profiling_services.PayloadPersonalProfilingPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -70,21 +71,21 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.PreUbahPasswordPengguna(ctx, data, db, rds_engagement)
+		hasil = pengguna_credential_services.PreUbahPasswordPengguna(ctx, data, db, rds_auth)
 	case "/user/credential/validate-password-otp":
 		var data pengguna_credential_services.PayloadValidateOTPPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaOtp(ctx, data, db, rds_engagement)
+		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaOtp(ctx, data, db, rds_auth)
 	case "/user/credential/validate-password-pin":
 		var data pengguna_credential_services.PayloadValidatePinPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaPin(ctx, data, db, rds_engagement)
+		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaPin(ctx, data, db, rds_auth)
 	case "/user/credential/update-pin":
 		var data pengguna_credential_services.PayloadUpdatePinPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -162,7 +163,7 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_alamat_services.EditAlamatPengguna(ctx, data, db)
+		hasil = pengguna_alamat_services.EditAlamatPengguna(ctx, data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

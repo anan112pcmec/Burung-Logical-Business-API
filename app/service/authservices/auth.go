@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
+	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
@@ -25,11 +26,11 @@ import (
 // :Bertujuan Untuk menangani aksi Login Dari Pengguna atau seller atau kurir,
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UserLogin(db *config.InternalDBReadWriteSystem, email, password string) *response.ResponseForm {
+func UserLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client) *response.ResponseForm {
 	service := "UserLogin"
 	var user models.Pengguna
 
-	if err := db.Read.Where(models.Pengguna{Email: email}).Select("id", "nama", "username", "email", "password_hash", "status").Take(&user).Error; err != nil {
+	if err := db.Read.Model(&models.Pengguna{}).Where(&models.Pengguna{Email: email}).Take(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &response.ResponseForm{
 				Status:   http.StatusNotFound,
@@ -58,16 +59,32 @@ func UserLogin(db *config.InternalDBReadWriteSystem, email, password string) *re
 			},
 		}
 	} else {
-		go func() {
-			if user.StatusPengguna == "Offline" {
-				if err1 := db.Write.Model(models.Pengguna{}).Where(models.Pengguna{Email: email}).Update("status", "Online").Error; err1 != nil {
+		go func(status, gmail string, Write gorm.DB) {
+			if status == "Offline" {
+				if err1 := Write.Model(models.Pengguna{}).Where(models.Pengguna{Email: gmail}).Update("status", "Online").Error; err1 != nil {
 					fmt.Println("Gagal Ubah Status")
 				}
 			} else {
 				fmt.Println("user sudah login di tempat lain")
 			}
-		}()
+		}(user.StatusPengguna, user.Email, *db.Write)
 	}
+
+	userCopy := user
+
+	go func(u models.Pengguna) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
+		session := helper.StructToJSONMap(u)
+		pipe := rds.Pipeline()
+		pipe.HSet(ctx, key, session)
+
+		if _, err := pipe.Exec(ctx); err != nil {
+			log.Printf("[UserLogin][Redis] %v", err)
+		}
+	}(userCopy)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -84,7 +101,7 @@ func UserLogin(db *config.InternalDBReadWriteSystem, email, password string) *re
 	}
 }
 
-func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string) *response.ResponseForm {
+func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client) *response.ResponseForm {
 	service := "SellerLogin"
 	var seller models.Seller
 
@@ -121,17 +138,32 @@ func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string) *
 		}
 	}
 
-	go func() {
+	go func(status, gmail string, Write gorm.DB) {
 		if seller.StatusSeller == "Offline" {
-			if err := db.Write.Model(&models.Seller{}).
-				Where(&models.Seller{Email: email}).
+			if err := Write.Model(&models.Seller{}).
+				Where(&models.Seller{Email: gmail}).
 				Update("status", "Online").Error; err != nil {
 				fmt.Println("Gagal update status seller:", err)
 			} else {
 				fmt.Println("Seller sudah login di tempat lain")
 			}
 		}
-	}()
+	}(seller.StatusSeller, email, *db.Write)
+
+	sellerCopy := seller
+	go func(u models.Seller) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
+		session := helper.StructToJSONMap(u)
+		pipe := rds.Pipeline()
+		pipe.HSet(ctx, key, session)
+
+		if _, err := pipe.Exec(ctx); err != nil {
+			log.Printf("[SellerLogin][Redis] %v", err)
+		}
+	}(sellerCopy)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -148,7 +180,7 @@ func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string) *
 	}
 }
 
-func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string) *response.ResponseForm {
+func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client) *response.ResponseForm {
 	service := "KurirLogin"
 
 	var kurir models.Kurir
@@ -185,17 +217,32 @@ func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string) *r
 		}
 	}
 
-	go func() {
-		if kurir.StatusKurir == "Offline" {
-			if err := db.Write.Model(&models.Kurir{}).
-				Where(&models.Kurir{Email: email}).
+	go func(status, gmail string, Write gorm.DB) {
+		if status == "Offline" {
+			if err := Write.Model(&models.Kurir{}).
+				Where(&models.Kurir{Email: gmail}).
 				Update("status", "Online").Error; err != nil {
 				fmt.Println("Gagal update status kurir:", err)
 			} else {
 				fmt.Println("Seller sudah login di tempat lain")
 			}
 		}
-	}()
+	}(kurir.StatusKurir, email, *db.Write)
+
+	kurirCopy := kurir
+	go func(u models.Kurir) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
+		session := helper.StructToJSONMap(u)
+		pipe := rds.Pipeline()
+		pipe.HSet(ctx, key, session)
+
+		if _, err := pipe.Exec(ctx); err != nil {
+			log.Printf("[KurirLogin][Redis] %v", err)
+		}
+	}(kurirCopy)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,

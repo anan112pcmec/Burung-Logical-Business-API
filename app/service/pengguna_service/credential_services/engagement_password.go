@@ -27,7 +27,7 @@ import (
 // yang tidak diinginkan dan penyalahgunaan pihak lain pada sebuah akun
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *config.InternalDBReadWriteSystem, rds *redis.Client) *response.ResponseForm {
+func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth *redis.Client) *response.ResponseForm {
 	services := "PreUbahPasswordPengguna"
 
 	if data.FaktorKedua != "OTP" && data.FaktorKedua != "PIN" {

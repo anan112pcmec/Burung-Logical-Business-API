@@ -33,9 +33,9 @@ func Run() {
 		log.Fatalf("Error loading .env file")
 	}
 
-	rdsentity, _ := strconv.Atoi(Getenvi("RDSENTITY", "0"))
-	rdsbarang, _ := strconv.Atoi(Getenvi("RDSBARANG", "0"))
-	rdsengagement, _ := strconv.Atoi(Getenvi("RDSENGAGEMET", "0"))
+	rdsauth, _ := strconv.Atoi(Getenvi("RDSENTITY", "0"))
+	rdssession, _ := strconv.Atoi(Getenvi("RDSAUTH", "0"))
+	rdsengagement, _ := strconv.Atoi(Getenvi("RDSSESSION", "0"))
 	minioSSl, _ := strconv.ParseBool(Getenvi("MINIO_USE_SSL", "NIL"))
 
 	env := config.Environment{
@@ -49,6 +49,7 @@ func Run() {
 		DB_REPLICA_SYSTEM_PASS: Getenvi("DB_REPLICA_SYSTEM_PASS", "NIL"),
 		DB_REPLICA_SYSTEM_NAME: Getenvi("DB_REPLICA_SYSTEM_NAME", "NIL"),
 		DB_REPLICA_SYSTEM_PORT: Getenvi("DB_REPLICA_SYSTEM_PORT", "NIL"),
+
 		DB_REPLICA_CLIENT_HOST: Getenvi("DB_REPLICA_CLIENT_HOST", "NIL"),
 		DB_REPLICA_CLIENT_USER: Getenvi("DB_REPLICA_CLIENT_USER", "NIL"),
 		DB_REPLICA_CLIENT_PASS: Getenvi("DB_REPLICA_CLIENT_PASS", "NIL"),
@@ -57,8 +58,8 @@ func Run() {
 
 		RDSHOST:         Getenvi("RDSHOST", "NIL"),
 		RDSPORT:         Getenvi("RDSPORT", "NIL"),
-		RDSENTITYDB:     rdsentity,
-		RDSBARANGDB:     rdsbarang,
+		RDSAUTHDB:       rdsauth,
+		RDSSESSIONDB:    rdssession,
 		RDSENGAGEMENTDB: rdsengagement,
 		MEILIHOST:       Getenvi("MEILIHOST", "NIL"),
 		MEILIPORT:       Getenvi("MEILIPORT", "NIL"),
@@ -76,7 +77,7 @@ func Run() {
 		MINIO_SIGNED_URL_EXPIRE_SEC: Getenvi("MINIO_SIGNED_URL_EXPIRE_SEC", "NIL"),
 	}
 
-	db_system, db_replica_client, redis_entity_cache, redis_barang_cache, redis_engagement_cache, searchengine, cud_publisher, media_storage :=
+	db_system, db_replica_client, redis_auth, redis_session, _, searchengine, cud_publisher, media_storage :=
 		env.RunConnectionEnvironment()
 
 	// Router utama
@@ -108,6 +109,11 @@ func Run() {
 		//
 	}
 	initSotDatabase()
+
+	initSotThresholdDatabase := func() {
+		migrate.UpThresholdTable(db_system.Write)
+	}
+	initSotThresholdDatabase()
 
 	// Message Broker
 
@@ -151,23 +157,23 @@ func Run() {
 	})
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.GetHandler(db_replica_client, redis_barang_cache, redis_entity_cache, searchengine),
+		routes.GetHandler(db_replica_client, redis_auth, redis_session, searchengine),
 	)).Methods("GET")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.PostHandler(db_system, redis_entity_cache, redis_engagement_cache),
+		routes.PostHandler(db_system, redis_auth, redis_session, cud_publisher),
 	)).Methods("POST")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.PutHandler(db_system, media_storage),
+		routes.PutHandler(db_system, media_storage, redis_session, cud_publisher),
 	)).Methods("PUT")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.PatchHandler(db_system, redis_barang_cache, redis_engagement_cache),
+		routes.PatchHandler(db_system, redis_auth, redis_session, cud_publisher),
 	)).Methods("PATCH")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.DeleteHandler(db_system, media_storage),
+		routes.DeleteHandler(db_system, media_storage, redis_session, cud_publisher),
 	)).Methods("DELETE")
 
 	// go cleanupClients()

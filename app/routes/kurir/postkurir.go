@@ -4,15 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	kurir_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services"
 	kurir_informasi_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services"
 	kurir_rekening_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services"
 )
 
-func PostKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request) {
+func PostKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	ctx := r.Context()
 	var hasil *response.ResponseForm
 	switch r.URL.Path {

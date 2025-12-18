@@ -7,7 +7,7 @@ import (
 
 	"github.com/rabbitmq/amqp091-go"
 
-	mb_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer"
+	mb_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 )
 
 func CreatePublish[

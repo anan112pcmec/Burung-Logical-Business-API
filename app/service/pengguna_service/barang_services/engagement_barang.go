@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -12,6 +13,14 @@ import (
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
+	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
+	stsk_komentar "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/komentar"
+	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
+	stsk_review "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/review"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
@@ -48,10 +57,10 @@ func ViewBarang(data PayloadViewBarang, rds *redis.Client, db *gorm.DB) {
 // :Berfungsi Untuk Menambah Dan Mengurangi Likes Barang induk dan mencatat barangdisukai
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "LikesBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -79,10 +88,12 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *config.Intern
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Create(&models.BarangDisukai{
+	newLikeBarang := models.BarangDisukai{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IDBarangInduk,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&newLikeBarang).Error; err != nil {
 		fmt.Println("Gagal likes:", err)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -91,6 +102,34 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *config.Intern
 		}
 	}
 
+	go func(Lb models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdPengguna := sot_threshold.PenggunaThreshold{
+			ID: Lb.IdPengguna,
+		}
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(Lb.IdBarangInduk),
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.BarangDisukai); err != nil {
+			fmt.Println("Gagal increment barang disukai pengguna threshold")
+		}
+
+		if err := thresholdBarangInduk.Increment(konteks, Trh, stsk_baranginduk.BarangDisukai); err != nil {
+			fmt.Println("Gagal increment barang disukai barang induk threshold")
+		}
+
+		publishNewBarangDisukai := mb_cud_serializer.NewJsonPayload().SetPayload(Lb).SetTableName(Lb.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, publishNewBarangDisukai); err != nil {
+			fmt.Println("Gagal publish create barang disukai ke message broker")
+		}
+
+	}(newLikeBarang, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -98,15 +137,15 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *config.Intern
 	}
 }
 
-func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UnlikeBarang"
 
-	var id_data_barang_disukai int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BarangDisukai{}).Select("id").Where(&models.BarangDisukai{
+	var barang_disukai models.BarangDisukai
+	if err := db.Read.WithContext(ctx).Model(&models.BarangDisukai{}).Where(&models.BarangDisukai{
 		ID:            data.IdBarangDisukai,
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IdBarangInduk,
-	}).Limit(1).Scan(&id_data_barang_disukai).Error; err != nil {
+	}).Limit(1).Scan(&barang_disukai).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -114,7 +153,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *config.Inte
 		}
 	}
 
-	if id_data_barang_disukai == 0 {
+	if barang_disukai.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -132,6 +171,34 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *config.Inte
 		}
 	}
 
+	go func(Bs models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdPengguna := sot_threshold.PenggunaThreshold{
+			ID: Bs.IdPengguna,
+		}
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(Bs.IdBarangInduk),
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.BarangDisukai); err != nil {
+			fmt.Println("Gagal decrement threshold pengguna likes barang")
+		}
+
+		if err := thresholdBarangInduk.Decrement(konteks, Trh, stsk_baranginduk.BarangDiDiskon); err != nil {
+			fmt.Println("Gagal decrement threshold barang induk likes barang")
+		}
+
+		publishDeleteBarangDisukai := mb_cud_serializer.NewJsonPayload().SetPayload(Bs).SetTableName(Bs.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, publishDeleteBarangDisukai); err != nil {
+			fmt.Println("Gagal publish delete barang disukai ke message broker")
+		}
+
+	}(barang_disukai, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -143,22 +210,60 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *config.Inte
 // Engagement Barang Level Critical
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahKomentarBarang"
 
-	if err := db.Write.WithContext(ctx).Create(&models.Komentar{
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data pengguna tidak ditemukan",
+		}
+	}
+
+	NewKomentar := models.Komentar{
 		IdBarangInduk: data.IdBarangInduk,
 		IdEntity:      data.IdentitasPengguna.ID,
 		JenisEntity:   entity_enums.Pengguna,
 		Komentar:      data.Komentar,
 		IsSeller:      false,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&NewKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal memposting komentar",
 		}
 	}
+
+	go func(K models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(K.IdBarangInduk),
+		}
+
+		thresholdKomentar := sot_threshold.KomentarThreshold{
+			IdKomentar: K.ID,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdKomentar.Inisialisasi(konteks, Trh); err != nil {
+			fmt.Println("Gagal membuat threshold komentar")
+		}
+
+		if err := thresholdBarangInduk.Increment(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
+			fmt.Println("Gagal increment total komentar barang induk ke threshold barang induk")
+		}
+
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
+			fmt.Println("Gagal publish komentar baru barang induk ke message broker")
+		}
+
+	}(NewKomentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -167,8 +272,16 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 	}
 }
 
-func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditKomentarBarang"
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data pengguna tidak ditemukan",
+		}
+	}
 
 	var id_komentar int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Select("id").Where(&models.Komentar{
@@ -201,6 +314,25 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		}
 	}
 
+	go func(idKomen int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		komentarData := models.Komentar{}
+		if err := Read.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+			ID: idKomen,
+		}).Limit(1).Take(&komentarData); err != nil {
+			return
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newUpdateKomentarPublish); err != nil {
+			fmt.Println("Gagal publish update komentar barang ke message broker")
+		}
+
+	}(id_komentar, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -208,15 +340,15 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 	}
 }
 
-func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKomentarBarang"
 
-	var id_komentar int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Select("id").Where(&models.Komentar{
+	var Komentar models.Komentar
+	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
 		ID:          data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
-	}).Limit(1).Scan(&id_komentar).Error; err != nil {
+	}).Limit(1).Scan(&Komentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -224,7 +356,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 	}
 
-	if id_komentar == 0 {
+	if Komentar.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -242,6 +374,26 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 	}
 
+	go func(K models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
+			ID: int64(K.IdBarangInduk),
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
+			fmt.Println("Gagal decr komentar barang induk ke threshold barang induk")
+		}
+
+		newDeleteKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newDeleteKomentarPublish); err != nil {
+			fmt.Println("Gagal publish delete komentar ke message broker")
+		}
+
+	}(Komentar, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -249,22 +401,51 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 	}
 }
 
-func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanChildKomentar"
 
-	if err := db.Write.WithContext(ctx).Create(&models.KomentarChild{
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data user tidak ditemukan",
+		}
+	}
+
+	newKomentar := models.KomentarChild{
 		IdKomentar:  data.IdKomentarBarang,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
 		IsiKomentar: data.Komentar,
 		IsSeller:    false,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&newKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdKomentar := sot_threshold.KomentarThreshold{
+			IdKomentar: Kc.IdKomentar,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+			fmt.Println("Gagal increment total komentar child induk ke threshold komentar")
+		}
+
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
+			fmt.Println("Gagal publish komentar reply ke message broker")
+		}
+	}(newKomentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -273,23 +454,43 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 	}
 }
 
-func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MentionChildKomentar"
 
-	if err := db.Write.WithContext(ctx).Create(&models.KomentarChild{
+	newKomentar := models.KomentarChild{
 		IdKomentar:  data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
 		IsiKomentar: data.Komentar,
 		IsSeller:    false,
-		Mention:     data.UsernameMentioned,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&newKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdKomentar := sot_threshold.KomentarThreshold{
+			IdKomentar: Kc.IdKomentar,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+			fmt.Println("Gagal increment total komentar child induk ke threshold komentar")
+		}
+
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
+			fmt.Println("Gagal publish komentar reply ke message broker")
+		}
+	}(newKomentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -298,8 +499,16 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 	}
 }
 
-func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditChildKomentar"
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data user tidak ditemukan",
+		}
+	}
 
 	var id_edit_child_komentar int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Select("id").Where(&models.KomentarChild{
@@ -332,6 +541,24 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 		}
 	}
 
+	go func(IdKc int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKomentarChild models.KomentarChild
+		if err := Read.WithContext(konteks).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+			ID: IdKc,
+		}).Limit(1).Take(&dataKomentarChild).Error; err != nil {
+			return
+		}
+
+		updateKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKomentarChild).SetTableName(dataKomentarChild.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateKomentarChildPublish); err != nil {
+			fmt.Println("Gagal publish update child komentar ke message broker")
+		}
+	}(id_edit_child_komentar, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -339,15 +566,23 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 	}
 }
 
-func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusChildKomentar"
 
-	var id_edit_child_komentar int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Select("id").Where(&models.KomentarChild{
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data user tidak ditemukan",
+		}
+	}
+
+	var childKomentar models.KomentarChild
+	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
 		ID:          data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
-	}).Limit(1).Scan(&id_edit_child_komentar).Error; err != nil {
+	}).Limit(1).Scan(&childKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -355,7 +590,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		}
 	}
 
-	if id_edit_child_komentar == 0 {
+	if childKomentar.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -371,6 +606,25 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		komentarThreshold := sot_threshold.KomentarThreshold{
+			ID: Kc.IdKomentar,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+			fmt.Println("Gagal decrement komentar child ke threshold komentar")
+		}
+
+		deleteKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKomentarChildPublish); err != nil {
+			fmt.Println("Gagal publish delete komentar child ke message broker")
+		}
+	}(childKomentar, db.Write, cud_publisher)
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -383,10 +637,10 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 // :Berfungsi Untuk menambahkan sebuah barang ke keranjang pengguna tertentu
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahKeranjangBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -435,20 +689,57 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Create(&models.Keranjang{
+	newKeranjang := models.Keranjang{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdSeller:      data.IdSeller,
 		IdBarangInduk: data.IdBarangInduk,
 		IdKategori:    data.IdKategori,
 		Status:        "Ready",
 		Jumlah:        0,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&newKeranjang).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(K models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdPengguna := sot_threshold.PenggunaThreshold{
+			IdPengguna: K.IdPengguna,
+		}
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(K.IdBarangInduk),
+		}
+
+		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
+			IdKategoriBarang: K.IdKategori,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.Keranjang); err != nil {
+			fmt.Println("Gagal increment Keranjang count pada pengguna threshold")
+		}
+
+		if err := thresholdBarangInduk.Increment(konteks, Trh, stsk_baranginduk.Keranjang); err != nil {
+			fmt.Println("Gagal increment Keranjang count pada barang induk threshold")
+		}
+
+		if err := thresholdKategoriBarang.Increment(konteks, Trh, stsk_kategori_barang.Keranjang); err != nil {
+			fmt.Println("Gagal increment Keranjang count pada kategori barang threshold")
+		}
+
+		newKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKeranjangPublish); err != nil {
+			fmt.Println("Gagal publish create new keranjang ke message broker")
+		}
+	}(newKeranjang, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -462,10 +753,10 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 // :Berfungsi Untuk mengedit sebuah count dari keranjang pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditKeranjangBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -527,6 +818,24 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 		}
 	}
 
+	go func(IdKeranjang int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKeranjang models.Keranjang
+		if err := Read.WithContext(konteks).Model(&models.Keranjang{}).Where(&models.Keranjang{
+			ID: IdKeranjang,
+		}).Limit(1).Take(&dataKeranjang).Error; err != nil {
+			return
+		}
+
+		updateKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKeranjang).SetTableName(dataKeranjang.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateKeranjangPublish); err != nil {
+			fmt.Println("Gagal publish update keranjang ke message broker")
+		}
+	}(id_data_keranjang, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -539,10 +848,10 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 // :Berfungsi Untuk menghapus suatu barang dari keranjang pengguna tertentu
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKeranjangBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -550,11 +859,11 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 	}
 
-	var id_data_keranjang int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Select("id").Where(&models.Keranjang{
+	var dataKeranjang models.Keranjang
+	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Where(&models.Keranjang{
 		ID:         data.IdKeranjang,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Scan(&id_data_keranjang).Error; err != nil {
+	}).Limit(1).Scan(&dataKeranjang).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -562,7 +871,7 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 	}
 
-	if id_data_keranjang == 0 {
+	if dataKeranjang.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -581,6 +890,41 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 	}
 
+	go func(Dk models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		penggunaThreshold := sot_threshold.PenggunaThreshold{
+			IdPengguna: Dk.IdPengguna,
+		}
+
+		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(Dk.IdBarangInduk),
+		}
+
+		kategoriBarangThreshold := sot_threshold.KategoriBarangThreshold{
+			IdKategoriBarang: Dk.IdKategori,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := penggunaThreshold.Decrement(konteks, Trh, stsk_pengguna.Keranjang); err != nil {
+			fmt.Println("Gagal decr count keranjang ke threshold pengguna")
+		}
+
+		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Keranjang); err != nil {
+			fmt.Println("Gagal decr count keranjang ke threshold barang induk")
+		}
+
+		if err := kategoriBarangThreshold.Decrement(konteks, Trh, stsk_kategori_barang.Keranjang); err != nil {
+			fmt.Println("Gagal decr count keranjang ke threshold kategori barang")
+		}
+
+		deleteKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dk).SetTableName(Dk.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKeranjangPublish); err != nil {
+			fmt.Println("Gagal publish delete keranjang ke message broker")
+		}
+	}(dataKeranjang, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -588,10 +932,10 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 	}
 }
 
-func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "BerikanReviewBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -621,13 +965,15 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 		}
 	}
 
+	newReview := models.Review{
+		IdPengguna:    data.IdentitasPengguna.ID,
+		IdBarangInduk: int32(data.IdBarangInduk),
+		Rating:        data.Rating,
+		Ulasan:        data.Ulasan,
+	}
+
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&models.Review{
-			IdPengguna:    data.IdentitasPengguna.ID,
-			IdBarangInduk: int32(data.IdBarangInduk),
-			Rating:        data.Rating,
-			Ulasan:        data.Ulasan,
-		}).Error; err != nil {
+		if err := tx.Create(&newReview).Error; err != nil {
 			return err
 		}
 
@@ -648,6 +994,42 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 		}
 	}
 
+	go func(R models.Review, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		penggunaThreshold := sot_threshold.PenggunaThreshold{
+			IdPengguna: R.IdPengguna,
+		}
+
+		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(R.IdBarangInduk),
+		}
+
+		reviewThreshold := sot_threshold.ReviewThreshold{
+			IdReview: R.ID,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := penggunaThreshold.Increment(konteks, Trh, stsk_pengguna.Review); err != nil {
+			fmt.Println("Gagal increment count review ke threshold pengguna")
+		}
+
+		if err := barangIndukThreshold.Increment(konteks, Trh, stsk_baranginduk.Review); err != nil {
+			fmt.Println("Gagal increment count review ke threshold barang induk")
+		}
+
+		if err := reviewThreshold.Inisialisasi(konteks, Trh); err != nil {
+			fmt.Println("Gagal membuat threshold review")
+		}
+
+		createReviewPublish := mb_cud_serializer.NewJsonPayload().SetPayload(R).SetTableName(R.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createReviewPublish); err != nil {
+			fmt.Println("Gagal publish create review ke message broker")
+		}
+
+	}(newReview, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -655,10 +1037,10 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 	}
 }
 
-func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	services := "LikeReviewBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -702,6 +1084,20 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *con
 		}
 	}
 
+	go func(IdReview int64, Trh *gorm.DB) {
+		reviewThreshold := sot_threshold.ReviewThreshold{
+			IdReview: IdReview,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.ReviewLike); err != nil {
+			fmt.Println("Gagal increment count like review ke review threshold")
+		}
+	}(id_review_like, db.Write)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -709,10 +1105,10 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *con
 	}
 }
 
-func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	services := "UnlikeReviewBarang"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -753,6 +1149,20 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(IdReview int64, Trh *gorm.DB) {
+		reviewThreshold := sot_threshold.ReviewThreshold{
+			IdReview: IdReview,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.ReviewDislike); err != nil {
+			fmt.Println("Gagal increment count like review dislike ke review threshold")
+		}
+	}(id_review_like, db.Write)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,

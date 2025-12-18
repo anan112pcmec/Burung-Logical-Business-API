@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	seller_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/alamat_services"
 	seller_service "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/barang_services"
@@ -15,7 +18,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/jenis_seller_services"
 )
 
-func PostSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request) {
+func PostSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
 
 	ctx := r.Context()

@@ -20,7 +20,6 @@ services:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./definitions_vhost_rmq.json:/etc/rabbitmq/definitions_vhost_rmq.json:ro
 
-
   meilisearch:
     image: getmeili/meilisearch:latest
     container_name: meilisearch_burung_search_engine

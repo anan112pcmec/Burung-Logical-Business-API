@@ -31,7 +31,7 @@ type Environment struct {
 	DB_REPLICA_SYSTEM_HOST, DB_REPLICA_SYSTEM_USER, DB_REPLICA_SYSTEM_PASS, DB_REPLICA_SYSTEM_NAME, DB_REPLICA_SYSTEM_PORT string
 	DB_REPLICA_CLIENT_HOST, DB_REPLICA_CLIENT_USER, DB_REPLICA_CLIENT_PASS, DB_REPLICA_CLIENT_NAME, DB_REPLICA_CLIENT_PORT string
 	RDSHOST, RDSPORT                                                                                                       string
-	RDSENTITYDB, RDSBARANGDB, RDSENGAGEMENTDB                                                                              int
+	RDSAUTHDB, RDSSESSIONDB, RDSENGAGEMENTDB                                                                               int
 	MEILIHOST, MEILIKEY, MEILIPORT                                                                                         string
 	RMQ_HOST, RMQ_USER, RMQ_PASS, EXCHANGE, RMQ_PORT                                                                       string
 	MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_SIGNED_URL_EXPIRE_SEC                                        string
@@ -46,8 +46,8 @@ type InternalDBReadWriteSystem struct {
 func (e *Environment) RunConnectionEnvironment() (
 	db_system *InternalDBReadWriteSystem,
 	db_replica_client *gorm.DB,
-	redis_entity *redis.Client,
-	redis_barang *redis.Client,
+	redis_auth *redis.Client,
+	redis_session *redis.Client,
 	redis_engagement *redis.Client,
 	search_engine meilisearch.ServiceManager,
 	cud_publisher *mb_cud_publisher.Publisher,
@@ -158,16 +158,16 @@ func (e *Environment) RunConnectionEnvironment() (
 		log.Println("✅ Berhasil terkoneksi ke database replica_client:", currentReplicaClient)
 	}
 
-	redis_entity = redis.NewClient(&redis.Options{
+	redis_auth = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", e.RDSHOST, e.RDSPORT),
 		Password: "",
-		DB:       e.RDSENTITYDB,
+		DB:       e.RDSAUTHDB,
 	})
 
-	redis_barang = redis.NewClient(&redis.Options{
+	redis_session = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", e.RDSHOST, e.RDSPORT),
 		Password: "",
-		DB:       e.RDSBARANGDB,
+		DB:       e.RDSSESSIONDB,
 	})
 
 	redis_engagement = redis.NewClient(&redis.Options{

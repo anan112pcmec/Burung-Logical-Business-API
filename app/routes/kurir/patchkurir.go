@@ -8,6 +8,7 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	kurir_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services"
 	kurir_credential_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/credential_services"
@@ -18,7 +19,7 @@ import (
 	kurir_social_media_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/social_media_services"
 )
 
-func PatchKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds *redis.Client) {
+func PatchKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth *redis.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
 	ctx := r.Context()
 	switch r.URL.Path {
@@ -78,14 +79,14 @@ func PatchKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrit
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_credential_services.PreUbahPasswordKurir(ctx, data, db, rds)
+		hasil = kurir_credential_services.PreUbahPasswordKurir(ctx, data, db, rds_auth)
 	case "/kurir/credential/validate-ubah-pass-otp":
 		var data kurir_credential_services.PayloadValidateUbahPassword
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_credential_services.ValidateUbahPasswordKurir(ctx, data, db, rds)
+		hasil = kurir_credential_services.ValidateUbahPasswordKurir(ctx, data, db, rds_auth)
 	case "/kurir/pengiriman/aktifkan-bid":
 		var data kurir_pengiriman_services.PayloadAktifkanBidKurir
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

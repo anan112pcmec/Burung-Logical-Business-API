@@ -34,10 +34,10 @@ func (BarangIndukThreshold) TableName() string {
 	return sot_threshold_seeders_nama.BarangIndukThreshold
 }
 
-func (b BarangIndukThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (b *BarangIndukThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&BarangIndukThreshold{}).Select("id").Where(&BarangIndukThreshold{
-		IdBarangInduk: id_fk,
+		IdBarangInduk: b.IdBarangInduk,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -47,11 +47,11 @@ func (b BarangIndukThreshold) Inisialisasi(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Create(&BarangIndukThreshold{
-		IdBarangInduk: id_fk,
+		IdBarangInduk: b.IdBarangInduk,
 	}).Error
 }
 
-func (b BarangIndukThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (b *BarangIndukThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -63,11 +63,11 @@ func (b BarangIndukThreshold) Increment(id_fk int64, ctx context.Context, db *go
 	}
 
 	return db.WithContext(ctx).Model(&BarangIndukThreshold{}).Where(&BarangIndukThreshold{
-		ID: id_fk,
+		ID: b.IdBarangInduk,
 	}).Updates(updates).Error
 }
 
-func (b BarangIndukThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (b *BarangIndukThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -78,11 +78,11 @@ func (b BarangIndukThreshold) Decrement(id_fk int64, ctx context.Context, db *go
 	}
 
 	return db.WithContext(ctx).Model(&BarangIndukThreshold{}).Where(&BarangIndukThreshold{
-		ID: id_fk,
+		ID: b.IdBarangInduk,
 	}).Updates(updates).Error
 }
 
-func (b BarangIndukThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (b *BarangIndukThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -93,13 +93,13 @@ func (b BarangIndukThreshold) CustomIncrement(id_fk int64, ctx context.Context, 
 	}
 
 	return db.WithContext(ctx).Model(&BarangIndukThreshold{}).Where(&BarangIndukThreshold{
-		ID: id_fk,
+		ID: b.IdBarangInduk,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (b BarangIndukThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (b *BarangIndukThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -110,7 +110,7 @@ func (b BarangIndukThreshold) CustomDecrement(id_fk int64, ctx context.Context, 
 	}
 
 	return db.WithContext(ctx).Model(&BarangIndukThreshold{}).Where(&BarangIndukThreshold{
-		ID: id_fk,
+		ID: b.IdBarangInduk,
 	}).Updates(
 		updates,
 	).Error
@@ -133,10 +133,10 @@ func (KategoriBarangThreshold) TableName() string {
 	return sot_threshold_seeders_nama.KategoriBarangThreshold
 }
 
-func (k KategoriBarangThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (k *KategoriBarangThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&KategoriBarangThreshold{}).Select("id").Where(&KategoriBarangThreshold{
-		IdKategoriBarang: id_fk,
+		IdKategoriBarang: k.IdKategoriBarang,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -146,11 +146,11 @@ func (k KategoriBarangThreshold) Inisialisasi(id_fk int64, ctx context.Context, 
 	}
 
 	return db.WithContext(ctx).Create(&KategoriBarangThreshold{
-		IdKategoriBarang: id_fk,
+		IdKategoriBarang: k.IdKategoriBarang,
 	}).Error
 }
 
-func (k KategoriBarangThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (k *KategoriBarangThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -162,11 +162,11 @@ func (k KategoriBarangThreshold) Increment(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Model(&KategoriBarangThreshold{}).Where(&KategoriBarangThreshold{
-		ID: id_fk,
+		IdKategoriBarang: k.IdKategoriBarang,
 	}).Updates(updates).Error
 }
 
-func (k KategoriBarangThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (k *KategoriBarangThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -177,11 +177,11 @@ func (k KategoriBarangThreshold) Decrement(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Model(&KategoriBarangThreshold{}).Where(&KategoriBarangThreshold{
-		ID: id_fk,
+		IdKategoriBarang: k.IdKategoriBarang,
 	}).Updates(updates).Error
 }
 
-func (k KategoriBarangThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (k *KategoriBarangThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -192,13 +192,13 @@ func (k KategoriBarangThreshold) CustomIncrement(id_fk int64, ctx context.Contex
 	}
 
 	return db.WithContext(ctx).Model(&KategoriBarangThreshold{}).Where(&KategoriBarangThreshold{
-		ID: id_fk,
+		IdKategoriBarang: k.IdKategoriBarang,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (k KategoriBarangThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (k *KategoriBarangThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -209,7 +209,7 @@ func (k KategoriBarangThreshold) CustomDecrement(id_fk int64, ctx context.Contex
 	}
 
 	return db.WithContext(ctx).Model(&KategoriBarangThreshold{}).Where(&KategoriBarangThreshold{
-		ID: id_fk,
+		IdKategoriBarang: k.IdKategoriBarang,
 	}).Updates(
 		updates,
 	).Error

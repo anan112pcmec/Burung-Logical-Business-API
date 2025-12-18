@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	pengguna_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/alamat_services"
 	pengguna_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
@@ -16,10 +18,9 @@ import (
 	pengguna_transaction_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
 	pengguna_wishlist_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/wishlist_services"
-
 )
 
-func DeleteUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client) {
+func DeleteUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
 	ctx := r.Context()
 
@@ -30,28 +31,28 @@ func DeleteUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrit
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.HapusKomentarBarang(ctx, data, db)
+		hasil = pengguna_service.HapusKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/hapus":
 		var data pengguna_service.PayloadHapusChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.HapusChildKomentar(ctx, data, db)
+		hasil = pengguna_service.HapusChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/hapus":
 		var data pengguna_service.PayloadHapusDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.HapusKeranjangBarang(ctx, data, db)
+		hasil = pengguna_service.HapusKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/hapus-alamat":
 		var data pengguna_alamat_services.PayloadHapusAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_alamat_services.HapusAlamatPengguna(ctx, data, db)
+		hasil = pengguna_alamat_services.HapusAlamatPengguna(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/batal-checkout-barang":
 		var data response_transaction_pengguna.ResponseDataCheckout
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

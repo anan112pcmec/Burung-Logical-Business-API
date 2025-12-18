@@ -1,4 +1,6 @@
-package mb_serializer
+package mb_cud_serializer
+
+import "github.com/anan112pcmec/Burung-backend-1/app/helper"
 
 func NewProtoPayload() *PublishPayloadProto {
 	return &PublishPayloadProto{
@@ -42,6 +44,7 @@ func (j *PublishPayloadJson) SetProtocol(protocol string) *PublishPayloadJson {
 }
 
 func (j *PublishPayloadJson) SetPayload(payload interface{}) *PublishPayloadJson {
-	j.Payload = payload
+	jsonParse := helper.StructToJSONMap(payload)
+	j.Payload = jsonParse
 	return j
 }

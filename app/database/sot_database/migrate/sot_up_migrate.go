@@ -177,7 +177,7 @@ func UpEngagementEntity(db *gorm.DB) {
 		&models.DiskonProduk{},
 		&models.BarangDiDiskon{},
 		&models.Review{},
-		&models.ReviewDislike{},
+		&models.ReviewLike{},
 		&models.ReviewDislike{},
 		&models.Wishlist{},
 		&models.BidKurirData{},
@@ -329,47 +329,6 @@ func UpMediaData(db *gorm.DB) {
 		&models.MediaPengirimanSampaiFoto{},
 		&models.MediaPengirimanEkspedisiPickedUpFoto{},
 		&models.MediaPengirimanEkspedisiSampaiAgentFoto{},
-	}
-
-	wg.Add(len(modelsToMigrate))
-
-	for _, m := range modelsToMigrate {
-		go func(model interface{}) {
-			defer wg.Done()
-			if db.Migrator().HasTable(model) {
-				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
-				return
-			}
-
-			if err := db.AutoMigrate(model); err != nil {
-				errCh <- err
-				return
-			}
-			log.Printf("Migration success: %T ✅", model)
-		}(m)
-	}
-
-	wg.Wait()
-	close(errCh)
-
-	for err := range errCh {
-		if err != nil {
-			log.Fatalf("Migration failed: %v", err)
-		}
-	}
-
-	log.Println("All migrations Media Data completed successfully 🚀")
-}
-
-func UpThresholdTable(db *gorm.DB) {
-	var wg sync.WaitGroup
-	errCh := make(chan error, 31)
-
-	modelsToMigrate := []interface{}{
-		sot_threshold.PenggunaThreshold{},
-		sot_threshold.KurirThreshold{},
-		sot_threshold.SellerThreshold{},
-		sot_threshold.KategoriBarangThreshold{},
 	}
 
 	wg.Add(len(modelsToMigrate))

@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	mrand "math/rand"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -35,6 +36,37 @@ func DecodeJSONBody(r *http.Request, dst interface{}) error {
 	}
 
 	return nil
+}
+
+func StructToJSONMap(v interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+
+		// ambil tag json
+		jsonTag := field.Tag.Get("json")
+		if jsonTag == "" || jsonTag == "-" {
+			continue
+		}
+
+		// buang opsi omitempty, dll
+		jsonKey := strings.Split(jsonTag, ",")[0]
+		if jsonKey == "" {
+			continue
+		}
+
+		result[jsonKey] = val.Field(i).Interface()
+	}
+
+	return result
 }
 
 // GenerateRandomDigits menghasilkan angka random dengan panjang 3-5 digit

@@ -6,32 +6,34 @@ import (
 	"net/http"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/userroute"
 )
 
-func DeleteHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client) http.HandlerFunc {
+func DeleteHandler(db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("DeleteHandler dijalankan...")
 
 		// Jika path diawali "/user/"
 		if len(r.URL.Path) >= 6 && r.URL.Path[:6] == "/user/" {
-			userroute.DeleteUserHandler(db, w, r, ms)
+			userroute.DeleteUserHandler(db, w, r, ms, rds_session, mb_cud_publisher)
 			return
 		}
 
 		// Jika path diawali "/seller/"
 		if len(r.URL.Path) >= 8 && r.URL.Path[:8] == "/seller/" {
-			seller.DeleteSellerHandler(db, w, r, ms)
+			seller.DeleteSellerHandler(db, w, r, ms, rds_session, mb_cud_publisher)
 			return
 		}
 
 		// Jika path diawali "/kurir/"
 		if len(r.URL.Path) >= 7 && r.URL.Path[:7] == "/kurir/" {
-			kurir.DeleteKurirHandler(db, w, r, ms)
+			kurir.DeleteKurirHandler(db, w, r, ms, rds_session, mb_cud_publisher)
 			return
 		}
 
