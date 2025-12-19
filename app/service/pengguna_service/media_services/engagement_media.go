@@ -2,25 +2,33 @@ package pengguna_media_services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
+	stsk_review "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/review"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
-func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "UbahFotoProfilPengguna"
 
 	// Validasi identitas pengguna
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -67,17 +75,37 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 
 	// Kalau belum ada → insert
 	if id_data_photo_exist == 0 {
-		if err := db.Write.WithContext(ctx).Create(&models.MediaPenggunaProfilFoto{
+		newPhoto := models.MediaPenggunaProfilFoto{
 			IdPengguna: data.IdentitasPengguna.ID,
 			Key:        keyz,
 			Format:     data.Ekstensi,
-		}).Error; err != nil {
+		}
+		if err := db.Write.WithContext(ctx).Create(&newPhoto).Error; err != nil {
 
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
 			}
 		}
+
+		go func(Mppf models.MediaPenggunaProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			thresholdPengguna := sot_threshold.PenggunaThreshold{
+				IdPengguna: Mppf.IdPengguna,
+			}
+
+			ctx_t := context.Background()
+			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			defer cancel()
+
+			if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.MediaPenggunaProfilFoto); err != nil {
+				fmt.Println("Gagal incr count foto profil pengguna ke threshold pengguna")
+			}
+
+			createPhotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppf).SetTableName(Mppf.TableName())
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createPhotoPublish); err != nil {
+				fmt.Println("Gagal publish create photo profil pengguna ke message broker")
+			}
+		}(newPhoto, db.Write, cud_publisher)
 
 	} else {
 		var id_data_key_sama int64 = 0
@@ -116,6 +144,25 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 				Services: services,
 			}
 		}
+
+		go func(idMppf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			ctx_t := context.Background()
+			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			defer cancel()
+
+			var dataPhotoProfil models.MediaPenggunaProfilFoto
+			if err := Read.WithContext(konteks).Model(&models.MediaPenggunaProfilFoto{}).Where(&models.MediaPenggunaProfilFoto{
+				ID: idMppf,
+			}).Limit(1).Take(&dataPhotoProfil).Error; err != nil {
+				fmt.Println("Gagal mendapatkan data photo profil")
+				return
+			}
+
+			updatePhotoProfilPenggunaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPhotoProfil).SetTableName(dataPhotoProfil.TableName())
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatePhotoProfilPenggunaPublish); err != nil {
+				fmt.Println("Gagal publish update photo profil pengguna ke message broker")
+			}
+		}(id_data_photo_exist, db.Read, cud_publisher)
 	}
 
 	return &response.ResponseMediaUpload{
@@ -126,10 +173,10 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 	}
 }
 
-func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusFotoProfilPengguna"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -164,6 +211,25 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		}
 	}
 
+	go func(Mppf models.MediaPenggunaProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdPengguna := sot_threshold.PenggunaThreshold{
+			IdPengguna: Mppf.IdPengguna,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.MediaPenggunaProfilFoto); err != nil {
+			fmt.Println("Gagal decrement count photo profil pengguna ke pengguna threshold")
+		}
+
+		deletePhotoProfilPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppf).SetTableName(Mppf.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deletePhotoProfilPublish); err != nil {
+			fmt.Println("Gagal publish delete foto profil pengguna ke message broker")
+		}
+	}(data_media_foto, db.Write, cud_publisher)
+
 	// nanti push ke cassandra hystorical db
 
 	return &response.ResponseForm{
@@ -172,11 +238,11 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 	}
 }
 
-func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaReviewFoto"
 	const LimitPhoto = 5
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -265,6 +331,39 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		}
 	}
 
+	go func(mediaPhotos []models.MediaReviewFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdReview := sot_threshold.ReviewThreshold{
+			IdReview: mediaPhotos[0].IdReview,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		customIncr := sot_threshold.CustomCounter{
+			FieldName: stsk_review.MediaReviewFoto,
+			Count:     len(mediaPhotos),
+		}
+
+		if err := thresholdReview.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{customIncr}); err != nil {
+			fmt.Println("gagal increment review foto ke threhsold review")
+		}
+
+		for _, mP := range mediaPhotos {
+			go func(Photo models.MediaReviewFoto, publisherr *mb_cud_publisher.Publisher) {
+				ctx_tt := context.Background()
+				kontekss, cancell := context.WithTimeout(ctx_tt, time.Second*5)
+				defer cancell()
+
+				createReviewFotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Photo).SetTableName(Photo.TableName())
+				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](kontekss, publisherr, createReviewFotoPublish); err != nil {
+					fmt.Println("Gagal publish create photo ke message broker")
+				}
+			}(mP, publisher)
+		}
+
+	}(simpanDataFotoReview, db.Write, cud_publisher)
+
 	return &response.ResponseMediaUpload{
 		Status:    http.StatusOK,
 		Services:  services,
@@ -272,10 +371,10 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	}
 }
 
-func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaReviewVideo"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -334,16 +433,37 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Create(&models.MediaReviewVideo{
+	createVideoReview := models.MediaReviewVideo{
 		IdReview: data.IdReviewData,
 		Key:      keyz,
 		Format:   data.Ekstensi,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&createVideoReview).Error; err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
+
+	go func(Vr models.MediaReviewVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		reviewThreshold := sot_threshold.ReviewThreshold{
+			IdReview: Vr.IdReview,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.MediaReviewVideo); err != nil {
+			fmt.Println("Gagal increment review video counter ke threshold review")
+		}
+
+		createVideoReviewPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Vr).SetTableName(Vr.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createVideoReviewPublish); err != nil {
+			fmt.Println("Gagal publish create video review ke message broker")
+		}
+	}(createVideoReview, db.Write, cud_publisher)
 
 	return &response.ResponseMediaUpload{
 		Status:    http.StatusOK,

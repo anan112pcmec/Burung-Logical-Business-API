@@ -3,7 +3,7 @@ package stsk_pengguna
 const (
 	AlamatPengguna          string = "alamat_pengguna"
 	BarangDisukai           string = "barang_disukai"
-	Follower                string = "follower"
+	Following               string = "following"
 	Keranjang               string = "keranjang"
 	MediaPenggunaProfilFoto string = "media_pengguna_profil_foto"
 	Pembayaran              string = "pembayaran"

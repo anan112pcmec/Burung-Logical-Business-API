@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
@@ -13,6 +15,8 @@ import (
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
@@ -21,10 +25,10 @@ import (
 // Berfungsi untuk melayani seller yang hendak memasukan barang nya ke sistem burung
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadMasukanBarangInduk) *response.ResponseForm {
+func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadMasukanBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanBarang"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -164,6 +168,25 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		}
 	}
 
+	go func(Bi models.BarangInduk, Kb models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdSeller := sot_threshold.SellerThreshold{
+			ID: int64(Bi.SellerID),
+		}
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			ID: int64(Bi.ID),
+		}
+
+		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
+			ID: Kb.ID,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+	}()
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -176,10 +199,10 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 // Berfungsi untuk seller dalam melakukan edit atau pembaruan informasi seputar barang induknya
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditBarangInduk) *response.ResponseForm {
+func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditBarang"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -234,11 +257,11 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 // nya
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadHapusBarangInduk) *response.ResponseForm {
+func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadHapusBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusBarang"
 
 	// Validasi kredensial seller
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -331,11 +354,11 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 // Berfungsi untuk seller menambahkan kategori barang pada barang induk
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadTambahKategori) *response.ResponseForm {
+func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadTambahKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahKategoriBarang"
 
 	// Validasi kredensial seller
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -501,10 +524,10 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 // Berfungsi untuk mengedit data informasi tentang kategori barang induk yang dituju
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditKategori) *response.ResponseForm {
+func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditKategoriBarang"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -579,11 +602,11 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 // Berfungsi untuk menghapus kategori barang induk yang ada
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadHapusKategori) *response.ResponseForm {
+func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadHapusKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKategoriBarang"
 
 	// Validasi kredensial seller
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -664,10 +687,10 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 // STOK BARANG
 // ////////////////////////////////////////////////////////////////////////////////
 
-func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditStokKategoriBarang) *response.ResponseForm {
+func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditStokKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditStokBarang"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -815,10 +838,10 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 	}
 }
 
-func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadDownBarangInduk) *response.ResponseForm {
+func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadDownBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "DownStokBarangInduk"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -878,10 +901,10 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 	}
 }
 
-func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadDownKategoriBarang) *response.ResponseForm {
+func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadDownKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "DownKategoriBarang"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -937,10 +960,10 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 	}
 }
 
-func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditRekeningBarangInduk"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -1006,10 +1029,10 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 	}
 }
 
-func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahAlamatGudangBarangInduk"
 
-	_, status := data.IdentitasSeller.Validating(ctx, db.Read)
+	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
 	if !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)
@@ -1081,10 +1104,10 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 	}
 }
 
-func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatBarangKategori, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatBarangKategori, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahAlamatGudangBarangKategori"
 
-	_, status := data.IdentitasSeller.Validating(ctx, db.Read)
+	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
 	if !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)
@@ -1156,7 +1179,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 	}
 }
 
-func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahKomentarBarang"
 	is_seller := false
 	var id_seller_take int64 = 0
@@ -1195,10 +1218,10 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 	}
 }
 
-func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditKomentarBarang"
 
-	_, status := data.IdentitasSeller.Validating(ctx, db.Read)
+	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -1226,10 +1249,10 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 	}
 }
 
-func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKomentarBarang"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -1256,7 +1279,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 	}
 }
 
-func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanChildKomentar"
 	is_seller := false
 
@@ -1295,7 +1318,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 	}
 }
 
-func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MentionChildKomentar"
 
 	is_seller := false
@@ -1337,7 +1360,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 	}
 }
 
-func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditChildKomentar"
 
 	if err := db.Write.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
@@ -1359,7 +1382,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 	}
 }
 
-func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusChildKomentar"
 	if err := db.Write.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
 		ID:          data.IdKomentar,

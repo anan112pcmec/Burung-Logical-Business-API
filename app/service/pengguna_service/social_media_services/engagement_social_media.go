@@ -2,12 +2,22 @@ package pengguna_social_media_service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
+	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_social_media_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/social_media_services/response_social_media_services"
 )
@@ -17,10 +27,10 @@ import (
 // Berfungsi Untuk menautkan atau melampirkan akun / social media mereka ke sistem burung
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTautkanSocialMedia, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTautkanSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahkanSocialMediaPenguna"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial pengguna tidak valid untuk ID %d", data.IdentitasPengguna.ID)
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -40,14 +50,15 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		}).Take(&id_sosmed_table)
 
 	if id_sosmed_table == 0 {
-		if err_buat_kolom := db.Write.WithContext(ctx).Create(&models.EntitySocialMedia{
+		newTautkanSocialMedia := models.EntitySocialMedia{
 			EntityId:   data.IdentitasPengguna.ID,
 			Whatsapp:   data.Data.Whatsapp,
 			Facebook:   data.Data.Facebook,
 			TikTok:     data.Data.TikTok,
 			Instagram:  data.Data.Instagram,
 			EntityType: entity_enums.Pengguna,
-		}).Error; err_buat_kolom != nil {
+		}
+		if err_buat_kolom := db.Write.WithContext(ctx).Create(&newTautkanSocialMedia).Error; err_buat_kolom != nil {
 			log.Printf("[ERROR] Gagal membuat data social media untuk pengguna ID %d: %v", data.IdentitasPengguna.ID, err_buat_kolom)
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
@@ -57,6 +68,17 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				},
 			}
 		}
+
+		go func(Esm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
+			ctx_t := context.Background()
+			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			defer cancel()
+
+			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName())
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTautkanSocialMediaPublish); err != nil {
+				fmt.Println("Gagal publish penautan social media baru ke message broker")
+			}
+		}(newTautkanSocialMedia, cud_publisher)
 
 		log.Printf("[INFO] Data social media berhasil ditambahkan untuk pengguna ID %d", data.IdentitasPengguna.ID)
 	} else {
@@ -127,6 +149,25 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				}
 			}
 		}
+
+		go func(idEntitySosmed int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			ctx_t := context.Background()
+			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			defer cancel()
+
+			var Esm models.EntitySocialMedia
+			if err := Read.WithContext(konteks).Model(&models.EntitySocialMedia{}).Where(&models.EntitySocialMedia{
+				ID: idEntitySosmed,
+			}).Limit(1).Take(&Esm).Error; err != nil {
+				fmt.Println("Gagal mendapatkan data update entity social media")
+				return
+			}
+
+			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName())
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTautkanSocialMediaPublish); err != nil {
+				fmt.Println("Gagal publish update penautan social media ke message broker")
+			}
+		}(id_sosmed_table, db.Read, cud_publisher)
 	}
 
 	log.Printf("[INFO] Data social media berhasil diperbarui untuk pengguna ID %d", data.IdentitasPengguna.ID)
@@ -144,10 +185,10 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 // Berfungsi Untuk hapus social media mereka yang terhubung ke sistem burung
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMedia, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EngageHapusSocialMedia"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial pengguna tidak valid untuk ID %d", data.IdentitasPengguna.ID)
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -192,6 +233,25 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 		}
 	}
 
+	go func(idEntitySosmed int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var Esm models.EntitySocialMedia
+		if err := Read.WithContext(konteks).Model(&models.EntitySocialMedia{}).Where(&models.EntitySocialMedia{
+			ID: idEntitySosmed,
+		}).Limit(1).Take(&Esm).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data update entity social media")
+			return
+		}
+
+		newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTautkanSocialMediaPublish); err != nil {
+			fmt.Println("Gagal publish update penautan social media ke message broker")
+		}
+	}(data.IdSocialMedia, db.Read, cud_publisher)
+
 	log.Printf("[INFO] Data %s berhasil dihapus untuk pengguna ID %d", data.HapusSocialMedia, data.IdentitasPengguna.ID)
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -207,10 +267,10 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 // Berfungsi Untuk Memfollow sebuah seller
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "FollowSeller"
 
-	_, status := data.IdentitasUser.Validating(ctx, db.Read)
+	_, status := data.IdentitasUser.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -236,10 +296,11 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 	}
 
 	if id_data_follower == 0 {
-		if err := db.Write.WithContext(ctx).Create(&models.Follower{
+		newFollow := models.Follower{
 			IdFollower: data.IdentitasUser.ID,
 			IdFollowed: int64(data.IdSeller),
-		}).Error; err != nil {
+		}
+		if err := db.Write.WithContext(ctx).Create(&newFollow).Error; err != nil {
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -248,6 +309,34 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 				},
 			}
 		}
+
+		go func(Nf models.Follower, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			thresholdPengguna := sot_threshold.PenggunaThreshold{
+				IdPengguna: Nf.IdFollower,
+			}
+
+			thresholdSeller := sot_threshold.SellerThreshold{
+				IdSeller: Nf.IdFollowed,
+			}
+
+			ctx_t := context.Background()
+			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			defer cancel()
+
+			if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.Following); err != nil {
+				fmt.Println("Gagal incr count following ke threshold Pengguna")
+			}
+
+			if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.Follower); err != nil {
+				fmt.Println("Gagal Incr count follower ke threshold Seller")
+			}
+
+			newFollowPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Nf).SetTableName(Nf.TableName())
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newFollowPublish); err != nil {
+				fmt.Println("Gagal publish new follow ke message broker")
+			}
+
+		}(newFollow, db.Write, cud_publisher)
 	} else {
 		// sudah follow
 		return &response.ResponseForm{
@@ -273,10 +362,10 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 // Berfungsi Untuk unfollowe seller
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UnfollowSeller"
 
-	_, status := data.IdentitasUser.Validating(ctx, db.Read)
+	_, status := data.IdentitasUser.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -287,11 +376,11 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		}
 	}
 
-	var id_follower int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Follower{}).Select("id").Where(&models.Follower{
+	var follower models.Follower
+	if err := db.Read.WithContext(ctx).Model(&models.Follower{}).Where(&models.Follower{
 		IdFollower: data.IdentitasUser.ID,
 		IdFollowed: int64(data.IdSeller),
-	}).Limit(1).Scan(&id_follower).Error; err != nil {
+	}).Limit(1).Scan(&follower).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -301,7 +390,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		}
 	}
 
-	if id_follower == 0 {
+	if follower.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -312,7 +401,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 	}
 
 	if result := db.Write.WithContext(ctx).Where(&models.Follower{
-		ID: id_follower,
+		ID: follower.ID,
 	}).Delete(&models.Follower{}).Error; result != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -322,6 +411,34 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 			},
 		}
 	}
+
+	go func(Nf models.Follower, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdPengguna := sot_threshold.PenggunaThreshold{
+			IdPengguna: Nf.IdFollower,
+		}
+
+		thresholdSeller := sot_threshold.SellerThreshold{
+			IdSeller: Nf.IdFollowed,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.Following); err != nil {
+			fmt.Println("Gagal decr count following ke threshold Pengguna")
+		}
+
+		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.Follower); err != nil {
+			fmt.Println("Gagal decr count follower ke threshold Seller")
+		}
+
+		newFollowPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Nf).SetTableName(Nf.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newFollowPublish); err != nil {
+			fmt.Println("Gagal publish delete follow ke message broker")
+		}
+
+	}(follower, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,

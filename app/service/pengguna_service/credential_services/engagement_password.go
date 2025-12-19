@@ -27,7 +27,7 @@ import (
 // yang tidak diinginkan dan penyalahgunaan pihak lain pada sebuah akun
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth *redis.Client) *response.ResponseForm {
+func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client) *response.ResponseForm {
 	services := "PreUbahPasswordPengguna"
 
 	if data.FaktorKedua != "OTP" && data.FaktorKedua != "PIN" {
@@ -39,7 +39,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 		}
 	}
 
-	user, status := data.IdentitasPengguna.Validating(ctx, db.Read)
+	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -89,7 +89,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 				"password_baru": string(hashedPassword),
 			}
 
-			pipe := rds.TxPipeline()
+			pipe := rds_auth.TxPipeline()
 			hset := pipe.HSet(ctx, key, fields)
 			exp := pipe.Expire(ctx, key, 3*time.Minute)
 
@@ -121,11 +121,11 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 				"password_baru": string(hashedPassword),
 			}
 
-			if _, err := rds.Del(ctx, key).Result(); err != nil {
+			if _, err := rds_auth.Del(ctx, key).Result(); err != nil {
 				fmt.Println("gagal hapus", err)
 			}
 
-			pipe := rds.TxPipeline()
+			pipe := rds_auth.TxPipeline()
 			hset := pipe.HSet(ctx, key, fields)
 			exp := pipe.Expire(ctx, key, 3*time.Minute)
 
@@ -263,10 +263,10 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 // :Berfungsi untuk membuat secret pin
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	services := "MembuatSecretPinPengguna"
 
-	user, status := data.IdentitasPengguna.Validating(ctx, db.Read)
+	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 
 	if !status {
 		return &response.ResponseForm{
@@ -320,10 +320,10 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 // :Berfungsi untuk mengupdate secret pin
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	services := "UpdateSecretPinPengguna"
 
-	user, status := data.IdentitasPengguna.Validating(ctx, db.Read)
+	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 
 	if !status {
 		return &response.ResponseForm{

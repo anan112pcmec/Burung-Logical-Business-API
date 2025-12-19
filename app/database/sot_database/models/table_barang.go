@@ -20,9 +20,6 @@ type BarangInduk struct {
 	JenisBarang      string         `gorm:"index;column:jenis_barang;type:seller_dedication;not null;default:'Semua Barang'" json:"jenis,omitempty"`
 	Deskripsi        string         `gorm:"column:deskripsi;type:text" json:"deskripsi,omitempty"`
 	OriginalKategori int64          `gorm:"column:original_kategori;type:int8" json:"original_kategori,omitempty"`
-	Viewed           int32          `gorm:"column:viewed;type:int4;not null;default:0" json:"viewed,omitempty"`
-	Likes            int32          `gorm:"column:likes;type:int4;not null;default:0" json:"likes,omitempty"`
-	TotalKomentar    int32          `gorm:"column:total_komentar;type:int4;not null;default:0" json:"total_komentar,omitempty"`
 	HargaKategoris   int32          `gorm:"column:harga_kategori_barang" json:"harga_kategori_barang"`
 	CreatedAt        time.Time      `gorm:"autoCreateTime"  json:"created_at"`
 	UpdatedAt        time.Time      `gorm:"autoUpdateTime"  json:"updated_at"`

@@ -8,7 +8,6 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold_seeders_nama "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_threshold"
-
 )
 
 type TransaksiThreshold struct {
@@ -150,7 +149,7 @@ func (p PembayaranThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *
 	}).Error
 }
 
-func (p PembayaranThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (p *PembayaranThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -162,11 +161,11 @@ func (p PembayaranThreshold) Increment(id_fk int64, ctx context.Context, db *gor
 	}
 
 	return db.WithContext(ctx).Model(&PembayaranThreshold{}).Where(&PembayaranThreshold{
-		ID: id_fk,
+		IdPembayaran: p.IdPembayaran,
 	}).Updates(updates).Error
 }
 
-func (p PembayaranThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (p *PembayaranThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -177,11 +176,11 @@ func (p PembayaranThreshold) Decrement(id_fk int64, ctx context.Context, db *gor
 	}
 
 	return db.WithContext(ctx).Model(&PembayaranThreshold{}).Where(&PembayaranThreshold{
-		ID: id_fk,
+		IdPembayaran: p.IdPembayaran,
 	}).Updates(updates).Error
 }
 
-func (p PembayaranThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (p *PembayaranThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -192,13 +191,13 @@ func (p PembayaranThreshold) CustomIncrement(id_fk int64, ctx context.Context, d
 	}
 
 	return db.WithContext(ctx).Model(&PembayaranThreshold{}).Where(&PembayaranThreshold{
-		ID: id_fk,
+		IdPembayaran: p.IdPembayaran,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (p PembayaranThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (p *PembayaranThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -209,7 +208,7 @@ func (p PembayaranThreshold) CustomDecrement(id_fk int64, ctx context.Context, d
 	}
 
 	return db.WithContext(ctx).Model(&PembayaranThreshold{}).Where(&PembayaranThreshold{
-		ID: id_fk,
+		IdPembayaran: p.IdPembayaran,
 	}).Updates(
 		updates,
 	).Error
