@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -16,10 +18,10 @@ import (
 // Fungsi Prosedur Engage Media Social Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	services := "EngagementSocialMediaSeller"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,

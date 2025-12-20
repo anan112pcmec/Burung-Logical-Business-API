@@ -5,6 +5,7 @@ import "time"
 type RekeningSeller struct {
 	ID              int64      `gorm:"primaryKey;autoIncrement" json:"id_rekening_seller"`
 	IDSeller        int32      `gorm:"column:id_seller;not null;index" json:"id_seller"`
+	Seller          Seller     `gorm:"foreignKey:IDSeller;references:ID" json:"-"`
 	NamaBank        string     `gorm:"column:nama_bank;type:varchar(50);not null" json:"nama_bank_rekening_seller"`
 	NomorRekening   string     `gorm:"column:nomor_rekening;type:varchar(50);not null" json:"nomor_rekening_seller"`
 	PemilikRekening string     `gorm:"column:pemilik_rekening;type:varchar(100);not null" json:"pemilik_rekening_seller"`

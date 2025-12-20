@@ -10,6 +10,7 @@ const (
 	Etalase                   string = "etalase"
 	Follower                  string = "follower"
 	JenisSellerValidation     string = "jenis_seller_validation"
+	Rekening                  string = "rekening"
 	KategoriBarang            string = "kategori_barang"
 	Keranjang                 string = "keranjang"
 	MediaSellerBannerFoto     string = "media_seller_banner_foto"

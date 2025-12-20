@@ -371,6 +371,12 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 			fmt.Println("Gagal decr alamat gudang count ke threshold seller")
 		}
 
+		if err := Trh.WithContext(konteks).Model(&sot_threshold.AlamatGudangThreshold{}).Where(&sot_threshold.AlamatGudangThreshold{
+			IdAlamatGudang: A.ID,
+		}).Delete(&sot_threshold.AlamatGudangThreshold{}).Error; err != nil {
+			fmt.Printf("Gagal hapus threshold alamat gudang ber id: %v", A.ID)
+		}
+
 		deleteAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(A).SetTableName(A.TableName())
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteAlamatGudangPublish); err != nil {
 			fmt.Println("Gagal publish delete alamat gudang ke message broker")

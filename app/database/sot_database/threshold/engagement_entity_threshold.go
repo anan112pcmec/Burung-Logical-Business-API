@@ -27,10 +27,10 @@ func (BrandDataThreshold) TableName() string {
 	return sot_threshold_seeders_nama.BrandDataThreshold
 }
 
-func (b BrandDataThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (b *BrandDataThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&BrandDataThreshold{}).Select("id").Where(&BrandDataThreshold{
-		IdBrandData: id_fk,
+		IdBrandData: b.IdBrandData,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -40,11 +40,11 @@ func (b BrandDataThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *g
 	}
 
 	return db.WithContext(ctx).Create(&BrandDataThreshold{
-		IdBrandData: id_fk,
+		IdBrandData: b.IdBrandData,
 	}).Error
 }
 
-func (b BrandDataThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (b *BrandDataThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -56,11 +56,11 @@ func (b BrandDataThreshold) Increment(id_fk int64, ctx context.Context, db *gorm
 	}
 
 	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
-		ID: id_fk,
+		IdBrandData: b.IdBrandData,
 	}).Updates(updates).Error
 }
 
-func (b BrandDataThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (b *BrandDataThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -71,11 +71,11 @@ func (b BrandDataThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm
 	}
 
 	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
-		ID: id_fk,
+		IdBrandData: b.IdBrandData,
 	}).Updates(updates).Error
 }
 
-func (b BrandDataThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (b *BrandDataThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -86,13 +86,13 @@ func (b BrandDataThreshold) CustomIncrement(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
-		ID: id_fk,
+		IdBrandData: b.IdBrandData,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (b BrandDataThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (b *BrandDataThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -103,7 +103,7 @@ func (b BrandDataThreshold) CustomDecrement(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Model(&BrandDataThreshold{}).Where(&BrandDataThreshold{
-		ID: id_fk,
+		IdBrandData: b.IdBrandData,
 	}).Updates(
 		updates,
 	).Error
@@ -124,10 +124,10 @@ func (DistributorDataThreshold) TableName() string {
 	return sot_threshold_seeders_nama.DistributorDataThreshold
 }
 
-func (d DistributorDataThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (d *DistributorDataThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&DistributorDataThreshold{}).Select("id").Where(&DistributorDataThreshold{
-		IdDistributorData: id_fk,
+		IdDistributorData: d.IdDistributorData,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -137,11 +137,11 @@ func (d DistributorDataThreshold) Inisialisasi(id_fk int64, ctx context.Context,
 	}
 
 	return db.WithContext(ctx).Create(&DistributorDataThreshold{
-		IdDistributorData: id_fk,
+		IdDistributorData: d.IdDistributorData,
 	}).Error
 }
 
-func (d DistributorDataThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (d *DistributorDataThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -153,11 +153,11 @@ func (d DistributorDataThreshold) Increment(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
-		ID: id_fk,
+		IdDistributorData: d.IdDistributorData,
 	}).Updates(updates).Error
 }
 
-func (d DistributorDataThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (d *DistributorDataThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -168,11 +168,11 @@ func (d DistributorDataThreshold) Decrement(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
-		ID: id_fk,
+		IdDistributorData: d.IdDistributorData,
 	}).Updates(updates).Error
 }
 
-func (d DistributorDataThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (d *DistributorDataThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -183,13 +183,13 @@ func (d DistributorDataThreshold) CustomIncrement(id_fk int64, ctx context.Conte
 	}
 
 	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
-		ID: id_fk,
+		IdDistributorData: d.IdDistributorData,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (d DistributorDataThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (d *DistributorDataThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -200,7 +200,7 @@ func (d DistributorDataThreshold) CustomDecrement(id_fk int64, ctx context.Conte
 	}
 
 	return db.WithContext(ctx).Model(&DistributorDataThreshold{}).Where(&DistributorDataThreshold{
-		ID: id_fk,
+		IdDistributorData: d.IdDistributorData,
 	}).Updates(
 		updates,
 	).Error
@@ -220,10 +220,10 @@ func (EtalaseThreshold) TableName() string {
 	return sot_threshold_seeders_nama.EtalaseThreshold
 }
 
-func (e EtalaseThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (e *EtalaseThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&EtalaseThreshold{}).Select("id").Where(&EtalaseThreshold{
-		IdEtalase: id_fk,
+		IdEtalase: e.IdEtalase,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -233,11 +233,11 @@ func (e EtalaseThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gor
 	}
 
 	return db.WithContext(ctx).Create(&EtalaseThreshold{
-		IdEtalase: id_fk,
+		IdEtalase: e.IdEtalase,
 	}).Error
 }
 
-func (e EtalaseThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (e *EtalaseThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -249,11 +249,11 @@ func (e EtalaseThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.D
 	}
 
 	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
-		ID: id_fk,
+		IdEtalase: e.IdEtalase,
 	}).Updates(updates).Error
 }
 
-func (e EtalaseThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (e *EtalaseThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -264,11 +264,11 @@ func (e EtalaseThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.D
 	}
 
 	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
-		ID: id_fk,
+		IdEtalase: e.IdEtalase,
 	}).Updates(updates).Error
 }
 
-func (e EtalaseThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (e *EtalaseThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -279,13 +279,13 @@ func (e EtalaseThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *
 	}
 
 	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
-		ID: id_fk,
+		IdEtalase: e.IdEtalase,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (e EtalaseThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (e *EtalaseThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -296,7 +296,7 @@ func (e EtalaseThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *
 	}
 
 	return db.WithContext(ctx).Model(&EtalaseThreshold{}).Where(&EtalaseThreshold{
-		ID: id_fk,
+		IdEtalase: e.IdEtalase,
 	}).Updates(
 		updates,
 	).Error
@@ -606,10 +606,10 @@ func (DiskonProdukThreshold) TableName() string {
 	return sot_threshold_seeders_nama.DiskonProdukThreshold
 }
 
-func (d DiskonProdukThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (d *DiskonProdukThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Select("id").Where(&DiskonProdukThreshold{
-		IdDiskonProduk: id_fk,
+		IdDiskonProduk: d.IdDiskonProduk,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -619,11 +619,11 @@ func (d DiskonProdukThreshold) Inisialisasi(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Create(&DiskonProdukThreshold{
-		IdDiskonProduk: id_fk,
+		IdDiskonProduk: d.IdDiskonProduk,
 	}).Error
 }
 
-func (d DiskonProdukThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (d *DiskonProdukThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -635,11 +635,11 @@ func (d DiskonProdukThreshold) Increment(id_fk int64, ctx context.Context, db *g
 	}
 
 	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
-		ID: id_fk,
+		IdDiskonProduk: d.IdDiskonProduk,
 	}).Updates(updates).Error
 }
 
-func (d DiskonProdukThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (d *DiskonProdukThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -650,11 +650,11 @@ func (d DiskonProdukThreshold) Decrement(id_fk int64, ctx context.Context, db *g
 	}
 
 	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
-		ID: id_fk,
+		IdDiskonProduk: d.IdDiskonProduk,
 	}).Updates(updates).Error
 }
 
-func (d DiskonProdukThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (d *DiskonProdukThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -665,13 +665,13 @@ func (d DiskonProdukThreshold) CustomIncrement(id_fk int64, ctx context.Context,
 	}
 
 	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
-		ID: id_fk,
+		IdDiskonProduk: d.IdDiskonProduk,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (d DiskonProdukThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (d *DiskonProdukThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -682,7 +682,7 @@ func (d DiskonProdukThreshold) CustomDecrement(id_fk int64, ctx context.Context,
 	}
 
 	return db.WithContext(ctx).Model(&DiskonProdukThreshold{}).Where(&DiskonProdukThreshold{
-		ID: id_fk,
+		IdDiskonProduk: d.IdDiskonProduk,
 	}).Updates(
 		updates,
 	).Error
@@ -893,10 +893,10 @@ func (RekeningSellerThreshold) TableName() string {
 	return sot_threshold_seeders_nama.RekeningSellerThreshold
 }
 
-func (r RekeningSellerThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (r *RekeningSellerThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Select("id").Where(&RekeningSellerThreshold{
-		IdRekeningSeller: id_fk,
+		IdRekeningSeller: r.IdRekeningSeller,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -906,11 +906,11 @@ func (r RekeningSellerThreshold) Inisialisasi(id_fk int64, ctx context.Context, 
 	}
 
 	return db.WithContext(ctx).Create(&RekeningSellerThreshold{
-		IdRekeningSeller: id_fk,
+		IdRekeningSeller: r.IdRekeningSeller,
 	}).Error
 }
 
-func (r RekeningSellerThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (r *RekeningSellerThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -922,11 +922,11 @@ func (r RekeningSellerThreshold) Increment(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
-		ID: id_fk,
+		IdRekeningSeller: r.IdRekeningSeller,
 	}).Updates(updates).Error
 }
 
-func (r RekeningSellerThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (r *RekeningSellerThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -937,11 +937,11 @@ func (r RekeningSellerThreshold) Decrement(id_fk int64, ctx context.Context, db 
 	}
 
 	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
-		ID: id_fk,
+		IdRekeningSeller: r.IdRekeningSeller,
 	}).Updates(updates).Error
 }
 
-func (r RekeningSellerThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (r *RekeningSellerThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -952,13 +952,13 @@ func (r RekeningSellerThreshold) CustomIncrement(id_fk int64, ctx context.Contex
 	}
 
 	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
-		ID: id_fk,
+		IdRekeningSeller: r.IdRekeningSeller,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (r RekeningSellerThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (r *RekeningSellerThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -969,7 +969,7 @@ func (r RekeningSellerThreshold) CustomDecrement(id_fk int64, ctx context.Contex
 	}
 
 	return db.WithContext(ctx).Model(&RekeningSellerThreshold{}).Where(&RekeningSellerThreshold{
-		ID: id_fk,
+		IdRekeningSeller: r.IdRekeningSeller,
 	}).Updates(
 		updates,
 	).Error

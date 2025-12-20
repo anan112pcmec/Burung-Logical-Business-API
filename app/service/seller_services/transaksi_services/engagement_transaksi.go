@@ -15,13 +15,20 @@ import (
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	stsk_alamat_ekspedisi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_ekspedisi"
+	stsk_alamat_gudang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_gudang"
+	stsk_alamat_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_pengguna"
+	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	stsk_transaksi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/transaksi"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
-func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaksi, db *config.InternalDBReadWriteSystem, rds *redis.Client) *response.ResponseForm {
+func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaksi, db *config.InternalDBReadWriteSystem, rds, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ApproveOrderTransaksi"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -156,6 +163,26 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 		}
 	}
 
+	go func(It int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataTransaksiUpdated models.Transaksi
+		if err := Trh.WithContext(konteks).Model(&models.Transaksi{}).Where(&models.Transaksi{
+			ID: It,
+		}).Limit(1).Take(&dataTransaksiUpdated).Error; err != nil {
+			fmt.Println("Gagal mengambil data transaksi")
+			return
+		}
+
+		transaksiUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataTransaksiUpdated).SetTableName(dataTransaksiUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, transaksiUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish updated transaksi ke message broker")
+		}
+
+	}(data.IdTransaksi, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -163,10 +190,10 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 	}
 }
 
-func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "KirimOrderTransaksi"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -266,10 +293,113 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 			if err := tx.Create(&pengiriman_ekspedisi).Error; err != nil {
 				return err
 			}
+
+			go func(Pe models.PengirimanEkspedisi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				ctx_t := context.Background()
+				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				defer cancel()
+
+				thresholdSeller := sot_threshold.SellerThreshold{
+					IdSeller: Pe.IdSeller,
+				}
+
+				thresholdTransaksi := sot_threshold.TransaksiThreshold{
+					IdTransaksi: Pe.IdTransaksi,
+				}
+
+				thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{
+					IdAlamatGudang: Pe.IdAlamatGudang,
+				}
+
+				thresholdAlamatEkspedisi := sot_threshold.AlamatEkspedisiThreshold{
+					IdAlamatEkspedisi: Pe.IdAlamatEkspedisi,
+				}
+
+				thresholdPengirimanEkspedisi := sot_threshold.PengirimanEkspedisiThreshold{
+					IdPengirimanEkspedisi: Pe.ID,
+				}
+
+				if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.PengirimanEkspedisi); err != nil {
+					fmt.Println("Gagal incr count pengiriman ekspedisi ke seller threshold")
+				}
+
+				if err := thresholdTransaksi.Increment(konteks, Trh, stsk_transaksi.PengirimanEkspedisi); err != nil {
+					fmt.Println("Gagal incr count pengiriman ekspedisi ke transaksi threshold")
+				}
+
+				if err := thresholdAlamatGudang.Increment(konteks, Trh, stsk_alamat_gudang.PengirimanEkspedisi); err != nil {
+					fmt.Println("Gagal incr count pengiriman ekspedisi ke alamat gudang threshold")
+				}
+
+				if err := thresholdAlamatEkspedisi.Increment(konteks, Trh, stsk_alamat_ekspedisi.PengirimanEkspedisi); err != nil {
+					fmt.Println("Gagal incr count pengiriman ekspedisi ke alamat ekspedisi threshold")
+				}
+
+				if err := thresholdPengirimanEkspedisi.Inisialisasi(konteks, Trh); err != nil {
+					fmt.Println("gagal membuat threshold pengiriman ekspedisi")
+				}
+
+				pengirimanEkspedisiCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Pe).SetTableName(Pe.TableName())
+				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, pengirimanEkspedisiCreatePublish); err != nil {
+					fmt.Println("Gagal publish create pengiriman ekspedisi ke message broker")
+				}
+			}(pengiriman_ekspedisi, db.Write, cud_publisher)
 		} else {
 			if err := tx.Create(&pengiriman_biasa).Error; err != nil {
 				return err
 			}
+
+			go func(P models.Pengiriman, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				ctx_t := context.Background()
+				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				defer cancel()
+
+				thresholdSeller := sot_threshold.SellerThreshold{
+					IdSeller: P.IdSeller,
+				}
+
+				thresholdTransaksi := sot_threshold.TransaksiThreshold{
+					IdTransaksi: P.IdTransaksi,
+				}
+
+				thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{
+					IdAlamatGudang: P.IdAlamatGudang,
+				}
+
+				thresholdAlamatPengguna := sot_threshold.AlamatPenggunaThreshold{
+					IdAlamatPengguna: P.IdAlamatPengguna,
+				}
+
+				thresholdPengiriman := sot_threshold.PengirimanNonEkspedisiThreshold{
+					IdPengiriman: P.ID,
+				}
+
+				if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.Pengiriman); err != nil {
+					fmt.Println("Gagal incr count pengiriman ke seller threshold")
+				}
+
+				if err := thresholdTransaksi.Increment(konteks, Trh, stsk_transaksi.Pengiriman); err != nil {
+					fmt.Println("Gagal incr count pengiriman ke transaksi threshold")
+				}
+
+				if err := thresholdAlamatGudang.Increment(konteks, Trh, stsk_alamat_gudang.Pengiriman); err != nil {
+					fmt.Println("Gagal incr count pengiriman ke alamat gudang threshold")
+				}
+
+				if err := thresholdAlamatPengguna.Increment(konteks, Trh, stsk_alamat_pengguna.Pengiriman); err != nil {
+					fmt.Println("Gagal incr count pengiriman ke alamat pengguna threshold")
+				}
+
+				if err := thresholdPengiriman.Inisialisasi(konteks, Trh); err != nil {
+					fmt.Println("Gagal membuat pengiriman threshold")
+				}
+
+				pengirimanCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(P).SetTableName(P.TableName())
+				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, pengirimanCreatePublish); err != nil {
+					fmt.Println("Gagal publish create pengiriman ke message broker")
+				}
+
+			}(pengiriman_biasa, db.Write, cud_publisher)
 		}
 		return nil
 	}); err != nil {
@@ -287,10 +417,10 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 	}
 }
 
-func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTransaksi, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTransaksi, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UnApproveOrderTransaksi"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -332,6 +462,26 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(It int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataTransaksiUpdated models.Transaksi
+		if err := Trh.WithContext(konteks).Model(&models.Transaksi{}).Where(&models.Transaksi{
+			ID: It,
+		}).Limit(1).Take(&dataTransaksiUpdated).Error; err != nil {
+			fmt.Println("Gagal mengambil data transaksi")
+			return
+		}
+
+		transaksiUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataTransaksiUpdated).SetTableName(dataTransaksiUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, transaksiUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish updated transaksi ke message broker")
+		}
+
+	}(data.IdTransaksi, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,

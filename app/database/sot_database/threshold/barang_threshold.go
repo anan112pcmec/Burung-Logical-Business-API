@@ -116,6 +116,17 @@ func (b *BarangIndukThreshold) CustomDecrement(ctx context.Context, db *gorm.DB,
 	).Error
 }
 
+func (b *BarangIndukThreshold) GetKolomCount(ctx context.Context, db *gorm.DB, kolom string) (error, int) {
+	var counter int = 0
+	if err := db.WithContext(ctx).Model(&BarangIndukThreshold{}).Select(kolom).Where(&BarangIndukThreshold{
+		IdBarangInduk: b.IdBarangInduk,
+	}).Limit(1).Take(&counter).Error; err != nil {
+		return fmt.Errorf("gagal mengambil count"), counter
+	}
+
+	return nil, counter
+}
+
 type KategoriBarangThreshold struct {
 	ID               int64                 `gorm:"primaryKey;autoIncrement" json:"id_kategori_barang_threshold"`
 	IdKategoriBarang int64                 `gorm:"column:id_kategori_barang;index;not null" json:"id_kategori_barang"`
@@ -213,4 +224,15 @@ func (k *KategoriBarangThreshold) CustomDecrement(ctx context.Context, db *gorm.
 	}).Updates(
 		updates,
 	).Error
+}
+
+func (k *KategoriBarangThreshold) GetKolomCount(ctx context.Context, db *gorm.DB, kolom string) (error, int) {
+	var counter int = 0
+	if err := db.WithContext(ctx).Model(&KategoriBarangThreshold{}).Select(kolom).Where(&KategoriBarangThreshold{
+		IdKategoriBarang: k.IdKategoriBarang,
+	}).Limit(1).Take(&counter).Error; err != nil {
+		return fmt.Errorf("gagal mengambil count"), counter
+	}
+
+	return nil, counter
 }

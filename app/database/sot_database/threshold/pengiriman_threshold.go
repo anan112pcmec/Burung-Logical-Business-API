@@ -24,10 +24,10 @@ func (PengirimanEkspedisiThreshold) TableName() string {
 	return sot_threshold_seeders_nama.PengirimanEkspedisiThreshold
 }
 
-func (p PengirimanEkspedisiThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (p *PengirimanEkspedisiThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&PengirimanEkspedisiThreshold{}).Select("id").Where(&PengirimanEkspedisiThreshold{
-		IdPengirimanEkspedisi: id_fk,
+		IdPengirimanEkspedisi: p.IdPengirimanEkspedisi,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -37,11 +37,11 @@ func (p PengirimanEkspedisiThreshold) Inisialisasi(id_fk int64, ctx context.Cont
 	}
 
 	return db.WithContext(ctx).Create(&PengirimanEkspedisiThreshold{
-		IdPengirimanEkspedisi: id_fk,
+		IdPengirimanEkspedisi: p.IdPengirimanEkspedisi,
 	}).Error
 }
 
-func (p PengirimanEkspedisiThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (p *PengirimanEkspedisiThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -53,11 +53,11 @@ func (p PengirimanEkspedisiThreshold) Increment(id_fk int64, ctx context.Context
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanEkspedisiThreshold{}).Where(&PengirimanEkspedisiThreshold{
-		ID: id_fk,
+		IdPengirimanEkspedisi: p.IdPengirimanEkspedisi,
 	}).Updates(updates).Error
 }
 
-func (p PengirimanEkspedisiThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (p *PengirimanEkspedisiThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -68,11 +68,11 @@ func (p PengirimanEkspedisiThreshold) Decrement(id_fk int64, ctx context.Context
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanEkspedisiThreshold{}).Where(&PengirimanEkspedisiThreshold{
-		ID: id_fk,
+		IdPengirimanEkspedisi: p.IdPengirimanEkspedisi,
 	}).Updates(updates).Error
 }
 
-func (p PengirimanEkspedisiThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (p *PengirimanEkspedisiThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -83,13 +83,13 @@ func (p PengirimanEkspedisiThreshold) CustomIncrement(id_fk int64, ctx context.C
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanEkspedisiThreshold{}).Where(&PengirimanEkspedisiThreshold{
-		ID: id_fk,
+		IdPengirimanEkspedisi: p.IdPengirimanEkspedisi,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (p PengirimanEkspedisiThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (p *PengirimanEkspedisiThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -100,7 +100,7 @@ func (p PengirimanEkspedisiThreshold) CustomDecrement(id_fk int64, ctx context.C
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanEkspedisiThreshold{}).Where(&PengirimanEkspedisiThreshold{
-		ID: id_fk,
+		IdPengirimanEkspedisi: p.IdPengirimanEkspedisi,
 	}).Updates(
 		updates,
 	).Error
@@ -120,10 +120,10 @@ func (PengirimanNonEkspedisiThreshold) TableName() string {
 	return sot_threshold_seeders_nama.PengirimanNonEkspedisiThreshold
 }
 
-func (p PengirimanNonEkspedisiThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (p *PengirimanNonEkspedisiThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&PengirimanNonEkspedisiThreshold{}).Select("id").Where(&PengirimanNonEkspedisiThreshold{
-		IdPengiriman: id_fk,
+		IdPengiriman: p.IdPengiriman,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -133,11 +133,11 @@ func (p PengirimanNonEkspedisiThreshold) Inisialisasi(id_fk int64, ctx context.C
 	}
 
 	return db.WithContext(ctx).Create(&PengirimanNonEkspedisiThreshold{
-		IdPengiriman: id_fk,
+		IdPengiriman: p.IdPengiriman,
 	}).Error
 }
 
-func (p PengirimanNonEkspedisiThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (p *PengirimanNonEkspedisiThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -149,11 +149,11 @@ func (p PengirimanNonEkspedisiThreshold) Increment(id_fk int64, ctx context.Cont
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanNonEkspedisiThreshold{}).Where(&PengirimanNonEkspedisiThreshold{
-		ID: id_fk,
+		IdPengiriman: p.IdPengiriman,
 	}).Updates(updates).Error
 }
 
-func (p PengirimanNonEkspedisiThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (p *PengirimanNonEkspedisiThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -164,11 +164,11 @@ func (p PengirimanNonEkspedisiThreshold) Decrement(id_fk int64, ctx context.Cont
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanNonEkspedisiThreshold{}).Where(&PengirimanNonEkspedisiThreshold{
-		ID: id_fk,
+		IdPengiriman: p.IdPengiriman,
 	}).Updates(updates).Error
 }
 
-func (p PengirimanNonEkspedisiThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (p *PengirimanNonEkspedisiThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -179,13 +179,13 @@ func (p PengirimanNonEkspedisiThreshold) CustomIncrement(id_fk int64, ctx contex
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanNonEkspedisiThreshold{}).Where(&PengirimanNonEkspedisiThreshold{
-		ID: id_fk,
+		IdPengiriman: p.IdPengiriman,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (p PengirimanNonEkspedisiThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (p *PengirimanNonEkspedisiThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -196,7 +196,7 @@ func (p PengirimanNonEkspedisiThreshold) CustomDecrement(id_fk int64, ctx contex
 	}
 
 	return db.WithContext(ctx).Model(&PengirimanNonEkspedisiThreshold{}).Where(&PengirimanNonEkspedisiThreshold{
-		ID: id_fk,
+		IdPengiriman: p.IdPengiriman,
 	}).Updates(
 		updates,
 	).Error

@@ -173,7 +173,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *config.Inte
 
 	go func(Bs models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
-			ID: Bs.IdPengguna,
+			IdPengguna: Bs.IdPengguna,
 		}
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{

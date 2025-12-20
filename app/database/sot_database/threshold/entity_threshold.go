@@ -129,6 +129,7 @@ type SellerThreshold struct {
 	Etalase                   int32 `gorm:"column:etalase;type:int4;default:0" json:"etalase"`
 	Follower                  int32 `gorm:"column:follower;type:int4;default:0" json:"follower"`
 	JenisSellerValidation     int32 `gorm:"column:jenis_seller_validation;type:int4;default:0" json:"jenis_seller_validation"`
+	Rekening                  int32 `gorm:"column:rekening;type:int4;default:0" json:"rekening"`
 	KategoriBarang            int32 `gorm:"column:kategori_barang;type:int4;default:0" json:"kategori_barang"`
 	Keranjang                 int32 `gorm:"column:keranjang;type:int4;default:0" json:"keranjang"`
 	MediaSellerBannerFoto     int32 `gorm:"column:media_seller_banner_foto;type:int4;default:0" json:"media_seller_banner_foto"`

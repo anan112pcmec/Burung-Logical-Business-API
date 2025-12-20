@@ -42,7 +42,7 @@ func (t TransaksiThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *g
 	}).Error
 }
 
-func (t TransaksiThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (t *TransaksiThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -54,11 +54,11 @@ func (t TransaksiThreshold) Increment(id_fk int64, ctx context.Context, db *gorm
 	}
 
 	return db.WithContext(ctx).Model(&TransaksiThreshold{}).Where(&TransaksiThreshold{
-		ID: id_fk,
+		IdTransaksi: t.IdTransaksi,
 	}).Updates(updates).Error
 }
 
-func (t TransaksiThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (t *TransaksiThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -69,11 +69,11 @@ func (t TransaksiThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm
 	}
 
 	return db.WithContext(ctx).Model(&TransaksiThreshold{}).Where(&TransaksiThreshold{
-		ID: id_fk,
+		IdTransaksi: t.IdTransaksi,
 	}).Updates(updates).Error
 }
 
-func (t TransaksiThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (t *TransaksiThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -84,13 +84,13 @@ func (t TransaksiThreshold) CustomIncrement(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Model(&TransaksiThreshold{}).Where(&TransaksiThreshold{
-		ID: id_fk,
+		IdTransaksi: t.IdTransaksi,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (t TransaksiThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (t *TransaksiThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -101,7 +101,7 @@ func (t TransaksiThreshold) CustomDecrement(id_fk int64, ctx context.Context, db
 	}
 
 	return db.WithContext(ctx).Model(&TransaksiThreshold{}).Where(&TransaksiThreshold{
-		ID: id_fk,
+		IdTransaksi: t.IdTransaksi,
 	}).Updates(
 		updates,
 	).Error

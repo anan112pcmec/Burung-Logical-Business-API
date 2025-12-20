@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
@@ -17,10 +18,11 @@ import (
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
-func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "UbahFotoProfilSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -98,7 +100,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 	}
 }
 
-func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusFotoProfilSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -145,7 +147,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 	}
 }
 
-func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "UbahFotoBannerSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -225,7 +227,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 
 }
 
-func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusFotoBannerSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -274,7 +276,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 	}
 }
 
-func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFotoTokoFisikSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFotoTokoFisikSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahkanFotoTokoFisikSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -343,7 +345,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 	}
 }
 
-func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisikSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisikSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusFotoTokoFisikSeller"
 	var wg sync.WaitGroup
 	var mu sync.RWMutex
@@ -420,7 +422,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 	}
 }
 
-func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "UbahFotoEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -503,7 +505,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 	}
 }
 
-func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusFotoEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -549,7 +551,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 	}
 }
 
-func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarangIndukFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarangIndukFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahkanMediaBarangIndukFoto"
 	const Limit uint8 = 10
 
@@ -658,7 +660,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 	}
 }
 
-func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangIndukFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangIndukFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaBarangIndukFoto"
 	var wg sync.WaitGroup
 	var mu sync.RWMutex
@@ -709,7 +711,7 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 	}
 }
 
-func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "BarangIndukVideo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -798,7 +800,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 	}
 }
 
-func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangInduk, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangInduk, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusBarangIndukVideo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -845,7 +847,7 @@ func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangIndu
 	}
 }
 
-func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "UbahKategoriBarangFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -956,7 +958,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 	}
 }
 
-func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBarangFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBarangFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKategoriBarangFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1004,7 +1006,7 @@ func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBaran
 	}
 }
 
-func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistributorDataDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistributorDataDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahDistributorDataDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1091,7 +1093,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 	}
 }
 
-func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMediaDistributorDataDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMediaDistributorDataDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKategoriBarangFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1167,7 +1169,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 	}
 }
 
-func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahMediaDistributorDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahMediaDistributorDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaDistributorDataNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1248,7 +1250,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 	}
 }
 
-func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMediaDistributorDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMediaDistributorDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaDistributorDataNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1322,7 +1324,7 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 	}
 }
 
-func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistributorDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistributorDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahDistributorDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1403,7 +1405,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 	}
 }
 
-func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistributorDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistributorDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusDistributorDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1479,7 +1481,7 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 	}
 }
 
-func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahDistributorDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahDistributorDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahDistributorDataSuratKerjasamaDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1560,7 +1562,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 	}
 }
 
-func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data PayloadHapusDistributorDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data PayloadHapusDistributorDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusDistributorDataSuratKerjasamaDataDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1636,7 +1638,7 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 	}
 }
 
-func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBrandDataPerwakilanDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBrandDataPerwakilanDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahBrandDataPerwakilanDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1724,7 +1726,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 	}
 }
 
-func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapusBrandDataPerwakilanDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapusBrandDataPerwakilanDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaBrandDataPerwakilanDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1799,7 +1801,7 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 	}
 }
 
-func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahBrandDataSertifikatFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahBrandDataSertifikatFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaBrandDataSertifikatFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1887,7 +1889,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 	}
 }
 
-func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBrandDataSertifikatFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBrandDataSertifikatFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaBrandDataSertifikatFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -1953,7 +1955,7 @@ func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBra
 	}
 }
 
-func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBrandDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBrandDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaBrandDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2040,7 +2042,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 	}
 }
 
-func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrandDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrandDataNIBFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaBrandDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2116,7 +2118,7 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 	}
 }
 
-func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaBrandNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2204,7 +2206,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 	}
 }
 
-func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDataNPWPFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaBrandNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2278,7 +2280,7 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 	}
 }
 
-func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBrandDataLogoFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBrandDataLogoFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaBrandDataLogoBrandFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2373,7 +2375,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 	}
 }
 
-func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDataLogoFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDataLogoFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusMediaBrandDataLogo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2438,7 +2440,7 @@ func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDat
 	}
 }
 
-func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahBrandDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahBrandDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahBrandDataSuratKerjasamaDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2525,7 +2527,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 	}
 }
 
-func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusBrandDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseForm {
+func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusBrandDataSuratKerjasamaDokumen, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusBrandDataSuratKerjasamaDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2601,7 +2603,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 	}
 }
 
-func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMediaTransaksiApprovedFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMediaTransaksiApprovedFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaTransaksiApprovedFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {
@@ -2675,7 +2677,7 @@ func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMed
 	}
 }
 
-func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTransaksiApprovedVideo, db *config.InternalDBReadWriteSystem, ms *minio.Client) *response.ResponseMediaUpload {
+func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTransaksiApprovedVideo, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahTransaksiApprovedVideo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read); !status {

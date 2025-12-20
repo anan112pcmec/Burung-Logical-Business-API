@@ -16,7 +16,11 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
+	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
+	stsk_komentar "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/komentar"
+	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
@@ -168,24 +172,55 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		}
 	}
 
-	go func(Bi models.BarangInduk, Kb models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Bi models.BarangInduk, Kb []models.KategoriBarang, Trh *config.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
 		thresholdSeller := sot_threshold.SellerThreshold{
-			ID: int64(Bi.SellerID),
+			IdSeller: int64(Bi.SellerID),
 		}
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
-			ID: int64(Bi.ID),
-		}
-
-		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
-			ID: Kb.ID,
+			IdBarangInduk: int64(Bi.ID),
 		}
 
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
 		defer cancel()
 
-	}()
+		if err := thresholdSeller.Increment(konteks, Trh.Write, stsk_seller.BarangInduk); err != nil {
+			fmt.Println("Gagal increment barang induk counter ke threshold seller")
+		}
+
+		if err := thresholdBarangInduk.Inisialisasi(konteks, Trh.Write); err != nil {
+			fmt.Println("Gagal inisialisasi thresholdbarang induk")
+		}
+
+		var dataBarangIndukNew models.BarangInduk
+		if err := Trh.Read.WithContext(ctx).Model(&models.BarangInduk{}).Where(&models.BarangInduk{
+			ID: Bi.ID,
+		}).Limit(1).Take(&dataBarangIndukNew).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data barang induk")
+		}
+
+		createNewBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBarangIndukNew).SetTableName(dataBarangIndukNew.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createNewBarangIndukPublish); err != nil {
+			fmt.Println("Gagal publish create new barang induk ke message broker")
+		}
+
+		for _, k := range Kb {
+			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
+				IdKategoriBarang: k.ID,
+			}
+
+			if err := thresholdKategoriBarang.Inisialisasi(konteks, Trh.Write); err != nil {
+				fmt.Println("Gagal membuat threshold untuk kategori ber Id: ", k.ID, " Dan Bernama: ", k.Nama)
+			}
+
+			createNewKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName())
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createNewKategoriBarangPublish); err != nil {
+				fmt.Println("Gagal publish create new kategori ke message broker")
+			}
+		}
+
+	}(barang_induk, data.KategoriBarang, db, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -244,6 +279,26 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 		}
 	}
 
+	go func(IdBarangInduk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var updatedBarangInduk models.BarangInduk
+		if err := Read.WithContext(konteks).Model(&models.BarangInduk{}).Where(&models.BarangInduk{
+			ID: int32(IdBarangInduk),
+		}).Limit(1).Take(&updatedBarangInduk).Error; err != nil {
+			fmt.Println("Gagal mengambil data terbaru barang induk")
+			return
+		}
+
+		updatedBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(updatedBarangInduk).SetTableName(updatedBarangInduk.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedBarangIndukPublish); err != nil {
+			fmt.Println("Gagal publish update barang induk ke message broker")
+		}
+
+	}(id_data_barang_induk, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -269,11 +324,11 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		}
 	}
 
-	var id_data_barang_induk int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BarangInduk{}).Select("id").Where(&models.BarangInduk{
+	var dataBarangInduk models.BarangInduk
+	if err := db.Read.WithContext(ctx).Model(&models.BarangInduk{}).Where(&models.BarangInduk{
 		ID:       int32(data.IdBarangInduk),
 		SellerID: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_barang_induk).Error; err != nil {
+	}).Limit(1).Scan(&dataBarangInduk).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -281,7 +336,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		}
 	}
 
-	if id_data_barang_induk == 0 {
+	if dataBarangInduk.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -292,7 +347,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 	// Cek apakah masih ada varian dalam transaksi (status: Dipesan/Diproses)
 	var id_varian_dalam_transaksi int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").
-		Where("id_barang_induk = ? AND status IN ?", data.IdBarangInduk, []string{"Dipesan", "Diproses"}).
+		Where("id_barang_induk = ? AND status IN ?", dataBarangInduk.ID, []string{"Dipesan", "Diproses"}).
 		Limit(1).Scan(&id_varian_dalam_transaksi).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -309,6 +364,14 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 			Message:  "Masih ada varian dalam transaksi",
 		}
 	}
+
+	thresholdBarangInduk := sot_threshold.BarangIndukThreshold{ID: int64(dataBarangInduk.ID)}
+	_, totalKategoriBarang := thresholdBarangInduk.GetKolomCount(ctx, db.Read, stsk_baranginduk.KategoriBarang)
+
+	var dataKategoriBarang []models.KategoriBarang = make([]models.KategoriBarang, 0, totalKategoriBarang)
+	_ = db.Read.WithContext(ctx).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+		IdBarangInduk: dataBarangInduk.ID,
+	}).Limit(totalKategoriBarang).Take(&dataKategoriBarang)
 
 	// Jalankan proses penghapusan dalam goroutine (asynchronous)
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -341,6 +404,37 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 			Message:  "Gagal menghapus barang.",
 		}
 	}
+
+	go func(DBI models.BarangInduk, DBK []models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := Trh.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Where(&sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(DBI.ID),
+		}).Delete(&sot_threshold.BarangIndukThreshold{}).Error; err != nil {
+			fmt.Println("Gagal menghapus barang_induk threshold")
+		}
+
+		deleteBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(DBI).SetTableName(DBI.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteBarangIndukPublish); err != nil {
+			fmt.Printf("Gagal publish delete barang induk ber id: %v, bernama %s ke message broker", DBI.ID, DBI.NamaBarang)
+		}
+
+		for _, dbkategori := range DBK {
+			if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
+				IdKategoriBarang: dbkategori.ID,
+			}).Delete(&sot_threshold.KategoriBarangThreshold{}).Error; err != nil {
+				fmt.Printf("Gagal menghapus data kategori barang ber id %v dan bernama %s", dbkategori.ID, dbkategori.Nama)
+			}
+
+			deleteKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dbkategori).SetTableName(dbkategori.TableName())
+			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKategoriBarangPublish); err != nil {
+				fmt.Printf("Gagal publish delete kategori barang ber id %v dan bernama %s ke message broker", dbkategori.ID, dbkategori.Nama)
+			}
+		}
+
+	}(dataBarangInduk, dataKategoriBarang, db.Write, cud_publisher)
 	// Kembalikan respons sukses
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -512,6 +606,27 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 	log.Printf("[INFO] Permintaan tambah kategori diterima untuk BarangInduk ID %d oleh Seller ID %d",
 		data.IdBarangInduk, data.IdentitasSeller.IdSeller)
 
+	go func(Kb []models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		for _, kategoribarangdata := range Kb {
+			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
+				IdKategoriBarang: kategoribarangdata.ID,
+			}
+
+			if err := thresholdKategoriBarang.Inisialisasi(konteks, Trh); err != nil {
+				fmt.Printf("Gagal membuat threshold kategori barang ber id %v, bernama %s", kategoribarangdata.ID, kategoribarangdata.Nama)
+			}
+
+			newKategoriBarangCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(kategoribarangdata).SetTableName(kategoribarangdata.TableName())
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKategoriBarangCreatePublish); err != nil {
+				fmt.Printf("Gagal mempublish create kategori barang ber id %v dan bernama %s ke message broker", kategoribarangdata.ID, kategoribarangdata.Nama)
+			}
+		}
+	}(data.KategoriBarang, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -589,6 +704,24 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 		}
 	}
 
+	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKategoriBarangUpdated models.KategoriBarang
+		if err := Read.WithContext(konteks).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			ID: IdKb,
+		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang")
+		}
+
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
+			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
+		}
+	}(data.IdKategoriBarang, db.Read, cud_publisher)
+
 	log.Printf("[INFO] Kategori barang berhasil diubah pada barang induk ID %d oleh seller ID %d", data.IdBarangInduk, data.IdentitasSeller.IdSeller)
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -614,12 +747,12 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		}
 	}
 
-	var id_data_kategori int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.KategoriBarang{}).Select("id").Where(&models.KategoriBarang{
+	var data_kategori models.KategoriBarang
+	if err := db.Read.WithContext(ctx).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
 		ID:            data.IdKategoriBarang,
 		IdBarangInduk: data.IdBarangInduk,
 		SellerID:      data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_kategori).Error; err != nil {
+	}).Limit(1).Scan(&data_kategori).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -627,7 +760,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		}
 	}
 
-	if id_data_kategori == 0 {
+	if data_kategori.ID == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -675,6 +808,24 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 
 	log.Printf("[INFO] Kategori barang berhasil dihapus (soft delete manual) pada BarangInduk ID %d oleh Seller ID %d",
 		data.IdBarangInduk, data.IdentitasSeller.IdSeller)
+
+	go func(Kb models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
+			IdKategoriBarang: Kb.ID,
+		}).Delete(&sot_threshold.KategoriBarangThreshold{}).Error; err != nil {
+			fmt.Println("Gagal menghapus threshold kategori barang ber ID:%v", Kb.ID)
+		}
+
+		kategoriBarangDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kb).SetTableName(Kb.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangDeletePublish); err != nil {
+			fmt.Printf("Gagal publish hapus kategori barang ke message broker")
+		}
+
+	}(data_kategori, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -831,6 +982,25 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 		}
 	}
 
+	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKategoriBarangupdated models.KategoriBarang
+		if err := Read.WithContext(ctx).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			ID: IdKb,
+		}).Limit(1).Take(&dataKategoriBarangupdated).Error; err != nil {
+			fmt.Println("Gagal mengambil data kategori barang")
+			return
+		}
+
+		updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangupdated).SetTableName(dataKategoriBarangupdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
+			fmt.Println("Gagal publish updated kategori barang stok ke message broker")
+		}
+	}(data.IdKategoriBarang, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -893,6 +1063,32 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 		}
 	}
 
+	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: IdBi,
+		}
+
+		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+
+		var updatesDownKategori []models.KategoriBarang = make([]models.KategoriBarang, 0, totalKategori)
+		if err := Read.WithContext(konteks).Where(&models.KategoriBarang{
+			IdBarangInduk: int32(IdBi),
+		}).Limit(totalKategori).Take(&updatesDownKategori).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang updated down")
+		}
+
+		for _, dk := range updatesDownKategori {
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName())
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
+				fmt.Println("Gagal publish updated kategori barang stok ke message broker")
+			}
+		}
+	}(int64(data.IdBarangInduk), db.Read, cud_publisher)
+
 	log.Printf("[INFO] Semua stok barang induk ID %d berhasil di-down-kan oleh seller ID %d", data.IdBarangInduk, data.IdentitasSeller.IdSeller)
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -951,6 +1147,24 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKategoriBarangUpdated models.KategoriBarang
+		if err := Read.WithContext(konteks).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			ID: IdKb,
+		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang")
+		}
+
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
+			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
+		}
+	}(data.IdKategoriBarang, db.Read, cud_publisher)
 
 	log.Printf("[INFO] Semua stok kategori ID %d pada barang induk ID %d berhasil di-down-kan oleh seller ID %d", data.IdKategoriBarang, data.IdBarangInduk, data.IdentitasSeller.IdSeller)
 	return &response.ResponseForm{
@@ -1021,6 +1235,32 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: IdBi,
+		}
+
+		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+
+		var updatesDownKategori []models.KategoriBarang = make([]models.KategoriBarang, 0, totalKategori)
+		if err := Read.WithContext(konteks).Where(&models.KategoriBarang{
+			IdBarangInduk: int32(IdBi),
+		}).Limit(totalKategori).Take(&updatesDownKategori).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang updated rekening")
+		}
+
+		for _, dk := range updatesDownKategori {
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName())
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
+				fmt.Println("Gagal publish updated kategori barang rekening ke message broker")
+			}
+		}
+	}(int64(data.IdBarangInduk), db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1097,6 +1337,32 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		}
 	}
 
+	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: IdBi,
+		}
+
+		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+
+		var updatesDownKategori []models.KategoriBarang = make([]models.KategoriBarang, 0, totalKategori)
+		if err := Read.WithContext(konteks).Where(&models.KategoriBarang{
+			IdBarangInduk: int32(IdBi),
+		}).Limit(totalKategori).Take(&updatesDownKategori).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang updated alamat gudang")
+		}
+
+		for _, dk := range updatesDownKategori {
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName())
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
+				fmt.Println("Gagal publish updated kategori barang alamat gudang ke message broker")
+			}
+		}
+	}(int64(data.IdBarangInduk), db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -1172,6 +1438,24 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		}
 	}
 
+	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKategoriBarangUpdated models.KategoriBarang
+		if err := Read.WithContext(konteks).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			ID: IdKb,
+		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang")
+		}
+
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
+			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
+		}
+	}(data.IdKategoriBarang, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -1197,19 +1481,48 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		is_seller = true
 	}
 
-	if err := db.Write.WithContext(ctx).Create(&models.Komentar{
+	NewKomentar := models.Komentar{
 		IdBarangInduk: data.IdBarangInduk,
 		IdEntity:      int64(data.IdentitasSeller.IdSeller),
 		JenisEntity:   entity_enums.Seller,
 		Komentar:      data.Komentar,
 		IsSeller:      is_seller,
-	}).Error; err != nil {
+	}
+	if err := db.Write.WithContext(ctx).Create(&NewKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal Memposting Komentar",
 		}
 	}
+
+	go func(K models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(K.IdBarangInduk),
+		}
+
+		thresholdKomentar := sot_threshold.KomentarThreshold{
+			IdKomentar: K.ID,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdKomentar.Inisialisasi(konteks, Trh); err != nil {
+			fmt.Println("Gagal membuat threshold komentar")
+		}
+
+		if err := thresholdBarangInduk.Increment(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
+			fmt.Println("Gagal increment total komentar barang induk ke threshold barang induk")
+		}
+
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
+			fmt.Println("Gagal publish komentar baru barang induk ke message broker")
+		}
+
+	}(NewKomentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1230,6 +1543,19 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		}
 	}
 
+	var id_komentar int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Select("id").Where(&models.Komentar{
+		ID:          data.IdKomentar,
+		IdEntity:    int64(data.IdentitasSeller.IdSeller),
+		JenisEntity: entity_enums.Seller,
+	}).Limit(1).Scan(&id_komentar).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
 	if err := db.Write.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
 		ID:          data.IdKomentar,
 		IdEntity:    int64(data.IdentitasSeller.IdSeller),
@@ -1241,6 +1567,25 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 			Message:  "Gagal Mengedit Komentar",
 		}
 	}
+
+	go func(idKomen int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		komentarData := models.Komentar{}
+		if err := Read.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+			ID: idKomen,
+		}).Limit(1).Take(&komentarData); err != nil {
+			return
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newUpdateKomentarPublish); err != nil {
+			fmt.Println("Gagal publish update komentar barang ke message broker")
+		}
+
+	}(id_komentar, db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1260,6 +1605,27 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 	}
 
+	var Komentar models.Komentar
+	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+		ID:          data.IdKomentar,
+		IdEntity:    int64(data.IdentitasSeller.IdSeller),
+		JenisEntity: entity_enums.Seller,
+	}).Limit(1).Scan(&Komentar).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if Komentar.ID == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal komentar tidak ditemukan",
+		}
+	}
+
 	if err := db.Write.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
 		ID:          data.IdKomentar,
 		IdEntity:    int64(data.IdentitasSeller.IdSeller),
@@ -1271,6 +1637,26 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 			Message:  "Gagal Menghapus Komentar",
 		}
 	}
+
+	go func(K models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
+			ID: int64(K.IdBarangInduk),
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
+			fmt.Println("Gagal decr komentar barang induk ke threshold barang induk")
+		}
+
+		newDeleteKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newDeleteKomentarPublish); err != nil {
+			fmt.Println("Gagal publish delete komentar ke message broker")
+		}
+
+	}(Komentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1297,19 +1683,40 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 	if id_seller_take == int64(data.IdentitasSeller.IdSeller) {
 		is_seller = true
 	}
-	if err := db.Write.WithContext(ctx).Create(&models.KomentarChild{
+
+	newKomentar := models.KomentarChild{
 		IdKomentar:  data.IdKomentarBarang,
 		IdEntity:    int64(data.IdentitasSeller.IdSeller),
 		JenisEntity: entity_enums.Seller,
 		IsiKomentar: data.Komentar,
 		IsSeller:    is_seller,
-	}).Error; err != nil {
+	}
+	if err := db.Write.WithContext(ctx).Create(&newKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal Mengunggah Komentar",
 		}
 	}
+
+	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdKomentar := sot_threshold.KomentarThreshold{
+			IdKomentar: Kc.IdKomentar,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+			fmt.Println("Gagal increment total komentar child induk ke threshold komentar")
+		}
+
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
+			fmt.Println("Gagal publish komentar reply ke message broker")
+		}
+	}(newKomentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1338,20 +1745,41 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		is_seller = true
 	}
 
-	if err := db.Write.WithContext(ctx).Create(&models.KomentarChild{
+	newKomentar := models.KomentarChild{
 		IdKomentar:  data.IdKomentar,
 		IdEntity:    int64(data.IdentitasSeller.IdSeller),
 		JenisEntity: entity_enums.Seller,
 		IsiKomentar: data.Komentar,
 		IsSeller:    is_seller,
 		Mention:     data.UsernameMentioned,
-	}).Error; err != nil {
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&newKomentar).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal Membalas Komentar",
 		}
 	}
+
+	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdKomentar := sot_threshold.KomentarThreshold{
+			IdKomentar: Kc.IdKomentar,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+			fmt.Println("Gagal increment total komentar child induk ke threshold komentar")
+		}
+
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
+			fmt.Println("Gagal publish komentar reply ke message broker")
+		}
+	}(newKomentar, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1362,6 +1790,27 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 
 func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditChildKomentar"
+
+	var id_edit_child_komentar int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Select("id").Where(&models.KomentarChild{
+		ID:          data.IdKomentar,
+		IdEntity:    int64(data.IdentitasSeller.IdSeller),
+		JenisEntity: entity_enums.Seller,
+	}).Limit(1).Scan(&id_edit_child_komentar).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_edit_child_komentar == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal komentar tidak ditemukan",
+		}
+	}
 
 	if err := db.Write.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
 		ID:          data.IdKomentar,
@@ -1375,6 +1824,24 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 		}
 	}
 
+	go func(IdKc int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKomentarChild models.KomentarChild
+		if err := Read.WithContext(konteks).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+			ID: IdKc,
+		}).Limit(1).Take(&dataKomentarChild).Error; err != nil {
+			return
+		}
+
+		updateKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKomentarChild).SetTableName(dataKomentarChild.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateKomentarChildPublish); err != nil {
+			fmt.Println("Gagal publish update child komentar ke message broker")
+		}
+	}(id_edit_child_komentar, db.Read, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
@@ -1384,6 +1851,28 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 
 func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusChildKomentar"
+
+	var childKomentar models.KomentarChild
+	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+		ID:          data.IdKomentar,
+		IdEntity:    int64(data.IdentitasSeller.IdSeller),
+		JenisEntity: entity_enums.Seller,
+	}).Limit(1).Scan(&childKomentar).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if childKomentar.ID == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal komentar tidak ditemukan",
+		}
+	}
+
 	if err := db.Write.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
 		ID:          data.IdKomentar,
 		IdEntity:    int64(data.IdentitasSeller.IdSeller),
@@ -1395,6 +1884,26 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 			Message:  "Gagal Menghapus Komentar",
 		}
 	}
+
+	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		komentarThreshold := sot_threshold.KomentarThreshold{
+			ID: Kc.IdKomentar,
+		}
+
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+			fmt.Println("Gagal decrement komentar child ke threshold komentar")
+		}
+
+		deleteKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKomentarChildPublish); err != nil {
+			fmt.Println("Gagal publish delete komentar child ke message broker")
+		}
+	}(childKomentar, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
