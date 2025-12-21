@@ -250,10 +250,10 @@ func (KurirThreshold) TableName() string {
 	return sot_threshold_seeders_nama.KurirThreshold
 }
 
-func (k KurirThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.DB) error {
+func (k *KurirThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
 	var id_data_threshold int64 = 0
 	if err := db.WithContext(ctx).Model(&KurirThreshold{}).Select("id").Where(&KurirThreshold{
-		IdKurir: id_fk,
+		IdKurir: k.IdKurir,
 	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
 		return err
 	}
@@ -263,11 +263,11 @@ func (k KurirThreshold) Inisialisasi(id_fk int64, ctx context.Context, db *gorm.
 	}
 
 	return db.WithContext(ctx).Create(&KurirThreshold{
-		IdKurir: id_fk,
+		IdKurir: k.IdKurir,
 	}).Error
 }
 
-func (k KurirThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (k *KurirThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
 
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
@@ -279,11 +279,11 @@ func (k KurirThreshold) Increment(id_fk int64, ctx context.Context, db *gorm.DB,
 	}
 
 	return db.WithContext(ctx).Model(&KurirThreshold{}).Where(&KurirThreshold{
-		ID: id_fk,
+		IdKurir: k.IdKurir,
 	}).Updates(updates).Error
 }
 
-func (k KurirThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB, koloms ...string) error {
+func (k *KurirThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
 	if len(koloms) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -294,11 +294,11 @@ func (k KurirThreshold) Decrement(id_fk int64, ctx context.Context, db *gorm.DB,
 	}
 
 	return db.WithContext(ctx).Model(&KurirThreshold{}).Where(&KurirThreshold{
-		ID: id_fk,
+		IdKurir: k.IdKurir,
 	}).Updates(updates).Error
 }
 
-func (k KurirThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (k *KurirThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -309,13 +309,13 @@ func (k KurirThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *go
 	}
 
 	return db.WithContext(ctx).Model(&KurirThreshold{}).Where(&KurirThreshold{
-		ID: id_fk,
+		IdKurir: k.IdKurir,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (k KurirThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (k *KurirThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -326,7 +326,7 @@ func (k KurirThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *go
 	}
 
 	return db.WithContext(ctx).Model(&KurirThreshold{}).Where(&KurirThreshold{
-		ID: id_fk,
+		IdKurir: k.IdKurir,
 	}).Updates(
 		updates,
 	).Error

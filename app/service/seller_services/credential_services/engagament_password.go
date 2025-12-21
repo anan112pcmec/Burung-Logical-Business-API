@@ -9,11 +9,14 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
+	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 )
@@ -104,11 +107,6 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 	}
 }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Fungsi Prosedur Validate Ubah Password Seller
-// Berfungsi untuk memvalidasi dengan kode otp yang telah dikirimkan untuk mengubah password mereka
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *config.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordSeller"
 
@@ -141,7 +139,9 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 		log.Printf("[INFO] OTP key %s berhasil dihapus dari Redis.", key)
 	}
 
-	if err_change_pass := db.Write.WithContext(ctx).Model(models.Seller{}).Where(models.Seller{ID: data.IdentitasSeller.IdSeller}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
+	if err_change_pass := db.Write.WithContext(ctx).Model(&models.Seller{}).Where(&models.Seller{
+		ID: data.IdentitasSeller.IdSeller,
+	}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
 		log.Printf("[ERROR] Gagal mengubah password seller ID %d: %v", data.IdentitasSeller.IdSeller, err_change_pass)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -149,6 +149,29 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 			Message:  "Terjadi kesalahan pada server saat mengubah password.",
 		}
 	}
+
+	go func(IdSeller int32, Read *gorm.DB, RdsSession *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataSellerUpdated models.Seller
+		if err := Read.WithContext(konteks).Model(&models.Seller{}).Where(&models.Seller{
+			ID: IdSeller,
+		}).Limit(1).Take(&dataSellerUpdated).Error; err != nil {
+			fmt.Println("Gagal mengambil data seller")
+			return
+		}
+
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Seller](konteks, &dataSellerUpdated, RdsSession); err != nil {
+			fmt.Println("Gagal update data cache session")
+		}
+
+		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataSellerUpdated).SetTableName(dataSellerUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, sellerUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update seller ke message broker")
+		}
+	}(data.IdentitasSeller.IdSeller, db.Read, rds_session, cud_publisher)
 
 	log.Printf("[INFO] Password seller ID %d berhasil diubah via OTP.", data.IdentitasSeller.IdSeller)
 	return &response.ResponseForm{

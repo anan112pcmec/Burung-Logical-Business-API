@@ -9,19 +9,23 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
+	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	response_credential_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/credential_services/response_credential_services"
 )
 
-func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *config.InternalDBReadWriteSystem, rds *redis.Client) *response.ResponseForm {
+func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *config.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
 	services := "PreUbahPasswordKurir"
 
-	kurir, status := data.DataIdentitas.Validating(ctx, db.Read)
+	kurir, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session)
 
 	if !status {
 		log.Printf("[WARN] Identitas kurir tidak valid untuk ID %d", data.DataIdentitas.IdKurir)
@@ -111,10 +115,10 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 	}
 }
 
-func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPassword, db *config.InternalDBReadWriteSystem, rds *redis.Client) *response.ResponseForm {
+func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPassword, db *config.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordKurir"
 
-	_, status := data.DataIdentitas.Validating(ctx, db.Read)
+	_, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session)
 
 	if !status {
 		log.Printf("[WARN] Identitas kurir tidak valid untuk ID %d", data.DataIdentitas.IdKurir)
@@ -142,7 +146,15 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 		}
 	}
 
-	if err_change_pass := db.Write.WithContext(ctx).Model(models.Kurir{}).Where(models.Kurir{ID: data.DataIdentitas.IdKurir}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
+	if errDel := rds.Del(ctx, key).Err(); errDel != nil {
+		log.Printf("[WARN] Gagal menghapus OTP key dari Redis: %v", errDel)
+	} else {
+		log.Printf("[INFO] OTP key %s berhasil dihapus dari Redis.", key)
+	}
+
+	if err_change_pass := db.Write.WithContext(ctx).Model(&models.Kurir{}).Where(&models.Kurir{
+		ID: data.DataIdentitas.IdKurir,
+	}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
 		log.Printf("[ERROR] Gagal mengubah password kurir ID %d: %v", data.DataIdentitas.IdKurir, err_change_pass)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -152,6 +164,29 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 			},
 		}
 	}
+
+	go func(IdKurir int64, Read *gorm.DB, RdsSession *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataKurirUpdated models.Kurir
+		if err := Read.WithContext(konteks).Model(&models.Kurir{}).Where(&models.Kurir{
+			ID: IdKurir,
+		}).Limit(1).Take(&dataKurirUpdated).Error; err != nil {
+			fmt.Println("Gagal mengambil data kurir")
+			return
+		}
+
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Kurir](konteks, &dataKurirUpdated, RdsSession); err != nil {
+			fmt.Println("Gagal update data cache session")
+		}
+
+		kurirUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKurirUpdated).SetTableName(dataKurirUpdated.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update kurir ke message broker")
+		}
+	}(data.DataIdentitas.IdKurir, db.Read, rds_session, cud_publisher)
 
 	log.Printf("[INFO] Password kurir ID %d berhasil diubah via OTP.", data.DataIdentitas.IdKurir)
 	return &response.ResponseForm{

@@ -9,10 +9,14 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
+	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 )
@@ -146,12 +150,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 	}
 }
 
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Fungsi Prosedur Validasi Ubah Password via otp
-// :Berfungsi untuk memvalidasi otp yang telah dikirim oleh preubah password dan menetapkan perubahan password
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidateOTPPasswordPengguna, db *config.InternalDBReadWriteSystem, rds *redis.Client) *response.ResponseForm {
+func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidateOTPPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordPenggunaViaOtp"
 
 	var id_user int64
@@ -166,7 +165,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 
 	key := fmt.Sprintf("user_ubah_password_by_otp:%s", data.OtpKey)
 
-	result, err_rds := rds.HGetAll(ctx, key).Result()
+	result, err_rds := rds_auth.HGetAll(ctx, key).Result()
 
 	if err_rds != nil || len(result) == 0 {
 		log.Printf("[WARN] OTP tidak valid atau sudah kadaluarsa: %v", err_rds)
@@ -186,9 +185,33 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 		}
 	}
 
-	if _, err_del := rds.Del(ctx, key).Result(); err_del != nil {
+	if _, err_del := rds_auth.Del(ctx, key).Result(); err_del != nil {
 		log.Printf("[WARN] Gagal menghapus OTP key: %v", err_del)
 	}
+
+	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataPengguna models.Pengguna
+		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+			ID: Ip,
+		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+			fmt.Println("Gagal mengambil data pengguna")
+			return
+		}
+
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+			fmt.Println("Gagal update data cache session")
+		}
+
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update pengguna password via otp ke message broker")
+		}
+
+	}(data.IDPengguna, db.Read, rds_session, cud_publisher)
 
 	log.Println("[INFO] Password berhasil diubah via OTP.")
 	return &response.ResponseForm{
@@ -199,12 +222,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 
 }
 
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Fungsi Prosedur Validasi Ubah Password via otp
-// :Berfungsi untuk memvalidasi perubahan password via pin dan menetapkan perubahan password
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *config.InternalDBReadWriteSystem, rds *redis.Client) *response.ResponseForm {
+func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordPenggunaViaPin"
 
 	var pin_user string
@@ -226,7 +244,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 		}
 	} else {
 		key := fmt.Sprintf("user_ubah_password_by_pin:%v", data.IDPengguna)
-		result, err_validate := rds.HGetAll(ctx, key).Result()
+		result, err_validate := rds_auth.HGetAll(ctx, key).Result()
 		if err_validate != nil || len(result) == 0 {
 			log.Printf("[WARN] Data perubahan password via PIN tidak ditemukan atau sudah kadaluarsa: %v", err_validate)
 			return &response.ResponseForm{
@@ -236,7 +254,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 			}
 		}
 
-		if _, err_del := rds.Del(ctx, key).Result(); err_del != nil {
+		if _, err_del := rds_auth.Del(ctx, key).Result(); err_del != nil {
 			log.Printf("[WARN] Gagal menghapus OTP key: %v", err_del)
 		}
 
@@ -250,6 +268,30 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 		}
 	}
 
+	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataPengguna models.Pengguna
+		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+			ID: Ip,
+		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+			fmt.Println("Gagal mengambil data pengguna")
+			return
+		}
+
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+			fmt.Println("Gagal update data cache session")
+		}
+
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update pengguna password via pin ke message broker")
+		}
+
+	}(data.IDPengguna, db.Read, rds_session, cud_publisher)
+
 	log.Println("[INFO] Password berhasil diubah via PIN.")
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -258,12 +300,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 	}
 }
 
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Fungsi Prosedur Membuat Secret pin
-// :Berfungsi untuk membuat secret pin
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
+func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MembuatSecretPinPengguna"
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
@@ -295,7 +332,6 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 		}
 	}
 
-	// Simpan hash PIN sebagai string untuk konsistensi penyimpanan (sama seperti password hash)
 	if errUpdatePin := db.Write.WithContext(ctx).Model(models.Pengguna{}).
 		Where(models.Pengguna{ID: user.ID}).
 		Update("pin_hash", string(hashed_pin)).Error; errUpdatePin != nil {
@@ -307,6 +343,30 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 		}
 	}
 
+	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataPengguna models.Pengguna
+		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+			ID: Ip,
+		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+			fmt.Println("Gagal mengambil data pengguna")
+			return
+		}
+
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+			fmt.Println("Gagal update data cache session")
+		}
+
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update pengguna membuat pin ke message broker")
+		}
+
+	}(data.IdentitasPengguna.ID, db.Read, rds_session, cud_publisher)
+
 	log.Println("[INFO] PIN berhasil dibuat.")
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -315,12 +375,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 	}
 }
 
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Fungsi Prosedur mengupdate Secret pin
-// :Berfungsi untuk mengupdate secret pin
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
+func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UpdateSecretPinPengguna"
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
@@ -362,6 +417,30 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 			Message:  "Terjadi kesalahan pada server saat menyimpan PIN baru.",
 		}
 	}
+
+	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		defer cancel()
+
+		var dataPengguna models.Pengguna
+		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+			ID: Ip,
+		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+			fmt.Println("Gagal mengambil data pengguna")
+			return
+		}
+
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+			fmt.Println("Gagal update data cache session")
+		}
+
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update pengguna pin ke message broker")
+		}
+
+	}(data.IdentitasPengguna.ID, db.Read, rds_session, cud_publisher)
 
 	log.Println("[INFO] PIN berhasil diubah.")
 	return &response.ResponseForm{
