@@ -64,49 +64,49 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_profiling_services.UbahPersonalProfilingPengguna(ctx, data, db)
+		hasil = pengguna_profiling_services.UbahPersonalProfilingPengguna(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/credential/update-password":
 		var data pengguna_credential_services.PayloadPreUbahPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.PreUbahPasswordPengguna(ctx, data, db, rds_auth)
+		hasil = pengguna_credential_services.PreUbahPasswordPengguna(ctx, data, db, rds_auth, rds_session)
 	case "/user/credential/validate-password-otp":
 		var data pengguna_credential_services.PayloadValidateOTPPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaOtp(ctx, data, db, rds_auth)
+		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaOtp(ctx, data, db, rds_auth, rds_session, mb_cud_publisher)
 	case "/user/credential/validate-password-pin":
 		var data pengguna_credential_services.PayloadValidatePinPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaPin(ctx, data, db, rds_auth)
+		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaPin(ctx, data, db, rds_auth, rds_session, mb_cud_publisher)
 	case "/user/credential/update-pin":
 		var data pengguna_credential_services.PayloadUpdatePinPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.UpdateSecretPinPengguna(ctx, data, db)
+		hasil = pengguna_credential_services.UpdateSecretPinPengguna(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap":
 		var data pengguna_transaction_services.PayloadSnapTransaksiRequest
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.SnapTransaksi(ctx, data, db)
+		hasil = pengguna_transaction_services.SnapTransaksi(ctx, data, db, rds_session)
 	case "/user/transaksi/payment-gateaway-snap-berhasil/va":
 		var data pengguna_transaction_services.PayloadLockTransaksiVa
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.LockTransaksiVa(data, db)
+		hasil = pengguna_transaction_services.LockTransaksiVa(data, db, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap-paided-failed/va":
 		var data pengguna_transaction_services.PayloadPaidFailedTransaksiVa
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -120,7 +120,7 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.LockTransaksiWallet(data, db)
+		hasil = pengguna_transaction_services.LockTransaksiWallet(data, db, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap-paided-failed/wallet":
 		var data pengguna_transaction_services.PayloadPaidFailedTransaksiWallet
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -134,7 +134,7 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.LockTransaksiGerai(data, db)
+		hasil = pengguna_transaction_services.LockTransaksiGerai(data, db, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap-paided-failed/gerai":
 		var data pengguna_transaction_services.PayloadPaidFailedTransaksiGerai
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -156,7 +156,7 @@ func PatchUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_social_media_service.EngageTautkanSocialMediaPengguna(ctx, data, db)
+		hasil = pengguna_social_media_service.EngageTautkanSocialMediaPengguna(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/edit-alamat":
 		var data pengguna_alamat_services.PayloadEditAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

@@ -32,208 +32,208 @@ func DeleteSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWr
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 		}
-		hasil = seller_service.HapusBarangInduk(ctx, db, data)
+		hasil = seller_service.HapusBarangInduk(ctx, db, data, rds_session, mb_cud_publisher)
 	case "/seller/hapus_kategori_barang":
 		var data seller_service.PayloadHapusKategori
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 		}
-		hasil = seller_service.HapusKategoriBarang(ctx, db, data)
+		hasil = seller_service.HapusKategoriBarang(ctx, db, data, rds_session, mb_cud_publisher)
 	case "/seller/credential/hapus-rekening":
 		var data seller_credential_services.PayloadHapusNorekSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 		}
-		hasil = seller_credential_services.HapusRekeningSeller(ctx, data, db)
+		hasil = seller_credential_services.HapusRekeningSeller(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/alamat/hapus-alamat-gudang":
 		var data seller_alamat_services.PayloadHapusAlamatGudang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_alamat_services.HapusAlamatGudang(ctx, data, db)
+		hasil = seller_alamat_services.HapusAlamatGudang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/komentar-barang/hapus":
 		var data seller_service.PayloadHapusKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.HapusKomentarBarang(ctx, data, db)
+		hasil = seller_service.HapusKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/komentar-child/hapus":
 		var data seller_service.PayloadHapusChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.HapusChildKomentar(ctx, data, db)
+		hasil = seller_service.HapusChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/diskon/hapus-diskon":
 		var data seller_diskon_services.PayloadHapusDiskonProduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_diskon_services.HapusDiskonProduk(ctx, data, db)
+		hasil = seller_diskon_services.HapusDiskonProduk(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/diskon/hapus-diskon-barang":
 		var data seller_diskon_services.PayloadHapusDiskonPadaBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_diskon_services.HapusDiskonPadaBarang(ctx, data, db)
+		hasil = seller_diskon_services.HapusDiskonPadaBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/etalase/hapus-etalase":
 		var data seller_etalase_services.PayloadHapusEtalase
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_etalase_services.HapusEtalaseSeller(ctx, data, db)
+		hasil = seller_etalase_services.HapusEtalaseSeller(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/etalase/hapus-barang-dari-etalase":
 		var data seller_etalase_services.PayloadHapusBarangDiEtalase
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_etalase_services.HapusBarangDariEtalase(ctx, data, db)
+		hasil = seller_etalase_services.HapusBarangDariEtalase(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/jenis/hapus-data-distributor":
 		var data jenis_seller_services.PayloadHapusDataDistributor
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = jenis_seller_services.HapusDataDistributor(ctx, data, db)
+		hasil = jenis_seller_services.HapusDataDistributor(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/jenis/hapus-data-brand":
 		var data jenis_seller_services.PayloadHapusDataBrand
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = jenis_seller_services.HapusDataBrand(ctx, data, db)
+		hasil = jenis_seller_services.HapusDataBrand(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/transaction/unapprove-order":
 		var data seller_transaksi_services.PayloadUnApproveOrderTransaksi
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_transaksi_services.UnApproveOrderTransaksi(ctx, data, db)
+		hasil = seller_transaksi_services.UnApproveOrderTransaksi(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-profile":
 		var data seller_media_services.PayloadHapusFotoProfilSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusFotoProfilSeller(ctx, data, db, ms)
+		hasil = seller_media_services.HapusFotoProfilSeller(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-banner":
 		var data seller_media_services.PayloadHapusFotoBannerSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusFotoBannerSeller(ctx, data, db, ms)
+		hasil = seller_media_services.HapusFotoBannerSeller(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-toko-fisik":
 		var data seller_media_services.PayloadHapusFotoTokoFisikSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusFotoTokoFisikSeller(ctx, data, db, ms)
+		hasil = seller_media_services.HapusFotoTokoFisikSeller(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-etalase":
 		var data seller_media_services.PayloadHapusFotoEtalase
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusFotoEtalaseSeller(ctx, data, db, ms)
+		hasil = seller_media_services.HapusFotoEtalaseSeller(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-barang-induk":
 		var data seller_media_services.PayloadHapusBarangIndukFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaBarangIndukFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaBarangIndukFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-video-barang-induk":
 		var data seller_media_services.PayloadHapusVideoBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusBarangIndukVideo(ctx, data, db, ms)
+		hasil = seller_media_services.HapusBarangIndukVideo(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-kategori-barang":
 		var data seller_media_services.PayloadHapusKategoriBarangFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusKategoriBarangFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusKategoriBarangFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-dokumen-distributor-data":
 		var data seller_media_services.PayloadHapusMediaDistributorDataDokumen
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaDistributorDataDokumen(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaDistributorDataDokumen(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-distributor-data-npwp":
 		var data seller_media_services.PayloadHapusMediaDistributorDataNPWPFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaDistributorDataNPWPFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaDistributorDataNPWPFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-distributor-data-nib":
 		var data seller_media_services.PayloadHapusDistributorDataNIBFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusDistributorDataNIBFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusDistributorDataNIBFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-dokumen-distributor-data-surat-kerjasama":
 		var data seller_media_services.PayloadHapusDistributorDataSuratKerjasamaDokumen
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusDistributorDataSuratKerjasamaDataDokumen(ctx, data, db, ms)
+		hasil = seller_media_services.HapusDistributorDataSuratKerjasamaDataDokumen(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-dokumen-brand-data-perwakilan":
 		var data seller_media_services.PayloadHapusBrandDataPerwakilanDokumen
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaBrandDataPerwakilanDokumen(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaBrandDataPerwakilanDokumen(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-brand-data-sertifikat":
 		var data seller_media_services.PayloadHapusBrandDataSertifikatFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaBrandDataSertifikatFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaBrandDataSertifikatFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-brand-data-nib":
 		var data seller_media_services.PayloadHapusMediaBrandDataNIBFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaBrandDataNIBFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaBrandDataNIBFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-brand-data-npwp":
 		var data seller_media_services.PayloadHapusMediaBrandDataNPWPFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaBrandNPWPFoto(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaBrandNPWPFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus-foto-brand-data-logo":
 		var data seller_media_services.PayloadHapusMediaBrandDataLogoFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusMediaBrandDataLogo(ctx, data, db, ms)
+		hasil = seller_media_services.HapusMediaBrandDataLogo(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/seller/media/hapus/-dokumen-brand-data-surat-kerjasama":
 		var data seller_media_services.PayloadHapusBrandDataSuratKerjasamaDokumen
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_media_services.HapusBrandDataSuratKerjasamaDokumen(ctx, data, db, ms)
+		hasil = seller_media_services.HapusBrandDataSuratKerjasamaDokumen(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

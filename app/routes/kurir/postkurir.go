@@ -25,7 +25,7 @@ func PostKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_informasi_services.AjukanInformasiKendaraan(ctx, data, db)
+		hasil = kurir_informasi_services.AjukanInformasiKendaraan(ctx, data, db, rds_session, mb_cud_publisher)
 
 	case "/kurir/informasi/ajukan-informasi-kurir":
 		var data kurir_informasi_services.PayloadInformasiDataKurir
@@ -33,7 +33,7 @@ func PostKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_informasi_services.AjukanInformasiKurir(ctx, data, db)
+		hasil = kurir_informasi_services.AjukanInformasiKurir(ctx, data, db, rds_session, mb_cud_publisher)
 
 	case "/kurir/alamat/masukan-alamat":
 		var data kurir_alamat_services.PayloadMasukanAlamatKurir
@@ -41,14 +41,14 @@ func PostKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrite
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_alamat_services.MasukanAlamatKurir(ctx, data, db)
+		hasil = kurir_alamat_services.MasukanAlamatKurir(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/kurir/rekening/masukan-rekening":
 		var data kurir_rekening_services.PayloadMasukanRekeningKurir
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_rekening_services.MasukanRekeningKurir(ctx, data, db)
+		hasil = kurir_rekening_services.MasukanRekeningKurir(ctx, data, db, rds_session, mb_cud_publisher)
 
 	}
 	w.Header().Set("Content-Type", "application/json")

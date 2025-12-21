@@ -58,7 +58,7 @@ func PostUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.MembuatSecretPinPengguna(ctx, data, db)
+		hasil = pengguna_credential_services.MembuatSecretPinPengguna(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/membuat-alamat":
 		var data pengguna_alamat_services.PayloadMasukanAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -72,21 +72,21 @@ func PostUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.CheckoutBarangUser(ctx, data, db)
+		hasil = pengguna_transaction_services.CheckoutBarangUser(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/social-media/follow-seller":
 		var data pengguna_social_media_service.PayloadFollowOrUnfollowSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_social_media_service.FollowSeller(ctx, data, db)
+		hasil = pengguna_social_media_service.FollowSeller(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/wishlist/tambah-barang":
 		var data pengguna_wishlist_services.PayloadTambahBarangKeWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_wishlist_services.TambahBarangKeWishlist(ctx, data, db)
+		hasil = pengguna_wishlist_services.TambahBarangKeWishlist(ctx, data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

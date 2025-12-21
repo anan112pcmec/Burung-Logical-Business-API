@@ -26,21 +26,21 @@ func PutUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter,
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.UbahFotoProfilPengguna(ctx, data, db, ms)
+		hasil = pengguna_media_services.UbahFotoProfilPengguna(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/user/media/tambah-foto-review-barang":
 		var data pengguna_media_services.PayloadTambahMediaReviewFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.TambahMediaReviewFoto(ctx, data, db, ms)
+		hasil = pengguna_media_services.TambahMediaReviewFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	case "/user/media/tambah-video-review-barang":
 		var data pengguna_media_services.PayloadTambahMediaReviewVideo
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.TambahMediaReviewVideo(ctx, data, db, ms)
+		hasil = pengguna_media_services.TambahMediaReviewVideo(ctx, data, db, ms, rds_session, mb_cud_publisher)
 
 	}
 

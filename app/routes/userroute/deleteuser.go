@@ -73,21 +73,21 @@ func DeleteUserHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrit
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_social_media_service.UnfollowSeller(ctx, data, db)
+		hasil = pengguna_social_media_service.UnfollowSeller(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/wishlist/hapus-barang":
 		var data pengguna_wishlist_services.PayloadHapusBarangDariWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_wishlist_services.HapusBarangDariWishlist(ctx, data, db)
+		hasil = pengguna_wishlist_services.HapusBarangDariWishlist(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/media/hapus-foto-profile":
 		var data pengguna_media_services.PayloadHapusFotoProfilPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.HapusFotoProfilPengguna(ctx, data, db, ms)
+		hasil = pengguna_media_services.HapusFotoProfilPengguna(ctx, data, db, ms, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,
