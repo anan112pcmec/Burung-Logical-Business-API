@@ -40,6 +40,7 @@ func SendMail(to []string, cc []string, subject, message string) error {
 
 	fmt.Println("[SendMail] SMTP server:", smtpAddr)
 	fmt.Println("[SendMail] Auth configured")
+	fmt.Println("ini emailnya", authEmail, authPassword, smtpHost, smtpPort)
 
 	recipients := append(to, cc...)
 	fmt.Println("[SendMail] Recipients:", recipients)
