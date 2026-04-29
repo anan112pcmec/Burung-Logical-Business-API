@@ -19,7 +19,6 @@ import (
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	response_social_media_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/social_media_services/response_social_media_services"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,9 +34,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-				Message: "Kredensial pengguna tidak valid.",
-			},
+			Message:  "Kredensial pengguna tidak valid.",
 		}
 	}
 
@@ -63,9 +60,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
-				Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-					Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-				},
+				Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 			}
 		}
 
@@ -92,9 +87,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
-					Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-						Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-					},
+					Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 				}
 			}
 		}
@@ -109,9 +102,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
-					Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-						Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-					},
+					Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 				}
 			}
 		}
@@ -126,9 +117,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
-					Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-						Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-					},
+					Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 				}
 			}
 		}
@@ -143,9 +132,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
-					Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-						Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-					},
+					Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 				}
 			}
 		}
@@ -174,9 +161,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_social_media_pengguna.ResponseEngageSocialMedia{
-			Message: "Data social media berhasil diperbarui.",
-		},
+		Message:  "Data social media berhasil diperbarui.",
 	}
 }
 
@@ -193,9 +178,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseEngageHapusSocialMedia{
-				Message: "Gagal, kredensial pengguna tidak valid.",
-			},
+			Message:  "Gagal, kredensial pengguna tidak valid.",
 		}
 	}
 
@@ -214,9 +197,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseEngageHapusSocialMedia{
-				Message: "Jenis social media tidak dikenal.",
-			},
+			Message:  "Jenis social media tidak dikenal.",
 		}
 	}
 
@@ -227,9 +208,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseEngageHapusSocialMedia{
-				Message: "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
-			},
+			Message:  "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
 		}
 	}
 
@@ -256,9 +235,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_social_media_pengguna.ResponseEngageHapusSocialMedia{
-			Message: "Data social media berhasil dihapus.",
-		},
+		Message:  "Data social media berhasil dihapus.",
 	}
 }
 
@@ -275,9 +252,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseFollowSeller{
-				Message: "Gagal, kredensial user tidak valid.",
-			},
+			Message:  "Gagal, kredensial user tidak valid.",
 		}
 	}
 
@@ -289,9 +264,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseFollowSeller{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -304,9 +277,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
-				Payload: response_social_media_pengguna.ResponseFollowSeller{
-					Message: "Gagal follow, silakan coba lagi lain waktu.",
-				},
+				Message:  "Gagal follow, silakan coba lagi lain waktu.",
 			}
 		}
 
@@ -342,18 +313,14 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseFollowSeller{
-				Message: "Gagal, kamu sudah follow seller tersebut.",
-			},
+			Message:  "Gagal, kamu sudah follow seller tersebut.",
 		}
 	}
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_social_media_pengguna.ResponseFollowSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -370,9 +337,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseUnfollowSeller{
-				Message: "Gagal, kredensial user tidak valid.",
-			},
+			Message:  "Gagal, kredensial user tidak valid.",
 		}
 	}
 
@@ -384,9 +349,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseUnfollowSeller{
-				Message: "Gagal,server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal,server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -394,9 +357,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseUnfollowSeller{
-				Message: "Gagal data tidak ditemukan",
-			},
+			Message:  "Gagal data tidak ditemukan",
 		}
 	}
 
@@ -406,9 +367,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_social_media_pengguna.ResponseUnfollowSeller{
-				Message: "Gagal unfollow seller, coba lagi lain waktu.",
-			},
+			Message:  "Gagal unfollow seller, coba lagi lain waktu.",
 		}
 	}
 
@@ -443,8 +402,6 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_social_media_pengguna.ResponseUnfollowSeller{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }

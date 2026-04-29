@@ -46,16 +46,15 @@ func (c *CreateQueue) ProvisioningQueues(ch *amqp091.Channel) error {
 		}
 	}
 
-	// Bind queue to exchange
 	if err := ch.QueueBind(
 		c.QueueName,
 		c.BindingName(),
 		c.ExchangeName,
-		false, // no-wait = false
+		false,
 		nil,
 	); err != nil {
 		if amqpErr, ok := err.(*amqp091.Error); ok {
-			if amqpErr.Code == 406 { // precondition_failed
+			if amqpErr.Code == 406 {
 				log.Printf("⚠️ Queue %s sudah bound ke exchange %s", c.QueueName, c.ExchangeName)
 			} else {
 				return fmt.Errorf("bind queue %s failed: %w", c.QueueName, err)

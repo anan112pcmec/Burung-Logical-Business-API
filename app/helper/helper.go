@@ -277,8 +277,6 @@ func SanitasiKoordinat(Latitude *float64, Longitude *float64) {
 	if long < -180 {
 		long = -180
 	}
-
-	// 🚀 TULIS BALIK HASILNYA
 	*Latitude = lat
 	*Longitude = long
 }

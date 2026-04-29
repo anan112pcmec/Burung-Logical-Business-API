@@ -18,6 +18,11 @@ func (p *PublishPayloadProto) SetProtocol(protocol string) *PublishPayloadProto 
 	return p
 }
 
+func (p *PublishPayloadProto) SetRole(role string) *PublishPayloadProto {
+	p.Role = role
+	return p
+}
+
 func (p *PublishPayloadProto) SetPayload(payload []byte) *PublishPayloadProto {
 	p.Payload = payload
 	return p
@@ -40,6 +45,11 @@ func (j *PublishPayloadJson) SetTableName(table string) *PublishPayloadJson {
 
 func (j *PublishPayloadJson) SetProtocol(protocol string) *PublishPayloadJson {
 	j.Protocol = protocol
+	return j
+}
+
+func (j *PublishPayloadJson) SetRole(role string) *PublishPayloadJson {
+	j.Role = role
 	return j
 }
 

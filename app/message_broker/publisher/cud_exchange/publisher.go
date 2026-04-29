@@ -36,6 +36,7 @@ func CreatePublish[
 		headers = amqp091.Table{
 			"table_name": v.TableName,
 			"protocol":   v.Protocol,
+			"role":       v.Role,
 		}
 
 	case *mb_serializer.PublishPayloadProto:
@@ -44,13 +45,13 @@ func CreatePublish[
 		headers = amqp091.Table{
 			"table_name": v.TableName,
 			"protocol":   v.Protocol,
+			"role":       v.Role,
 		}
 
 	default:
 		return fmt.Errorf("unsupported payload type")
 	}
 
-	// 🔒 Lock channel supaya thread-safe
 	Publish.Mu.Lock()
 	defer Publish.Mu.Unlock()
 
@@ -94,6 +95,7 @@ func UpdatePublish[
 		headers = amqp091.Table{
 			"table_name": v.TableName,
 			"protocol":   v.Protocol,
+			"role":       v.Role,
 		}
 
 	case *mb_serializer.PublishPayloadProto:
@@ -102,6 +104,7 @@ func UpdatePublish[
 		headers = amqp091.Table{
 			"table_name": v.TableName,
 			"protocol":   v.Protocol,
+			"role":       v.Role,
 		}
 
 	default:
@@ -152,6 +155,7 @@ func DeletePublish[
 		headers = amqp091.Table{
 			"table_name": v.TableName,
 			"protocol":   v.Protocol,
+			"role":       v.Role,
 		}
 
 	case *mb_serializer.PublishPayloadProto:
@@ -160,6 +164,7 @@ func DeletePublish[
 		headers = amqp091.Table{
 			"table_name": v.TableName,
 			"protocol":   v.Protocol,
+			"role":       v.Role,
 		}
 
 	default:

@@ -213,3 +213,9 @@ func (p *PembayaranThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, 
 		updates,
 	).Error
 }
+
+type TransaksiFailedThreshold struct {
+	ID                int64                  `gorm:"primaryKey;autoIncrement" json:"id_transaksi_failed_threshold"`
+	IdTransaksiFailed int64                  `gorm:"column:id_transaksi_failed;index;not null" json:"id_transaksi_failed"`
+	TransaksiFailed   models.TransaksiFailed `gorm:"foreignKey:IdTransaksiFailed;references:ID" json:"-"`
+}

@@ -17,8 +17,10 @@ import (
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +138,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 			fmt.Println("Gagal membuat threshold alamat pengguna")
 		}
 
-		publishNewAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(Ap).SetTableName(Ap.TableName())
+		publishNewAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(Ap).SetTableName(Ap.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, publishNewAlamat); err != nil {
 			fmt.Println("gagal publish create alamat ke message broker")
 		}
@@ -257,7 +259,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 			return
 		}
 
-		publishUpdateAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(ap).SetTableName(ap.TableName())
+		publishUpdateAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(ap).SetTableName(ap.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, publishUpdateAlamat); err != nil {
 			fmt.Println("gagal publish update alamat ke message broker")
 			return
@@ -362,7 +364,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 			fmt.Println("gagal menghapus threshold alamat")
 		}
 
-		publishDeleteAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(Ap).SetTableName(Ap.TableName())
+		publishDeleteAlamat := mb_cud_serializer.NewJsonPayload().SetPayload(Ap).SetTableName(Ap.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, publishDeleteAlamat); err != nil {
 			fmt.Println("gagal publish hapus alamat ke message broker")
 		}
