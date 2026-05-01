@@ -16,6 +16,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
@@ -206,7 +207,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 			fmt.Println("Gagal update data cache session")
 		}
 
-		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName("ValidateUbahPasswordPenggunaViaOtp").SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update pengguna password via otp ke message broker")
 		}
@@ -285,7 +286,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 			fmt.Println("Gagal update data cache session")
 		}
 
-		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName("ValidateUbahPasswordPenggunaViaPin").SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update pengguna password via pin ke message broker")
 		}
@@ -360,7 +361,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 			fmt.Println("Gagal update data cache session")
 		}
 
-		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName("MembuatSecretPinPengguna").SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update pengguna membuat pin ke message broker")
 		}
@@ -435,7 +436,7 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 			fmt.Println("Gagal update data cache session")
 		}
 
-		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName(dataPengguna.TableName())
+		penggunaUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengguna).SetTableName("UpdateSecretPinPengguna").SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, penggunaUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update pengguna pin ke message broker")
 		}

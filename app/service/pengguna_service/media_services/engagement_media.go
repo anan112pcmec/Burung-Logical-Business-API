@@ -20,6 +20,7 @@ import (
 	stsk_review "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/review"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -101,7 +102,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 				fmt.Println("Gagal incr count foto profil pengguna ke threshold pengguna")
 			}
 
-			createPhotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppf).SetTableName(Mppf.TableName())
+			createPhotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppf).SetTableName(Mppf.TableName()).SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createPhotoPublish); err != nil {
 				fmt.Println("Gagal publish create photo profil pengguna ke message broker")
 			}
@@ -158,7 +159,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 				return
 			}
 
-			updatePhotoProfilPenggunaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPhotoProfil).SetTableName(dataPhotoProfil.TableName())
+			updatePhotoProfilPenggunaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPhotoProfil).SetTableName(dataPhotoProfil.TableName()).SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatePhotoProfilPenggunaPublish); err != nil {
 				fmt.Println("Gagal publish update photo profil pengguna ke message broker")
 			}
@@ -224,7 +225,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 			fmt.Println("Gagal decrement count photo profil pengguna ke pengguna threshold")
 		}
 
-		deletePhotoProfilPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppf).SetTableName(Mppf.TableName())
+		deletePhotoProfilPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppf).SetTableName(Mppf.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deletePhotoProfilPublish); err != nil {
 			fmt.Println("Gagal publish delete foto profil pengguna ke message broker")
 		}
@@ -355,7 +356,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 				kontekss, cancell := context.WithTimeout(ctx_tt, time.Second*5)
 				defer cancell()
 
-				createReviewFotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Photo).SetTableName(Photo.TableName())
+				createReviewFotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Photo).SetTableName(Photo.TableName()).SetRole(mb_cud_seeders.Pengguna)
 				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](kontekss, publisherr, createReviewFotoPublish); err != nil {
 					fmt.Println("Gagal publish create photo ke message broker")
 				}
@@ -459,7 +460,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 			fmt.Println("Gagal increment review video counter ke threshold review")
 		}
 
-		createVideoReviewPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Vr).SetTableName(Vr.TableName())
+		createVideoReviewPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Vr).SetTableName(Vr.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createVideoReviewPublish); err != nil {
 			fmt.Println("Gagal publish create video review ke message broker")
 		}
