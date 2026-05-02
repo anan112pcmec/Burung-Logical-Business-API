@@ -15,6 +15,7 @@ import (
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -84,7 +85,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 			fmt.Println("Gagal increment wishlist counter ke barang induk threshold")
 		}
 
-		createWishlistPublish := mb_cud_serializer.NewJsonPayload().SetPayload(W).SetTableName(W.TableName())
+		createWishlistPublish := mb_cud_serializer.NewJsonPayload().SetPayload(W).SetTableName(W.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createWishlistPublish); err != nil {
 			fmt.Println("Gagal publish create wishlist ke message broker")
 		}
@@ -159,7 +160,7 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 			fmt.Println("Gagal decrement wishlist counter ke barang induk threshold")
 		}
 
-		createWishlistPublish := mb_cud_serializer.NewJsonPayload().SetPayload(W).SetTableName(W.TableName())
+		createWishlistPublish := mb_cud_serializer.NewJsonPayload().SetPayload(W).SetTableName(W.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createWishlistPublish); err != nil {
 			fmt.Println("Gagal publish delete wishlist ke message broker")
 		}

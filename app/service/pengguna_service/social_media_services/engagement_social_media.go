@@ -17,6 +17,7 @@ import (
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -69,7 +70,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
 			defer cancel()
 
-			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName())
+			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName()).SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTautkanSocialMediaPublish); err != nil {
 				fmt.Println("Gagal publish penautan social media baru ke message broker")
 			}
@@ -150,7 +151,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 				return
 			}
 
-			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName())
+			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName("EngageTautkanSocialMediaPengguna").SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTautkanSocialMediaPublish); err != nil {
 				fmt.Println("Gagal publish update penautan social media ke message broker")
 			}
@@ -225,7 +226,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 			return
 		}
 
-		newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName())
+		newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName("EngageHapusSocialMedia").SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTautkanSocialMediaPublish); err != nil {
 			fmt.Println("Gagal publish update penautan social media ke message broker")
 		}
@@ -302,7 +303,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 				fmt.Println("Gagal Incr count follower ke threshold Seller")
 			}
 
-			newFollowPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Nf).SetTableName(Nf.TableName())
+			newFollowPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Nf).SetTableName(Nf.TableName()).SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newFollowPublish); err != nil {
 				fmt.Println("Gagal publish new follow ke message broker")
 			}
@@ -392,7 +393,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 			fmt.Println("Gagal decr count follower ke threshold Seller")
 		}
 
-		newFollowPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Nf).SetTableName(Nf.TableName())
+		newFollowPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Nf).SetTableName(Nf.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newFollowPublish); err != nil {
 			fmt.Println("Gagal publish delete follow ke message broker")
 		}

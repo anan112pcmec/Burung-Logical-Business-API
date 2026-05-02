@@ -14,6 +14,7 @@ import (
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	particular_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/particular_profiling"
@@ -85,7 +86,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 			return
 		}
 
-		updatedPenggunaDataPublish := mb_cud_serializer.NewJsonPayload().SetPayload(uptodatePenggunaData).SetTableName(uptodatePenggunaData.TableName())
+		updatedPenggunaDataPublish := mb_cud_serializer.NewJsonPayload().SetPayload(uptodatePenggunaData).SetTableName(uptodatePenggunaData.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedPenggunaDataPublish); err != nil {
 			fmt.Println("Gagal publish update data pengguna ke message broker")
 		}
