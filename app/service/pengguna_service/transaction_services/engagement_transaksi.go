@@ -38,6 +38,7 @@ import (
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
@@ -273,7 +274,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *con
 					fmt.Println("Gagal decr count keranjang ke kategori barang threshold")
 				}
 
-				deleteKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(datakeranjang).SetTableName(datakeranjang.TableName())
+				deleteKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(datakeranjang).SetTableName(datakeranjang.TableName()).SetRole(mb_cud_seeders.Pengguna)
 				if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, p, deleteKeranjangPublish); err != nil {
 					fmt.Println("Gagal publish delete keranjang ke message broker")
 				}
@@ -1291,7 +1292,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *config.InternalDBReadWrite
 				fmt.Println("Gagal incr count transaksi ke pembayaran threshold")
 			}
 
-			newTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(t).SetTableName(t.TableName())
+			newTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(t).SetTableName("LockTransaksiVa").SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTransaksiPublish); err != nil {
 				fmt.Println("Gagal publish transaksi baru ke message broker")
 			}
@@ -1648,7 +1649,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *config.InternalDBR
 				fmt.Println("Gagal incr count transaksi ke pembayaran threshold")
 			}
 
-			newTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(t).SetTableName(t.TableName())
+			newTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(t).SetTableName("LockTransaksiWallet").SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTransaksiPublish); err != nil {
 				fmt.Println("Gagal publish transaksi baru ke message broker")
 			}
@@ -1925,7 +1926,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *config.InternalDBRea
 				fmt.Println("Gagal incr count transaksi ke pembayaran threshold")
 			}
 
-			newTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(t).SetTableName(t.TableName())
+			newTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(t).SetTableName("LockTransaksiGerai").SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newTransaksiPublish); err != nil {
 				fmt.Println("Gagal publish transaksi baru ke message broker")
 			}
