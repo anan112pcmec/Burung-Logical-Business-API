@@ -18,6 +18,7 @@ import (
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -123,7 +124,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 			fmt.Println("gagal membuat alamat gudang threshold")
 		}
 
-		createnewAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(A).SetTableName(A.TableName())
+		createnewAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(A).SetTableName(A.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createnewAlamatGudangPublish); err != nil {
 			fmt.Print("Gagal publish create alamat gudang new ke message broker")
 		}
@@ -250,7 +251,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 			fmt.Println("Gagal mendapatkan data alamat gudang terbaru")
 		}
 
-		updatedAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedAlamatGudang).SetTableName(dataUpdatedAlamatGudang.TableName())
+		updatedAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedAlamatGudang).SetTableName(dataUpdatedAlamatGudang.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedAlamatGudangPublish); err != nil {
 			fmt.Println("Gagal publish updated alamat gudang ke message broker")
 		}
@@ -377,7 +378,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *c
 			fmt.Printf("Gagal hapus threshold alamat gudang ber id: %v", A.ID)
 		}
 
-		deleteAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(A).SetTableName(A.TableName())
+		deleteAlamatGudangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(A).SetTableName(A.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteAlamatGudangPublish); err != nil {
 			fmt.Println("Gagal publish delete alamat gudang ke message broker")
 		}
