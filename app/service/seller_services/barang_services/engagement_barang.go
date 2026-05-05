@@ -20,6 +20,7 @@ import (
 	stsk_komentar "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/komentar"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -200,7 +201,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 			fmt.Println("Gagal mendapatkan data barang induk")
 		}
 
-		createNewBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBarangIndukNew).SetTableName(dataBarangIndukNew.TableName())
+		createNewBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBarangIndukNew).SetTableName(dataBarangIndukNew.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createNewBarangIndukPublish); err != nil {
 			fmt.Println("Gagal publish create new barang induk ke message broker")
 		}
@@ -214,7 +215,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 				fmt.Println("Gagal membuat threshold untuk kategori ber Id: ", k.ID, " Dan Bernama: ", k.Nama)
 			}
 
-			createNewKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName())
+			createNewKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createNewKategoriBarangPublish); err != nil {
 				fmt.Println("Gagal publish create new kategori ke message broker")
 			}
@@ -292,7 +293,7 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 			return
 		}
 
-		updatedBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(updatedBarangInduk).SetTableName(updatedBarangInduk.TableName())
+		updatedBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(updatedBarangInduk).SetTableName(updatedBarangInduk.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedBarangIndukPublish); err != nil {
 			fmt.Println("Gagal publish update barang induk ke message broker")
 		}
@@ -416,7 +417,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 			fmt.Println("Gagal menghapus barang_induk threshold")
 		}
 
-		deleteBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(DBI).SetTableName(DBI.TableName())
+		deleteBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(DBI).SetTableName(DBI.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteBarangIndukPublish); err != nil {
 			fmt.Printf("Gagal publish delete barang induk ber id: %v, bernama %s ke message broker", DBI.ID, DBI.NamaBarang)
 		}
@@ -428,7 +429,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 				fmt.Printf("Gagal menghapus data kategori barang ber id %v dan bernama %s", dbkategori.ID, dbkategori.Nama)
 			}
 
-			deleteKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dbkategori).SetTableName(dbkategori.TableName())
+			deleteKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dbkategori).SetTableName(dbkategori.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKategoriBarangPublish); err != nil {
 				fmt.Printf("Gagal publish delete kategori barang ber id %v dan bernama %s ke message broker", dbkategori.ID, dbkategori.Nama)
 			}
@@ -620,7 +621,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 				fmt.Printf("Gagal membuat threshold kategori barang ber id %v, bernama %s", kategoribarangdata.ID, kategoribarangdata.Nama)
 			}
 
-			newKategoriBarangCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(kategoribarangdata).SetTableName(kategoribarangdata.TableName())
+			newKategoriBarangCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(kategoribarangdata).SetTableName(kategoribarangdata.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKategoriBarangCreatePublish); err != nil {
 				fmt.Printf("Gagal mempublish create kategori barang ber id %v dan bernama %s ke message broker", kategoribarangdata.ID, kategoribarangdata.Nama)
 			}
@@ -716,7 +717,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
-		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName())
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
 			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
 		}
@@ -817,10 +818,10 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 		if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: Kb.ID,
 		}).Delete(&sot_threshold.KategoriBarangThreshold{}).Error; err != nil {
-			fmt.Println("Gagal menghapus threshold kategori barang ber ID:%v", Kb.ID)
+			fmt.Printf("Gagal menghapus threshold kategori barang ber ID:%v", Kb.ID)
 		}
 
-		kategoriBarangDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kb).SetTableName(Kb.TableName())
+		kategoriBarangDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kb).SetTableName(Kb.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangDeletePublish); err != nil {
 			fmt.Printf("Gagal publish hapus kategori barang ke message broker")
 		}
@@ -995,7 +996,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 			return
 		}
 
-		updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangupdated).SetTableName(dataKategoriBarangupdated.TableName())
+		updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangupdated).SetTableName(dataKategoriBarangupdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 			fmt.Println("Gagal publish updated kategori barang stok ke message broker")
 		}
@@ -1082,7 +1083,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 		}
 
 		for _, dk := range updatesDownKategori {
-			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName())
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 				fmt.Println("Gagal publish updated kategori barang stok ke message broker")
 			}
@@ -1160,7 +1161,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
-		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName())
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
 			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
 		}
@@ -1255,7 +1256,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		}
 
 		for _, dk := range updatesDownKategori {
-			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName())
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 				fmt.Println("Gagal publish updated kategori barang rekening ke message broker")
 			}
@@ -1356,7 +1357,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		}
 
 		for _, dk := range updatesDownKategori {
-			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName())
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 				fmt.Println("Gagal publish updated kategori barang alamat gudang ke message broker")
 			}
@@ -1450,7 +1451,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
-		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName())
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
 			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
 		}
@@ -1517,7 +1518,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 			fmt.Println("Gagal increment total komentar barang induk ke threshold barang induk")
 		}
 
-		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
 			fmt.Println("Gagal publish komentar baru barang induk ke message broker")
 		}
@@ -1580,7 +1581,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
 		defer cancel()
 
-		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName())
+		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newUpdateKomentarPublish); err != nil {
 			fmt.Println("Gagal publish update komentar barang ke message broker")
 		}
@@ -1651,7 +1652,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 			fmt.Println("Gagal decr komentar barang induk ke threshold barang induk")
 		}
 
-		newDeleteKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName())
+		newDeleteKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newDeleteKomentarPublish); err != nil {
 			fmt.Println("Gagal publish delete komentar ke message broker")
 		}
@@ -1712,7 +1713,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 			fmt.Println("Gagal increment total komentar child induk ke threshold komentar")
 		}
 
-		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
 			fmt.Println("Gagal publish komentar reply ke message broker")
 		}
@@ -1775,7 +1776,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 			fmt.Println("Gagal increment total komentar child induk ke threshold komentar")
 		}
 
-		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		newKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKomentarPublish); err != nil {
 			fmt.Println("Gagal publish komentar reply ke message broker")
 		}
@@ -1836,7 +1837,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 			return
 		}
 
-		updateKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKomentarChild).SetTableName(dataKomentarChild.TableName())
+		updateKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKomentarChild).SetTableName(dataKomentarChild.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateKomentarChildPublish); err != nil {
 			fmt.Println("Gagal publish update child komentar ke message broker")
 		}
@@ -1898,7 +1899,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 			fmt.Println("Gagal decrement komentar child ke threshold komentar")
 		}
 
-		deleteKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName())
+		deleteKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKomentarChildPublish); err != nil {
 			fmt.Println("Gagal publish delete komentar child ke message broker")
 		}
