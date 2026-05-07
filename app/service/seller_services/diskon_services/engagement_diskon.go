@@ -18,10 +18,10 @@ import (
 	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services/response_diskon_services_seller"
-
 )
 
 func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -137,7 +137,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 			fmt.Println("Gagal membuat threshold diskon produk")
 		}
 
-		diskonProdukCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dp).SetTableName(Dp.TableName())
+		diskonProdukCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dp).SetTableName(Dp.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, diskonProdukCreatePublish); err != nil {
 			fmt.Println("Gagal publish create diskon produk ke message broker")
 		}
@@ -222,7 +222,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *con
 			return
 		}
 
-		diskonProdukUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedDiskonProduk).SetTableName(dataUpdatedDiskonProduk.TableName())
+		diskonProdukUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedDiskonProduk).SetTableName(dataUpdatedDiskonProduk.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, diskonProdukUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated diskon produk ke message broker")
 		}
@@ -316,7 +316,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *c
 			fmt.Println("Gagal hapus threshold diskon produk ")
 		}
 
-		diskonProdukDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dp).SetTableName(Dp.TableName())
+		diskonProdukDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dp).SetTableName(Dp.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, diskonProdukDeletePublish); err != nil {
 			fmt.Println("Gagal mempublish delete diskon produk ke message broker")
 		}
@@ -450,7 +450,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 			fmt.Println("Gagal incr count barang di diskon ke threshold diskon produk")
 		}
 
-		barangDiDiskonCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bdd).SetTableName(Bdd.TableName())
+		barangDiDiskonCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bdd).SetTableName(Bdd.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangDiDiskonCreatePublish); err != nil {
 			fmt.Println("Gagal publish create barang di diskon ke message broker")
 		}
@@ -552,7 +552,7 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 			fmt.Println("Gagal decr count barang di diskon ke threshold diskon produk")
 		}
 
-		barangDiDiskonDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bdd).SetTableName(Bdd.TableName())
+		barangDiDiskonDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bdd).SetTableName(Bdd.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangDiDiskonDeletePublish); err != nil {
 			fmt.Println("Gagal publish create barang di diskon ke message broker")
 		}

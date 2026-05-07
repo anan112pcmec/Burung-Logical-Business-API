@@ -16,6 +16,7 @@ import (
 	stsk_etalase "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/etalase"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_etalase_services_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/etalase_services/response_etalase_services"
@@ -96,7 +97,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *c
 			fmt.Println("Gagal membuat threshold etalase")
 		}
 
-		etalaseCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Es).SetTableName(Es.TableName())
+		etalaseCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Es).SetTableName(Es.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseCreatePublish); err != nil {
 			fmt.Println("Gagal publish create etalase ke message broker")
 		}
@@ -176,7 +177,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *config.
 			return
 		}
 
-		etalaseUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedEtalase).SetTableName(dataUpdatedEtalase.TableName())
+		etalaseUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedEtalase).SetTableName(dataUpdatedEtalase.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseUpdatedPublish); err != nil {
 			fmt.Println("Gagal mempublish update etalase ke message broker")
 		}
@@ -268,7 +269,7 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *confi
 			fmt.Println("Gagal menghapus threshold etalase")
 		}
 
-		etalaseDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(De).SetTableName(De.TableName())
+		etalaseDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(De).SetTableName(De.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete etalase ke message broker")
 		}
@@ -356,7 +357,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 			fmt.Println("Gagal incr count barang ke etalase ke threshold etalase")
 		}
 
-		barangKeEtalaseCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bke).SetTableName(Bke.TableName())
+		barangKeEtalaseCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bke).SetTableName(Bke.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangKeEtalaseCreatePublish); err != nil {
 			fmt.Println("Gagal publish create barang ke etalase ke message broker")
 		}

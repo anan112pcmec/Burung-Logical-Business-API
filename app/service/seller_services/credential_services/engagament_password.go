@@ -16,6 +16,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
@@ -167,7 +168,7 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *c
 			fmt.Println("Gagal update data cache session")
 		}
 
-		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataSellerUpdated).SetTableName(dataSellerUpdated.TableName())
+		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataSellerUpdated).SetTableName("ValidateUbahPasswordSeller").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, sellerUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update seller ke message broker")
 		}

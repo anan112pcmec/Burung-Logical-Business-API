@@ -14,6 +14,7 @@ import (
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/jenis_seller_services/response_jenis_seller"
@@ -96,7 +97,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 			fmt.Println("Gagal membuat distributor data threshold")
 		}
 
-		distributorDataCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ddata).SetTableName(Ddata.TableName())
+		distributorDataCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ddata).SetTableName(Ddata.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataCreatePublish); err != nil {
 			fmt.Println("Gagal publish create distributor data ke message broker")
 		}
@@ -181,7 +182,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 			return
 		}
 
-		distributorDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(distributorDataUpdated).SetTableName(distributorDataUpdated.TableName())
+		distributorDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(distributorDataUpdated).SetTableName(distributorDataUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated distributor data ke message broker")
 		}
@@ -265,7 +266,7 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 			fmt.Println("Gagal menghapus threshold data distributor")
 		}
 
-		distributorDataCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ddata).SetTableName(Ddata.TableName())
+		distributorDataCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ddata).SetTableName(Ddata.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataCreatePublish); err != nil {
 			fmt.Println("Gagal publish delete distributor data ke message broker")
 		}
@@ -362,7 +363,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *con
 			fmt.Println("Gagal membuat threshold brand data ")
 		}
 
-		brandDataCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Db).SetTableName(Db.TableName())
+		brandDataCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Db).SetTableName(Db.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataCreatePublish); err != nil {
 			fmt.Println("Gagal publish create brand data ke message broker")
 		}
@@ -450,7 +451,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *config.In
 			return
 		}
 
-		brandDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(brandDataUpdated).SetTableName(brandDataUpdated.TableName())
+		brandDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(brandDataUpdated).SetTableName(brandDataUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish brand data create ke message broker")
 		}
@@ -534,7 +535,7 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *config.
 			fmt.Println("Gagal delete threshold brand data")
 		}
 
-		brandDataDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Db).SetTableName(Db.TableName())
+		brandDataDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Db).SetTableName(Db.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataDeletePublish); err != nil {
 			fmt.Println("Gagal publish create brand data ke message broker")
 		}

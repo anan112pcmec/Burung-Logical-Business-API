@@ -16,6 +16,7 @@ import (
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -138,7 +139,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 			fmt.Println("Gagal inisialisasi threshold rekening seller")
 		}
 
-		rekeningSellerCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dr).SetTableName(Dr.TableName())
+		rekeningSellerCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dr).SetTableName(Dr.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningSellerCreatePublish); err != nil {
 			fmt.Println("Gagal publish create new rekening kurir ke message broker")
 		}
@@ -222,7 +223,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *con
 			return
 		}
 
-		rekeningSellerUpdate := mb_cud_serializer.NewJsonPayload().SetPayload(updatedRekeningSeller).SetTableName(updatedRekeningSeller.TableName())
+		rekeningSellerUpdate := mb_cud_serializer.NewJsonPayload().SetPayload(updatedRekeningSeller).SetTableName("EditRekeningSeller").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningSellerUpdate); err != nil {
 			fmt.Println("Gagal mempublish update rekening seller ke messag broker")
 		}
@@ -308,7 +309,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 			return
 		}
 
-		rekeningSellerUpdate := mb_cud_serializer.NewJsonPayload().SetPayload(updatedRekeningSeller).SetTableName(updatedRekeningSeller.TableName())
+		rekeningSellerUpdate := mb_cud_serializer.NewJsonPayload().SetPayload(updatedRekeningSeller).SetTableName("SetDefaultRekeningSeller").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningSellerUpdate); err != nil {
 			fmt.Println("Gagal mempublish update set default rekening seller ke messag broker")
 		}
@@ -397,7 +398,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 			fmt.Println("Gagal menghapus threshold rekening seller")
 		}
 
-		rekeningSellerDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dr).SetTableName(Dr.TableName())
+		rekeningSellerDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dr).SetTableName(Dr.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningSellerDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete rekening seller ke message broker")
 		}
