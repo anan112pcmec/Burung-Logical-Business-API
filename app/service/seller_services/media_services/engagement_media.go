@@ -27,8 +27,10 @@ import (
 	stsk_transaksi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+
 )
 
 func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -98,7 +100,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 				fmt.Println("Gagal incr count media seller profil foto ke threshold seller")
 			}
 
-			photoProfilCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Pp).SetTableName(Pp.TableName())
+			photoProfilCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Pp).SetTableName(Pp.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, photoProfilCreatePublish); err != nil {
 				fmt.Println("Gagal publish profil foto create ke message broker")
 			}
@@ -132,7 +134,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 				fmt.Println("Gagal mengambil data photo profil seller")
 			}
 
-			photoProfilUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPhotoProfilUpdated).SetTableName(dataPhotoProfilUpdated.TableName())
+			photoProfilUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPhotoProfilUpdated).SetTableName(dataPhotoProfilUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, photoProfilUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update photo profil seller ke message broker")
 			}
@@ -201,7 +203,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 			fmt.Println("Gagal decr photo profil foto ke treshold selller")
 		}
 
-		profilPhotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmfps).SetTableName(Dmfps.TableName())
+		profilPhotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmfps).SetTableName(Dmfps.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, profilPhotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete profil foto seller ke message broker")
 		}
@@ -286,7 +288,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 				fmt.Println("Gagal incr count media seller banner foto ke threshold seller")
 			}
 
-			bannerFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bf).SetTableName(Bf.TableName())
+			bannerFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bf).SetTableName(Bf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bannerFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish banner foto create ke message broker")
 			}
@@ -316,7 +318,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 				fmt.Println("Gagal mengambil data banner foto seller")
 			}
 
-			bannerFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBannerFotoUpdated).SetTableName(dataBannerFotoUpdated.TableName())
+			bannerFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBannerFotoUpdated).SetTableName(dataBannerFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bannerFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update banner foto seller ke message broker")
 			}
@@ -386,7 +388,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 			fmt.Println("Gagal decr banner foto ke threshold seller")
 		}
 
-		bannerFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbfs).SetTableName(Dmbfs.TableName())
+		bannerFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbfs).SetTableName(Dmbfs.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bannerFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete banner foto seller ke message broker")
 		}
@@ -476,7 +478,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 			}
 
 			for _, foto := range Tffs {
-				tokoFisikFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName())
+				tokoFisikFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
 				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, tokoFisikFotoCreatePublish); err != nil {
 					fmt.Println("Gagal publish toko fisik foto create ke message broker")
 				}
@@ -580,7 +582,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 			}
 
 			for _, foto := range Dtfh {
-				tokoFisikFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName())
+				tokoFisikFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
 				if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, tokoFisikFotoDeletePublish); err != nil {
 					fmt.Println("Gagal publish delete foto toko fisik seller ke message broker")
 				}
@@ -663,7 +665,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
 			defer cancel()
 
-			etalaseFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ef).SetTableName(Ef.TableName())
+			etalaseFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ef).SetTableName(Ef.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish etalase foto create ke message broker")
 			}
@@ -693,7 +695,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 				fmt.Println("Gagal mengambil data etalase foto")
 			}
 
-			etalaseFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataEtalaseFotoUpdated).SetTableName(dataEtalaseFotoUpdated.TableName())
+			etalaseFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataEtalaseFotoUpdated).SetTableName(dataEtalaseFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update etalase foto ke message broker")
 			}
@@ -754,7 +756,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
 		defer cancel()
 
-		etalaseFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmef).SetTableName(Dmef.TableName())
+		etalaseFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmef).SetTableName(Dmef.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete etalase foto ke message broker")
 		}
@@ -886,7 +888,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 		}
 
 		for _, foto := range Mbif {
-			barangIndukFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName())
+			barangIndukFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangIndukFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish barang induk foto create ke message broker")
 			}
@@ -977,7 +979,7 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 		}
 
 		for _, foto := range Dmbifh {
-			barangIndukFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName())
+			barangIndukFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangIndukFotoDeletePublish); err != nil {
 				fmt.Println("Gagal publish delete barang induk foto ke message broker")
 			}
@@ -1073,7 +1075,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 				fmt.Println("gagal publish create video barang induk ke message broker ")
 			}
 
-			barangIndukVideoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Biv).SetTableName(Biv.TableName())
+			barangIndukVideoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Biv).SetTableName(Biv.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangIndukVideoCreatePublish); err != nil {
 				fmt.Println("Gagal publish barang induk video create ke message broker")
 			}
@@ -1103,7 +1105,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 				fmt.Println("Gagal mengambil data barang induk video")
 			}
 
-			barangIndukVideoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBarangIndukVideoUpdated).SetTableName(dataBarangIndukVideoUpdated.TableName())
+			barangIndukVideoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBarangIndukVideoUpdated).SetTableName(dataBarangIndukVideoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangIndukVideoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update barang induk video ke message broker")
 			}
@@ -1172,7 +1174,7 @@ func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangIndu
 			fmt.Println("gagal publish delete video barang induk ke message broker ")
 		}
 
-		barangIndukVideoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbiv).SetTableName(Dmbiv.TableName())
+		barangIndukVideoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbiv).SetTableName(Dmbiv.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, barangIndukVideoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete barang induk video ke message broker")
 		}
@@ -1289,7 +1291,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 				fmt.Println("Gagal incr count media kategori barang foto ke threshold kategori barang")
 			}
 
-			kategoriBarangFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mkbf).SetTableName(Mkbf.TableName())
+			kategoriBarangFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mkbf).SetTableName(Mkbf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish kategori barang foto create ke message broker")
 			}
@@ -1319,7 +1321,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 				fmt.Println("Gagal mengambil data kategori barang foto")
 			}
 
-			kategoriBarangFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangFotoUpdated).SetTableName(dataKategoriBarangFotoUpdated.TableName())
+			kategoriBarangFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangFotoUpdated).SetTableName(dataKategoriBarangFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update kategori barang foto ke message broker")
 			}
@@ -1388,7 +1390,7 @@ func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBaran
 			fmt.Println("Gagal decr media kategori barang foto ke threshold kategori barang")
 		}
 
-		kategoriBarangFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmkbf).SetTableName(Dmkbf.TableName())
+		kategoriBarangFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmkbf).SetTableName(Dmkbf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete kategori barang foto ke message broker")
 		}
@@ -1482,7 +1484,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 				fmt.Println("Gagal incr count media distributor data dokumen ke threshold distributor data")
 			}
 
-			distributorDataDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddd).SetTableName(Mddd.TableName())
+			distributorDataDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddd).SetTableName(Mddd.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataDokumenCreatePublish); err != nil {
 				fmt.Println("Gagal publish distributor data dokumen create ke message broker")
 			}
@@ -1512,7 +1514,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 				fmt.Println("Gagal mengambil data distributor data dokumen")
 			}
 
-			distributorDataDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataDokumenUpdated).SetTableName(dataDistributorDataDokumenUpdated.TableName())
+			distributorDataDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataDokumenUpdated).SetTableName(dataDistributorDataDokumenUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataDokumenUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update distributor data dokumen ke message broker")
 			}
@@ -1609,7 +1611,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 			fmt.Println("Gagal decr media distributor data dokumen ke threshold distributor data")
 		}
 
-		distributorDataDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmddd).SetTableName(Dmddd.TableName())
+		distributorDataDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmddd).SetTableName(Dmddd.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataDokumenDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete distributor data dokumen ke message broker")
 		}
@@ -1696,7 +1698,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 				fmt.Println("Gagal incr count media distributor data npwp foto ke threshold distributor data")
 			}
 
-			distributorDataNPWPFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddnf).SetTableName(Mddnf.TableName())
+			distributorDataNPWPFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddnf).SetTableName(Mddnf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNPWPFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish distributor data npwp foto create ke message broker")
 			}
@@ -1726,7 +1728,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 				fmt.Println("Gagal mengambil data distributor data npwp foto")
 			}
 
-			distributorDataNPWPFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataNPWPFotoUpdated).SetTableName(dataDistributorDataNPWPFotoUpdated.TableName())
+			distributorDataNPWPFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataNPWPFotoUpdated).SetTableName(dataDistributorDataNPWPFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNPWPFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update distributor data npwp foto ke message broker")
 			}
@@ -1823,7 +1825,7 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 			fmt.Println("Gagal decr media distributor data npwp foto ke threshold distributor data")
 		}
 
-		distributorDataNPWPFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmdnf).SetTableName(Dmdnf.TableName())
+		distributorDataNPWPFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmdnf).SetTableName(Dmdnf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNPWPFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete distributor data npwp foto ke message broker")
 		}
@@ -1911,7 +1913,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 				fmt.Println("Gagal incr count media distributor data nib foto ke threshold distributor data")
 			}
 
-			distributorDataNIBFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddnibf).SetTableName(Mddnibf.TableName())
+			distributorDataNIBFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddnibf).SetTableName(Mddnibf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNIBFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish distributor data nib foto create ke message broker")
 			}
@@ -1941,7 +1943,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 				fmt.Println("Gagal mengambil data distributor data nib foto")
 			}
 
-			distributorDataNIBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataNIBFotoUpdated).SetTableName(dataDistributorDataNIBFotoUpdated.TableName())
+			distributorDataNIBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataNIBFotoUpdated).SetTableName(dataDistributorDataNIBFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNIBFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update distributor data nib foto ke message broker")
 			}
@@ -2039,7 +2041,7 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 			fmt.Println("Gagal decr media distributor data nib foto ke threshold distributor data")
 		}
 
-		distributorDataNIBFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmdnibf).SetTableName(Dmdnibf.TableName())
+		distributorDataNIBFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmdnibf).SetTableName(Dmdnibf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNIBFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete distributor data nib foto ke message broker")
 		}
@@ -2126,7 +2128,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 				fmt.Println("Gagal incr count media distributor data surat kerjasama dokumen ke threshold distributor data")
 			}
 
-			distributorDataSuratKerjasamaDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddskd).SetTableName(Mddskd.TableName())
+			distributorDataSuratKerjasamaDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mddskd).SetTableName(Mddskd.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataSuratKerjasamaDokumenCreatePublish); err != nil {
 				fmt.Println("Gagal publish distributor data surat kerjasama dokumen create ke message broker")
 			}
@@ -2156,7 +2158,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 				fmt.Println("Gagal mengambil data distributor data surat kerjasama dokumen")
 			}
 
-			distributorDataSuratKerjasamaDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataSuratKerjasamaDokumenUpdated).SetTableName(dataDistributorDataSuratKerjasamaDokumenUpdated.TableName())
+			distributorDataSuratKerjasamaDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataSuratKerjasamaDokumenUpdated).SetTableName(dataDistributorDataSuratKerjasamaDokumenUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataSuratKerjasamaDokumenUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update distributor data surat kerjasama dokumen ke message broker")
 			}
@@ -2253,7 +2255,7 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 			fmt.Println("Gagal decr media distributor data surat kerjasama dokumen ke threshold distributor data")
 		}
 
-		distributorDataSuratKerjasamaDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmdskd).SetTableName(Dmdskd.TableName())
+		distributorDataSuratKerjasamaDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmdskd).SetTableName(Dmdskd.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataSuratKerjasamaDokumenDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete distributor data surat kerjasama dokumen ke message broker")
 		}
@@ -2349,7 +2351,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 				fmt.Println("Gagal incr count media brand data perwakilan dokumen ke threshold brand data")
 			}
 
-			brandDataPerwakilanDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdpd).SetTableName(Mbdpd.TableName())
+			brandDataPerwakilanDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdpd).SetTableName(Mbdpd.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataPerwakilanDokumenCreatePublish); err != nil {
 				fmt.Println("Gagal publish brand data perwakilan dokumen create ke message broker")
 			}
@@ -2379,7 +2381,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 				fmt.Println("Gagal mengambil data brand data perwakilan dokumen")
 			}
 
-			brandDataPerwakilanDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataPerwakilanDokumenUpdated).SetTableName(dataBrandDataPerwakilanDokumenUpdated.TableName())
+			brandDataPerwakilanDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataPerwakilanDokumenUpdated).SetTableName(dataBrandDataPerwakilanDokumenUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataPerwakilanDokumenUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update brand data perwakilan dokumen ke message broker")
 			}
@@ -2476,7 +2478,7 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 			fmt.Println("Gagal decr media brand data perwakilan dokumen ke threshold brand data")
 		}
 
-		brandDataPerwakilanDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdpd).SetTableName(Dmbdpd.TableName())
+		brandDataPerwakilanDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdpd).SetTableName(Dmbdpd.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataPerwakilanDokumenDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete brand data perwakilan dokumen ke message broker")
 		}
@@ -2572,7 +2574,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 				fmt.Println("Gagal incr count media brand data sertifikat foto ke threshold brand data")
 			}
 
-			brandDataSertifikatFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdsf).SetTableName(Mbdsf.TableName())
+			brandDataSertifikatFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdsf).SetTableName(Mbdsf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataSertifikatFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish brand data sertifikat foto create ke message broker")
 			}
@@ -2602,7 +2604,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 				fmt.Println("Gagal mengambil data brand data sertifikat foto")
 			}
 
-			brandDataSertifikatFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataSertifikatFotoUpdated).SetTableName(dataBrandDataSertifikatFotoUpdated.TableName())
+			brandDataSertifikatFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataSertifikatFotoUpdated).SetTableName(dataBrandDataSertifikatFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataSertifikatFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update brand data sertifikat foto ke message broker")
 			}
@@ -2699,7 +2701,7 @@ func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBra
 			fmt.Println("Gagal decr media brand data sertifikat foto ke threshold brand data")
 		}
 
-		brandDataSertifikatFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdsf).SetTableName(Dmbdsf.TableName())
+		brandDataSertifikatFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdsf).SetTableName(Dmbdsf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataSertifikatFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete brand data sertifikat foto ke message broker")
 		}
@@ -2795,7 +2797,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 				fmt.Println("Gagal incr count media brand data nib foto ke threshold brand data")
 			}
 
-			brandDataNIBFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdnibf).SetTableName(Mbdnibf.TableName())
+			brandDataNIBFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdnibf).SetTableName(Mbdnibf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataNIBFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish brand data nib foto create ke message broker")
 			}
@@ -2825,7 +2827,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 				fmt.Println("Gagal mengambil data brand data nib foto")
 			}
 
-			brandDataNIBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataNIBFotoUpdated).SetTableName(dataBrandDataNIBFotoUpdated.TableName())
+			brandDataNIBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataNIBFotoUpdated).SetTableName(dataBrandDataNIBFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataNIBFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update brand data nib foto ke message broker")
 			}
@@ -2923,7 +2925,7 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 			fmt.Println("Gagal decr media brand data nib foto ke threshold brand data")
 		}
 
-		brandDataNIBFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdnibf).SetTableName(Dmbdnibf.TableName())
+		brandDataNIBFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdnibf).SetTableName(Dmbdnibf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataNIBFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete brand data nib foto ke message broker")
 		}
@@ -3019,7 +3021,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 				fmt.Println("Gagal incr count media brand data npwp foto ke threshold brand data")
 			}
 
-			brandDataNPWPFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdnf).SetTableName(Mbdnf.TableName())
+			brandDataNPWPFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdnf).SetTableName(Mbdnf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataNPWPFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish brand data npwp foto create ke message broker")
 			}
@@ -3049,7 +3051,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 				fmt.Println("Gagal mengambil data brand data npwp foto")
 			}
 
-			brandDataNPWPFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataNPWPFotoUpdated).SetTableName(dataBrandDataNPWPFotoUpdated.TableName())
+			brandDataNPWPFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataNPWPFotoUpdated).SetTableName(dataBrandDataNPWPFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataNPWPFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update brand data npwp foto ke message broker")
 			}
@@ -3146,7 +3148,7 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 			fmt.Println("Gagal decr media brand data npwp foto ke threshold brand data")
 		}
 
-		brandDataNPWPFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdnf).SetTableName(Dmbdnf.TableName())
+		brandDataNPWPFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdnf).SetTableName(Dmbdnf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataNPWPFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete brand data npwp foto ke message broker")
 		}
@@ -3242,7 +3244,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 				fmt.Println("Gagal incr count media brand data logo foto ke threshold brand data")
 			}
 
-			brandDataLogoFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdlf).SetTableName(Mbdlf.TableName())
+			brandDataLogoFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdlf).SetTableName(Mbdlf.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataLogoFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish brand data logo foto create ke message broker")
 			}
@@ -3272,7 +3274,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 				fmt.Println("Gagal mengambil data brand data logo foto")
 			}
 
-			brandDataLogoFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataLogoFotoUpdated).SetTableName(dataBrandDataLogoFotoUpdated.TableName())
+			brandDataLogoFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataLogoFotoUpdated).SetTableName(dataBrandDataLogoFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataLogoFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update brand data logo foto ke message broker")
 			}
@@ -3370,7 +3372,7 @@ func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDat
 			fmt.Println("Gagal decr media brand data logo foto ke threshold brand data")
 		}
 
-		brandDataLogoFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdlf).SetTableName(Dmbdlf.TableName())
+		brandDataLogoFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdlf).SetTableName(Dmbdlf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataLogoFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete brand data logo foto ke message broker")
 		}
@@ -3466,7 +3468,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 				fmt.Println("Gagal incr count media brand data surat kerjasama dokumen ke threshold brand data")
 			}
 
-			brandDataSuratKerjasamaDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdskd).SetTableName(Mbdskd.TableName())
+			brandDataSuratKerjasamaDokumenCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mbdskd).SetTableName(Mbdskd.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataSuratKerjasamaDokumenCreatePublish); err != nil {
 				fmt.Println("Gagal publish brand data surat kerjasama dokumen create ke message broker")
 			}
@@ -3496,7 +3498,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 				fmt.Println("Gagal mengambil data brand data surat kerjasama dokumen")
 			}
 
-			brandDataSuratKerjasamaDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataSuratKerjasamaDokumenUpdated).SetTableName(dataBrandDataSuratKerjasamaDokumenUpdated.TableName())
+			brandDataSuratKerjasamaDokumenUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBrandDataSuratKerjasamaDokumenUpdated).SetTableName(dataBrandDataSuratKerjasamaDokumenUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataSuratKerjasamaDokumenUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update brand data surat kerjasama dokumen ke message broker")
 			}
@@ -3594,7 +3596,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 			fmt.Println("Gagal decr media brand data surat kerjasama dokumen ke threshold brand data")
 		}
 
-		brandDataSuratKerjasamaDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdskd).SetTableName(Dmbdskd.TableName())
+		brandDataSuratKerjasamaDokumenDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmbdskd).SetTableName(Dmbdskd.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, brandDataSuratKerjasamaDokumenDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete brand data surat kerjasama dokumen ke message broker")
 		}
@@ -3689,7 +3691,7 @@ func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMed
 			fmt.Println("Gagal incr count media transaksi approved foto ke threshold transaksi")
 		}
 
-		transaksiApprovedFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mtaf).SetTableName(Mtaf.TableName())
+		transaksiApprovedFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mtaf).SetTableName(Mtaf.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, transaksiApprovedFotoCreatePublish); err != nil {
 			fmt.Println("Gagal publish transaksi approved foto create ke message broker")
 		}
@@ -3785,7 +3787,7 @@ func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTr
 			fmt.Println("Gagal incr count media transaksi approved video ke threshold transaksi")
 		}
 
-		transaksiApprovedVideoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mtav).SetTableName(Mtav.TableName())
+		transaksiApprovedVideoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mtav).SetTableName(Mtav.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, transaksiApprovedVideoCreatePublish); err != nil {
 			fmt.Println("Gagal publish transaksi approved video create ke message broker")
 		}
