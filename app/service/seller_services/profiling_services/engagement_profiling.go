@@ -14,6 +14,7 @@ import (
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	seller_particular_profiling "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/profiling_services/particular_profiling"
@@ -75,7 +76,7 @@ func UpdatePersonalSeller(ctx context.Context, db *config.InternalDBReadWriteSys
 			return
 		}
 
-		updatedSellerDataPublish := mb_cud_serializer.NewJsonPayload().SetPayload(uptodateSellerData).SetTableName(uptodateSellerData.TableName())
+		updatedSellerDataPublish := mb_cud_serializer.NewJsonPayload().SetPayload(uptodateSellerData).SetTableName("UpdatePersonalSeller").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedSellerDataPublish); err != nil {
 			fmt.Println("Gagal publish update data seller ke message broker")
 		}
@@ -152,7 +153,7 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *config.InternalDBReadWrite
 			fmt.Println("Gagal memperbarui session seller data")
 		}
 
-		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(data.IdentitasSeller).SetTableName(dataUpdatedSeller.TableName())
+		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload("UpdateInfoGeneralPublic").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, sellerUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update data seller ke message broker")
 		}

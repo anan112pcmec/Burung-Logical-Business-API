@@ -2,14 +2,19 @@ package seller_social_media_services
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_social_media_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/social_media_services/response_social_media_services"
 )
@@ -18,7 +23,7 @@ import (
 // Fungsi Prosedur Engage Media Social Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
+func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EngagementSocialMediaSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -90,6 +95,26 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 			},
 		}
 	}
+
+	go func(IdEsm int64, Read gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx := context.Background()
+		konteks, cancel := context.WithCancel(ctx)
+		defer cancel()
+
+		var Udesm models.EntitySocialMedia
+		if err := Read.WithContext(konteks).Model(models.EntitySocialMedia{}).Where(models.EntitySocialMedia{
+			ID: IdEsm,
+		}).Limit(1).Take(&Udesm).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")
+			return
+		}
+
+		SellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetTableName("EngageSocialMediaSeller").SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, SellerUpdatedPublish); err != nil {
+			fmt.Println("Gagal publish update data seller ke message broker")
+		}
+
+	}(id_sosmed_table, *db.Read, cud_publisher)
 
 	log.Printf("[INFO] Data social media berhasil diperbarui untuk seller ID %d", data.IdentitasSeller.IdSeller)
 	return &response.ResponseForm{
