@@ -153,7 +153,7 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *config.InternalDBReadWrite
 			fmt.Println("Gagal memperbarui session seller data")
 		}
 
-		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload("UpdateInfoGeneralPublic").SetRole(mb_cud_seeders.Seller)
+		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedSeller).SetTableName("UpdateInfoGeneralPublic").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, sellerUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update data seller ke message broker")
 		}

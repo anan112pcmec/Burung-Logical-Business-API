@@ -21,6 +21,7 @@ import (
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	stsk_transaksi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/transaksi"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
@@ -176,7 +177,7 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 			return
 		}
 
-		transaksiUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataTransaksiUpdated).SetTableName(dataTransaksiUpdated.TableName())
+		transaksiUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataTransaksiUpdated).SetTableName("ApproveOrderTransaksi").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, transaksiUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated transaksi ke message broker")
 		}
@@ -339,7 +340,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 					fmt.Println("gagal membuat threshold pengiriman ekspedisi")
 				}
 
-				pengirimanEkspedisiCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Pe).SetTableName(Pe.TableName())
+				pengirimanEkspedisiCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Pe).SetTableName(Pe.TableName()).SetRole(mb_cud_seeders.Seller)
 				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, pengirimanEkspedisiCreatePublish); err != nil {
 					fmt.Println("Gagal publish create pengiriman ekspedisi ke message broker")
 				}
@@ -394,7 +395,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 					fmt.Println("Gagal membuat pengiriman threshold")
 				}
 
-				pengirimanCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(P).SetTableName(P.TableName())
+				pengirimanCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(P).SetTableName(P.TableName()).SetRole(mb_cud_seeders.Seller)
 				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, pengirimanCreatePublish); err != nil {
 					fmt.Println("Gagal publish create pengiriman ke message broker")
 				}
@@ -476,7 +477,7 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 			return
 		}
 
-		transaksiUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataTransaksiUpdated).SetTableName(dataTransaksiUpdated.TableName())
+		transaksiUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataTransaksiUpdated).SetTableName("UnApproveOrderTransaksi").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, transaksiUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated transaksi ke message broker")
 		}
