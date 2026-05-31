@@ -17,6 +17,7 @@ import (
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services/response_alamat_service_kurir"
@@ -116,7 +117,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 			fmt.Println("Gagal incr count alamat kurir ke kurir threshold")
 		}
 
-		alamatKurirCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ak).SetTableName(Ak.TableName())
+		alamatKurirCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ak).SetTableName(Ak.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, alamatKurirCreatePublish); err != nil {
 			fmt.Println("Gagal publish create alamat kurir ke message broker")
 		}
@@ -226,7 +227,7 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *confi
 			return
 		}
 
-		alamatKurirUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(alamatKurirUpdated).SetTableName(alamatKurirUpdated.TableName())
+		alamatKurirUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(alamatKurirUpdated).SetTableName(alamatKurirUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, alamatKurirUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated alamat kurir ke messag broker")
 		}
@@ -312,7 +313,7 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *con
 			fmt.Println("Gagal decr count alamat kurir ke kurir threshold")
 		}
 
-		alamatKurirDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ak).SetTableName(Ak.TableName())
+		alamatKurirDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ak).SetTableName(Ak.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, alamatKurirDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete alamat kurir ke message broker")
 		}
