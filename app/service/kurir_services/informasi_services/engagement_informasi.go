@@ -15,6 +15,7 @@ import (
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_informasi_services_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services/response_informasi_services"
@@ -102,7 +103,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 			fmt.Println("Gagal membuat threshold informasi kendaraan kurir")
 		}
 
-		informasiKendaraanCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ikk).SetTableName(Ikk.TableName())
+		informasiKendaraanCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ikk).SetTableName(Ikk.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanCreatePublish); err != nil {
 			fmt.Println("Gagal publish informasi kendaraan kurir create ke message broker")
 		}
@@ -191,7 +192,7 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 			return
 		}
 
-		informasiKendaraanUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanUpdated).SetTableName(dataInformasiKendaraanUpdated.TableName())
+		informasiKendaraanUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanUpdated).SetTableName(dataInformasiKendaraanUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update informasi kendaraan kurir ke message broker")
 		}
@@ -285,7 +286,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 			fmt.Println("Gagal membuat informasi kurir threshold")
 		}
 
-		informasiKurirCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ik).SetTableName(Ik.TableName())
+		informasiKurirCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ik).SetTableName(Ik.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKurirCreatePublish); err != nil {
 			fmt.Println("Gagal publish informasi kurir create ke message broker")
 		}
@@ -371,7 +372,7 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 			return
 		}
 
-		informasiKurirUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKurirUpdated).SetTableName(dataInformasiKurirUpdated.TableName())
+		informasiKurirUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKurirUpdated).SetTableName(dataInformasiKurirUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKurirUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update informasi kurir ke message broker")
 		}

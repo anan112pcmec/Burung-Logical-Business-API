@@ -23,8 +23,10 @@ import (
 	stsk_pengiriman_ekspedisi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengiriman_ekspedisi"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+
 )
 
 func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -116,7 +118,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 				return
 			}
 
-			kurirProfilFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKurirProfilFotoUpdated).SetTableName(dataKurirProfilFotoUpdated.TableName())
+			kurirProfilFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKurirProfilFotoUpdated).SetTableName(dataKurirProfilFotoUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirProfilFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update kurir profil foto ke message broker")
 			}
@@ -185,7 +187,7 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 			fmt.Println("Gagal decr media kurir profil foto ke threshold kurir")
 		}
 
-		kurirProfilFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmfpk).SetTableName(Dmfpk.TableName())
+		kurirProfilFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmfpk).SetTableName(Dmfpk.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirProfilFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete kurir profil foto ke message broker")
 		}
@@ -272,7 +274,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 				fmt.Println("Gagal incr count media informasi kendaraan kurir kendaraan foto ke threshold informasi kendaraan kurir")
 			}
 
-			informasiKendaraanKurirKendaraanFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikkkf).SetTableName(Mikkkf.TableName())
+			informasiKendaraanKurirKendaraanFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikkkf).SetTableName(Mikkkf.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirKendaraanFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish informasi kendaraan kurir kendaraan foto create ke message broker")
 			}
@@ -303,7 +305,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 				return
 			}
 
-			informasiKendaraanKurirKendaraanFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanKurirKendaraanFotoUpdated).SetTableName(dataInformasiKendaraanKurirKendaraanFotoUpdated.TableName())
+			informasiKendaraanKurirKendaraanFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanKurirKendaraanFotoUpdated).SetTableName(dataInformasiKendaraanKurirKendaraanFotoUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirKendaraanFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update informasi kendaraan kurir kendaraan foto ke message broker")
 			}
@@ -380,7 +382,7 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 			fmt.Println("Gagal decr media informasi kendaraan kurir kendaraan foto ke threshold informasi kendaraan kurir")
 		}
 
-		informasiKendaraanKurirKendaraanFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmikkkf).SetTableName(Dmikkkf.TableName())
+		informasiKendaraanKurirKendaraanFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmikkkf).SetTableName(Dmikkkf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirKendaraanFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete informasi kendaraan kurir kendaraan foto ke message broker")
 		}
@@ -467,7 +469,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 				fmt.Println("Gagal incr count media informasi kendaraan kurir bpkb foto ke threshold informasi kendaraan kurir")
 			}
 
-			informasiKendaraanKurirBPKBFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikkbf).SetTableName(Mikkbf.TableName())
+			informasiKendaraanKurirBPKBFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikkbf).SetTableName(Mikkbf.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirBPKBFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish informasi kendaraan kurir bpkb foto create ke message broker")
 			}
@@ -498,7 +500,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 				return
 			}
 
-			informasiKendaraanKurirBPKBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanKurirBPKBFotoUpdated).SetTableName(dataInformasiKendaraanKurirBPKBFotoUpdated.TableName())
+			informasiKendaraanKurirBPKBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanKurirBPKBFotoUpdated).SetTableName(dataInformasiKendaraanKurirBPKBFotoUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirBPKBFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update informasi kendaraan kurir bpkb foto ke message broker")
 			}
@@ -580,7 +582,7 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 			fmt.Println("Gagal decr count informasi kendaraan kurir bpkb foto ke threshold informasi kendaraan")
 		}
 
-		informasiKendaraanKurirBpkbFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ikkbf).SetTableName(Ikkbf.TableName())
+		informasiKendaraanKurirBpkbFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ikkbf).SetTableName(Ikkbf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirBpkbFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete informasi kendaraan kurir photo bpkb ke message broker")
 		}
@@ -667,7 +669,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 				fmt.Println("Gagal incr count informasi kendaraan kurir stnk foto ke threshold informasi kendaraan kurir")
 			}
 
-			mediaInformasiKendaraanKurirSTNKFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikks).SetTableName(Mikks.TableName())
+			mediaInformasiKendaraanKurirSTNKFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikks).SetTableName(Mikks.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKendaraanKurirSTNKFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish create informasi kendaraan kurir stnk foto ke message broker")
 			}
@@ -698,7 +700,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 				return
 			}
 
-			informasiKendaraanKurirSTNKFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanKurirSTNKFotoUpdated).SetTableName(dataInformasiKendaraanKurirSTNKFotoUpdated.TableName())
+			informasiKendaraanKurirSTNKFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataInformasiKendaraanKurirSTNKFotoUpdated).SetTableName(dataInformasiKendaraanKurirSTNKFotoUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirSTNKFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update informasi kendaraan kurir stnk foto ke message broker")
 			}
@@ -775,7 +777,7 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 			fmt.Println("Gagal decr count informasi kendaraan kurir stnk foto ke threshold informasi kendaraan kurir")
 		}
 
-		informasiKendaraanKurirSTNKFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmikks).SetTableName(Dmikks.TableName())
+		informasiKendaraanKurirSTNKFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmikks).SetTableName(Dmikks.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirSTNKFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete informasi kendaraan kurir stnk foto ke message broker")
 		}
@@ -862,7 +864,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 				fmt.Println("Gagal incr count media informasi kurir ktp foto ke threshold informasi kurir")
 			}
 
-			mediaInformasiKurirKTPFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikkf).SetTableName(Mikkf.TableName())
+			mediaInformasiKurirKTPFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mikkf).SetTableName(Mikkf.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKurirKTPFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish create media informasi kurir ktp foto ke message broker")
 			}
@@ -893,7 +895,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 				return
 			}
 
-			mediaInformasiKurirKTPFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataMediaInformasiKurirKTPFotoUpdated).SetTableName(dataMediaInformasiKurirKTPFotoUpdated.TableName())
+			mediaInformasiKurirKTPFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataMediaInformasiKurirKTPFotoUpdated).SetTableName(dataMediaInformasiKurirKTPFotoUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKurirKTPFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update media informasi kurir ktp foto ke message broker")
 			}
@@ -970,7 +972,7 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 			fmt.Println("Gagal decr count media informasi kurir ktp foto ke threshold informasi kurir")
 		}
 
-		mediaInformasiKurirKTPFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmikkf).SetTableName(Dmikkf.TableName())
+		mediaInformasiKurirKTPFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmikkf).SetTableName(Dmikkf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKurirKTPFotoDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete media informasi kurir ktp foto ke message broker")
 		}
@@ -1064,7 +1066,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 			fmt.Println("Gagal incr count media pengiriman picked up foto ke threshold pengiriman")
 		}
 
-		mediaPengirimanPickedUpFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppuf).SetTableName(Mppuf.TableName())
+		mediaPengirimanPickedUpFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mppuf).SetTableName(Mppuf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaPengirimanPickedUpFotoCreatePublish); err != nil {
 			fmt.Println("Gagal publish create media pengiriman picked up foto ke message broker")
 		}
@@ -1159,7 +1161,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 			fmt.Println("Gagal incr count media pengiriman sampai foto ke threshold pengiriman")
 		}
 
-		mediaPengirimanSampaiFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mpsf).SetTableName(Mpsf.TableName())
+		mediaPengirimanSampaiFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mpsf).SetTableName(Mpsf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaPengirimanSampaiFotoCreatePublish); err != nil {
 			fmt.Println("Gagal publish create media pengiriman sampai foto ke message broker")
 		}
@@ -1253,7 +1255,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 			fmt.Println("Gagal incr count media pengiriman ekspedisi picked up foto ke threshold pengiriman ekspedisi")
 		}
 
-		mediaPengirimanEkspedisiPickedUpFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mpepuf).SetTableName(Mpepuf.TableName())
+		mediaPengirimanEkspedisiPickedUpFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mpepuf).SetTableName(Mpepuf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaPengirimanEkspedisiPickedUpFotoCreatePublish); err != nil {
 			fmt.Println("Gagal publish create media pengiriman ekspedisi picked up foto ke message broker")
 		}
@@ -1348,7 +1350,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 			fmt.Println("Gagal incr count media pengiriman ekspedisi sampai agent foto ke threshold pengiriman ekspedisi")
 		}
 
-		mediaPengirimanEkspedisiSampaiAgentFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mpesaf).SetTableName(Mpesaf.TableName())
+		mediaPengirimanEkspedisiSampaiAgentFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Mpesaf).SetTableName(Mpesaf.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaPengirimanEkspedisiSampaiAgentFotoCreatePublish); err != nil {
 			fmt.Println("Gagal publish create media pengiriman ekspedisi sampai agent foto ke message broker")
 		}
