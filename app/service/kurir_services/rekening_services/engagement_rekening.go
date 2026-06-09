@@ -15,6 +15,7 @@ import (
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services/response_rekening_services_kurir"
@@ -99,7 +100,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 			fmt.Println("Gagal incr count rekening kurir ke threshold seller")
 		}
 
-		rekeningKurirCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Rk).SetTableName(Rk.TableName())
+		rekeningKurirCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Rk).SetTableName(Rk.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningKurirCreatePublish); err != nil {
 			fmt.Println("Gagal publish create rekening kurir ke message broker")
 		}
@@ -192,7 +193,7 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *c
 			return
 		}
 
-		rekeningKurirUpdatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(rekeningKurirUpdated).SetTableName(rekeningKurirUpdated.TableName())
+		rekeningKurirUpdatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(rekeningKurirUpdated).SetTableName(rekeningKurirUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningKurirUpdatePublish); err != nil {
 			fmt.Println("Gagal publish create rekening kurir ke message broker")
 		}
@@ -274,7 +275,7 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 			fmt.Println("Gagal decr count rekening kurir ke threshold seller")
 		}
 
-		rekeningKurirDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Rk).SetTableName(Rk.TableName())
+		rekeningKurirDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Rk).SetTableName(Rk.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, rekeningKurirDeletePublish); err != nil {
 			fmt.Println("Gagal publish delete rekening kurir ke message broker")
 		}

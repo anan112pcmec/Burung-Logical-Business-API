@@ -80,8 +80,8 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 			fmt.Println("Gagal memperbarui session kurir data ke cache database")
 		}
 
-		kurirDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedKurir).SetTableName(dataUpdatedKurir.TableName()).SetRole(mb_cud_seeders.Kurir)
-		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirDataUpdatedPublish); err != nil {
+		kurirDataPersonalProfilingUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedKurir).SetTableName("kurirDataPersonalProfilingUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirDataPersonalProfilingUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated kurir data ke message broker")
 		}
 
@@ -132,8 +132,8 @@ func GeneralProfilingKurir(ctx context.Context, data PayloadGeneralProfiling, db
 			fmt.Println("Gagal memperbarui session kurir data ke cache database")
 		}
 
-		kurirDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedKurir).SetTableName(dataUpdatedKurir.TableName())
-		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirDataUpdatedPublish); err != nil {
+		kurirDataGeneralProfilingUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload("kurirDataGeneralProfilingUpdatedPublish").SetTableName(dataUpdatedKurir.TableName()).SetRole(mb_cud_seeders.Kurir)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirDataGeneralProfilingUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated kurir data ke message broker")
 		}
 
