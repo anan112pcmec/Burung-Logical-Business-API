@@ -14,6 +14,7 @@ import (
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	particular_profiling_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/profiling_services/particular_profiling"
@@ -79,7 +80,7 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 			fmt.Println("Gagal memperbarui session kurir data ke cache database")
 		}
 
-		kurirDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedKurir).SetTableName(dataUpdatedKurir.TableName())
+		kurirDataUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedKurir).SetTableName(dataUpdatedKurir.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirDataUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish updated kurir data ke message broker")
 		}
