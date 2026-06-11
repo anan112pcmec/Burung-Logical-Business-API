@@ -97,7 +97,7 @@ func PatchSellerHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWri
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_social_media_services.EngageSocialMediaSeller(ctx, data, db, rds_session)
+		hasil = seller_social_media_services.EngageSocialMediaSeller(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/seller/barang/down-barang-induk":
 		var data seller_service.PayloadDownBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

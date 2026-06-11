@@ -23,7 +23,6 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-
 )
 
 var fieldBarangViewed = "viewed_barang_induk"
@@ -49,7 +48,7 @@ func ViewBarang(data PayloadViewBarang, rds *redis.Client, db *gorm.DB) {
 		go func() {
 			_ = db.Model(&models.BarangInduk{}).
 				Where("id = ?", data.ID).
-				UpdateColumn("viewed", gorm.Expr("viewed + 1")).Error
+				UpdateColumn("viewed", gorm.Expr("viewed + 1")).Error //ini jadi masalah karna kalo begini semua barang di cache dong?
 		}()
 	}
 }

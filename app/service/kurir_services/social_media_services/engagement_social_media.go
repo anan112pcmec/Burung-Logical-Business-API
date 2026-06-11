@@ -2,19 +2,24 @@ package kurir_social_media_services
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_social_media_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/social_media_services/response_social_media_services"
 )
 
-func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
+func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EngagementSocialMediaKurir"
 
 	if _, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session); !status {
@@ -59,6 +64,15 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 			}
 		}
 
+		go func(mesm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
+			konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
+			newCreatedEngagementSocialMediaKurir := mb_cud_serializer.NewJsonPayload().SetPayload(mesm).SetTableName(mesm.TableName()).SetRole(mb_cud_seeders.Kurir)
+			if err := mb_cud_publisher.CreatePublish(konteks, publisher, newCreatedEngagementSocialMediaKurir); err != nil {
+				fmt.Println("Gagal publish create social media kurir")
+			}
+		}(data.Data, cud_publisher)
+
 		log.Printf("[INFO] Data social media berhasil ditambahkan untuk kurir ID %d", data.DataIdentitas.IdKurir)
 		return &response.ResponseForm{
 			Status:   http.StatusOK,
@@ -86,6 +100,15 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 			},
 		}
 	}
+
+	go func(mesm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		newUpdatedEngagementSocialMediaKurir := mb_cud_serializer.NewJsonPayload().SetPayload(mesm).SetTableName(mesm.TableName()).SetRole(mb_cud_seeders.Kurir)
+		if err := mb_cud_publisher.UpdatePublish(konteks, publisher, newUpdatedEngagementSocialMediaKurir); err != nil {
+			fmt.Println("Gagal publish update social media kurir")
+		}
+	}(data.Data, cud_publisher)
 
 	log.Printf("[INFO] Data social media berhasil diperbarui untuk kurir ID %d", data.DataIdentitas.IdKurir)
 	return &response.ResponseForm{

@@ -16,6 +16,9 @@ import (
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_auth "github.com/anan112pcmec/Burung-backend-1/app/service/authservices/reponse_auth"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
@@ -26,8 +29,8 @@ import (
 // :Bertujuan Untuk menangani aksi Login Dari Pengguna atau seller atau kurir,
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UserLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client) *response.ResponseForm {
-	service := "UserLogin"
+func PenggunaLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	service := "PenggunaLogin"
 	var user models.Pengguna
 
 	if err := db.Read.Model(&models.Pengguna{}).Where(&models.Pengguna{Email: email}).Take(&user).Error; err != nil {
@@ -59,18 +62,26 @@ func UserLogin(db *config.InternalDBReadWriteSystem, email, password string, rds
 			},
 		}
 	} else {
-		go func(status, gmail string, Write gorm.DB) {
-			if status == "Offline" {
-				if err1 := Write.Model(models.Pengguna{}).Where(models.Pengguna{Email: gmail}).Update("status", "Online").Error; err1 != nil {
+		go func(u models.Pengguna, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			if u.StatusPengguna == "Offline" {
+				if err1 := Write.Model(models.Pengguna{}).Where(models.Pengguna{ID: u.ID}).Update("status", "Online").Error; err1 != nil {
 					fmt.Println("Gagal Ubah Status")
 				}
+
+				ctx_t := context.Background()
+				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				defer cancel()
+
+				updateOnlinePengguna := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Pengguna)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateOnlinePengguna); err != nil {
+					fmt.Println("Gagal publish user online")
+				}
+
 			} else {
 				fmt.Println("user sudah login di tempat lain")
 			}
-		}(user.StatusPengguna, user.Email, *db.Write)
+		}(user, *db.Write, cud_publisher)
 	}
-
-	userCopy := user
 
 	go func(u models.Pengguna) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -84,7 +95,7 @@ func UserLogin(db *config.InternalDBReadWriteSystem, email, password string, rds
 		if _, err := pipe.Exec(ctx); err != nil {
 			log.Printf("[UserLogin][Redis] %v", err)
 		}
-	}(userCopy)
+	}(user)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -101,7 +112,7 @@ func UserLogin(db *config.InternalDBReadWriteSystem, email, password string, rds
 	}
 }
 
-func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client) *response.ResponseForm {
+func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "SellerLogin"
 	var seller models.Seller
 
@@ -136,21 +147,31 @@ func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, r
 				Message: "Password salah",
 			},
 		}
+	} else {
+		go func(u models.Seller, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			if u.StatusSeller == "Offline" {
+				if err := Write.Model(&models.Seller{}).
+					Where(&models.Seller{ID: u.ID}).
+					Update("status", "Online").Error; err != nil {
+					fmt.Println("Gagal update status seller:", err)
+				} else {
+					fmt.Println("Seller sudah login di tempat lain")
+				}
+				ctx_t := context.Background()
+				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				defer cancel()
+
+				updateOnlineSeller := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Seller)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateOnlineSeller); err != nil {
+					fmt.Println("Gagal publish user online")
+				}
+			} else {
+				fmt.Println("Seller sudah online di platform lain")
+			}
+
+		}(seller, *db.Write, cud_publisher)
 	}
 
-	go func(status, gmail string, Write gorm.DB) {
-		if seller.StatusSeller == "Offline" {
-			if err := Write.Model(&models.Seller{}).
-				Where(&models.Seller{Email: gmail}).
-				Update("status", "Online").Error; err != nil {
-				fmt.Println("Gagal update status seller:", err)
-			} else {
-				fmt.Println("Seller sudah login di tempat lain")
-			}
-		}
-	}(seller.StatusSeller, email, *db.Write)
-
-	sellerCopy := seller
 	go func(u models.Seller) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -163,7 +184,7 @@ func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, r
 		if _, err := pipe.Exec(ctx); err != nil {
 			log.Printf("[SellerLogin][Redis] %v", err)
 		}
-	}(sellerCopy)
+	}(seller)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -180,7 +201,7 @@ func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, r
 	}
 }
 
-func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client) *response.ResponseForm {
+func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "KurirLogin"
 
 	var kurir models.Kurir
@@ -215,21 +236,29 @@ func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rd
 				Message: "Password salah",
 			},
 		}
+	} else {
+		go func(u models.Kurir, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			if u.StatusKurir == "Offline" {
+				if err := Write.Model(&models.Kurir{}).
+					Where(&models.Kurir{ID: u.ID}).
+					Update("status", "Online").Error; err != nil {
+					fmt.Println("Gagal update status kurir:", err)
+				} else {
+					fmt.Println("Seller sudah login di tempat lain")
+				}
+
+				ctx_t := context.Background()
+				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				defer cancel()
+
+				updateOnlineKurir := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Kurir)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateOnlineKurir); err != nil {
+					fmt.Println("Gagal publish user online")
+				}
+			}
+		}(kurir, *db.Write, cud_publisher)
 	}
 
-	go func(status, gmail string, Write gorm.DB) {
-		if status == "Offline" {
-			if err := Write.Model(&models.Kurir{}).
-				Where(&models.Kurir{Email: gmail}).
-				Update("status", "Online").Error; err != nil {
-				fmt.Println("Gagal update status kurir:", err)
-			} else {
-				fmt.Println("Seller sudah login di tempat lain")
-			}
-		}
-	}(kurir.StatusKurir, email, *db.Write)
-
-	kurirCopy := kurir
 	go func(u models.Kurir) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -242,7 +271,7 @@ func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rd
 		if _, err := pipe.Exec(ctx); err != nil {
 			log.Printf("[KurirLogin][Redis] %v", err)
 		}
-	}(kurirCopy)
+	}(kurir)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -477,10 +506,12 @@ func PreKurirRegistration(db *config.InternalDBReadWriteSystem, nama, email, pas
 // :Bermanfaat dalam memvalidasi sebuah pengguna (bukan orang iseng/bot/dll) supaya bisa dipertanggung jawabkan
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func ValidateUserRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client) *response.ResponseForm {
+func ValidateUserRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUserRegistration"
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
 
 	key := fmt.Sprintf("registration_user_pending:%s", OTPkey)
 
@@ -535,10 +566,21 @@ func ValidateUserRegistration(db *config.InternalDBReadWriteSystem, OTPkey strin
 				Message: "Gagal Server Sedang Sibuk, Coba Registrasi Ulang",
 			},
 		}
-	}
+	} else {
+		go func(u models.Pengguna, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
+			ctx_t := context.Background()
+			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			defer cancel()
 
-	if err := rds.Del(ctx, key).Err(); err != nil {
-		fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
+			newPenggunaCreated := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(u.TableName()).SetRole(mb_cud_seeders.Pengguna)
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newPenggunaCreated); err != nil {
+				fmt.Println("Gagal mempublish create pengguna ber id: ", u.ID)
+			}
+
+			if err := rds_con.Del(konteks, key_rds).Err(); err != nil {
+				fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
+			}
+		}(user, key, rds, cud_publisher)
 	}
 
 	return &response.ResponseForm{
@@ -551,9 +593,12 @@ func ValidateUserRegistration(db *config.InternalDBReadWriteSystem, OTPkey strin
 	}
 }
 
-func ValidateSellerRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client) *response.ResponseForm {
+func ValidateSellerRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateSellerRegistration"
-	ctx := context.Background()
+
+	// Context timeout untuk operasi Redis awal
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancelCtx()
 
 	key := fmt.Sprintf("registration_seller_pending:%s", OTPkey)
 
@@ -610,10 +655,20 @@ func ValidateSellerRegistration(db *config.InternalDBReadWriteSystem, OTPkey str
 				Message: "Gagal Server Sedang Sibuk, Coba Lagi Nanti Ya",
 			},
 		}
-	}
+	} else {
+		go func(s models.Seller, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
+			konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
 
-	if err := rds.Del(ctx, key).Err(); err != nil {
-		fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
+			newSellerCreated := mb_cud_serializer.NewJsonPayload().SetPayload(s).SetTableName(s.TableName()).SetRole(mb_cud_seeders.Seller)
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newSellerCreated); err != nil {
+				fmt.Println("Gagal mempublish create seller ber id: ", s.ID)
+			}
+
+			if err := rds_con.Del(konteks, key_rds).Err(); err != nil {
+				fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
+			}
+		}(seller, key, rds, cud_publisher)
 	}
 
 	return &response.ResponseForm{
@@ -626,10 +681,13 @@ func ValidateSellerRegistration(db *config.InternalDBReadWriteSystem, OTPkey str
 	}
 }
 
-func ValidateKurirRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client) *response.ResponseForm {
+func ValidateKurirRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 
 	services := "ValidateKurirRegistration"
-	ctx := context.Background()
+
+	// Menggunakan context dengan timeout agar aman dari hang/leak
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancelCtx()
 
 	key := fmt.Sprintf("registration_kurir_pending:%s", OTPkey)
 
@@ -662,7 +720,7 @@ func ValidateKurirRegistration(db *config.InternalDBReadWriteSystem, OTPkey stri
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_auth.ValidateSellerResp{
+			Payload: response_auth.ValidateSellerResp{ // Tetap mempertahankan tipe payload bawaan Anda
 				Message: "Gagal Server Sedang Sibuk, Coba Lagi Nanti",
 			},
 		}
@@ -684,10 +742,22 @@ func ValidateKurirRegistration(db *config.InternalDBReadWriteSystem, OTPkey stri
 				Message: "Gagal Server Sedang Sibuk, Coba Lagi Nanti Ya",
 			},
 		}
-	}
+	} else {
+		// POLA SAMA PERSIS: Menjalankan background task secara async untuk kurir
+		go func(k models.Kurir, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
+			konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
 
-	if err := rds.Del(ctx, key).Err(); err != nil {
-		fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
+			// Catatan: Pastikan k.TableName() dan mb_cud_seeders.Kurir sudah terdefinisi di project Anda
+			newKurirCreated := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName()).SetRole(mb_cud_seeders.Kurir)
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKurirCreated); err != nil {
+				fmt.Println("Gagal mempublish create kurir ber id: ", k.ID)
+			}
+
+			if err := rds_con.Del(konteks, key_rds).Err(); err != nil {
+				fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
+			}
+		}(seller, key, rds, cud_publisher)
 	}
 
 	return &response.ResponseForm{

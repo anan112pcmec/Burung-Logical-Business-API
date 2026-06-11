@@ -23,7 +23,7 @@ func PostHandler(db *config.InternalDBReadWriteSystem, rds_auth, rds_session *re
 
 		if len(r.URL.Path) >= 6 && r.URL.Path[:6] == "/auth/" {
 			fmt.Println("Auth HANDLER JALAN")
-			auth.HandleAuth(db, w, r, rds_auth, rds_session)
+			auth.HandleAuth(db, w, r, rds_auth, rds_session, mb_cud_publisher)
 			return
 		}
 
