@@ -50,12 +50,6 @@ func Run() {
 		DB_REPLICA_SYSTEM_NAME: Getenvi("DB_REPLICA_SYSTEM_NAME", "NIL"),
 		DB_REPLICA_SYSTEM_PORT: Getenvi("DB_REPLICA_SYSTEM_PORT", "NIL"),
 
-		DB_REPLICA_CLIENT_HOST: Getenvi("DB_REPLICA_CLIENT_HOST", "NIL"),
-		DB_REPLICA_CLIENT_USER: Getenvi("DB_REPLICA_CLIENT_USER", "NIL"),
-		DB_REPLICA_CLIENT_PASS: Getenvi("DB_REPLICA_CLIENT_PASS", "NIL"),
-		DB_REPLICA_CLIENT_NAME: Getenvi("DB_REPLICA_CLIENT_NAME", "NIL"),
-		DB_REPLICA_CLIENT_PORT: Getenvi("DB_REPLICA_CLIENT_PORT", "NIL"),
-
 		RDSHOST:         Getenvi("RDSHOST", "NIL"),
 		RDSPORT:         Getenvi("RDSPORT", "NIL"),
 		RDSAUTHDB:       rdsauth,
@@ -77,7 +71,7 @@ func Run() {
 		MINIO_SIGNED_URL_EXPIRE_SEC: Getenvi("MINIO_SIGNED_URL_EXPIRE_SEC", "NIL"),
 	}
 
-	db_system, db_replica_client, redis_auth, redis_session, _, searchengine, cud_publisher, media_storage :=
+	db_system, redis_auth, redis_session, cud_publisher, media_storage :=
 		env.RunConnectionEnvironment()
 
 	// Router utama
@@ -155,10 +149,6 @@ func Run() {
 	Router.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-
-	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.GetHandler(db_replica_client, redis_auth, redis_session, searchengine),
-	)).Methods("GET")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
 		routes.PostHandler(db_system, redis_auth, redis_session, cud_publisher),

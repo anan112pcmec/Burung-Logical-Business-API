@@ -57,7 +57,7 @@ func PatchKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWrit
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_social_media_services.EngagementSocialMediaKurir(ctx, data, db, rds_session)
+		hasil = kurir_social_media_services.EngagementSocialMediaKurir(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/kurir/alamat/edit-alamat":
 		var data kurir_alamat_services.PayloadEditAlamatKurir
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

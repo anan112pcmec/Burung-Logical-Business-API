@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/meilisearch/meilisearch-go"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rabbitmq/amqp091-go"
@@ -29,7 +28,6 @@ const (
 type Environment struct {
 	DB_MASTER_HOST, DB_MASTER_USER, DB_MASTER_PASS, DB_MASTER_NAME, DB_MASTER_PORT                                         string
 	DB_REPLICA_SYSTEM_HOST, DB_REPLICA_SYSTEM_USER, DB_REPLICA_SYSTEM_PASS, DB_REPLICA_SYSTEM_NAME, DB_REPLICA_SYSTEM_PORT string
-	DB_REPLICA_CLIENT_HOST, DB_REPLICA_CLIENT_USER, DB_REPLICA_CLIENT_PASS, DB_REPLICA_CLIENT_NAME, DB_REPLICA_CLIENT_PORT string
 	RDSHOST, RDSPORT                                                                                                       string
 	RDSAUTHDB, RDSSESSIONDB, RDSENGAGEMENTDB                                                                               int
 	MEILIHOST, MEILIKEY, MEILIPORT                                                                                         string
@@ -45,11 +43,8 @@ type InternalDBReadWriteSystem struct {
 
 func (e *Environment) RunConnectionEnvironment() (
 	db_system *InternalDBReadWriteSystem,
-	db_replica_client *gorm.DB,
 	redis_auth *redis.Client,
 	redis_session *redis.Client,
-	redis_engagement *redis.Client,
-	search_engine meilisearch.ServiceManager,
 	cud_publisher *mb_cud_publisher.Publisher,
 	media_storage *minio.Client,
 ) {
@@ -61,7 +56,6 @@ func (e *Environment) RunConnectionEnvironment() (
 
 	dsn_master := getDsn(e.DB_MASTER_HOST, e.DB_MASTER_USER, e.DB_MASTER_PASS, e.DB_MASTER_NAME, e.DB_MASTER_PORT)
 	dsn_replica_system := getDsn(e.DB_REPLICA_SYSTEM_HOST, e.DB_REPLICA_SYSTEM_USER, e.DB_REPLICA_SYSTEM_PASS, e.DB_REPLICA_SYSTEM_NAME, e.DB_REPLICA_SYSTEM_PORT)
-	dsn_replica_client := getDsn(e.DB_REPLICA_CLIENT_HOST, e.DB_REPLICA_CLIENT_USER, e.DB_REPLICA_CLIENT_PASS, e.DB_REPLICA_CLIENT_NAME, e.DB_REPLICA_CLIENT_PORT)
 
 	log.Println("🔍 Mencoba koneksi ke PostgreSQL...")
 	log.Println("🔗 DSN:", dsn_master)
@@ -130,34 +124,6 @@ func (e *Environment) RunConnectionEnvironment() (
 		Read:  db_replica_system,
 	}
 
-	// Koneksi ke replica_client
-	db_replica_client, err = gorm.Open(postgres.Open(dsn_replica_client), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Warn),
-	})
-	if err != nil {
-		log.Fatalf("❌ koneksi replica_client Gagal konek ke PostgreSQL: %v", err)
-	}
-
-	sqlDBReplicaClient, err := db_replica_client.DB()
-	if err != nil {
-		log.Fatalf("❌ Gagal mendapatkan *sql.DB dari GORM (replica_client): %v", err)
-	}
-
-	if err := sqlDBReplicaClient.Ping(); err != nil {
-		log.Fatalf("❌ Gagal ping ke PostgreSQL (replica_client): %v", err)
-	}
-
-	sqlDBReplicaClient.SetMaxOpenConns(100)
-	sqlDBReplicaClient.SetMaxIdleConns(50)
-	sqlDBReplicaClient.SetConnMaxLifetime(time.Hour)
-
-	var currentReplicaClient string
-	if err := db_replica_client.Raw("SELECT current_database();").Scan(&currentReplicaClient).Error; err != nil {
-		log.Printf("⚠️ Tidak bisa membaca nama database replica_client: %v", err)
-	} else {
-		log.Println("✅ Berhasil terkoneksi ke database replica_client:", currentReplicaClient)
-	}
-
 	redis_auth = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", e.RDSHOST, e.RDSPORT),
 		Password: "",
@@ -168,12 +134,6 @@ func (e *Environment) RunConnectionEnvironment() (
 		Addr:     fmt.Sprintf("%s:%s", e.RDSHOST, e.RDSPORT),
 		Password: "",
 		DB:       e.RDSSESSIONDB,
-	})
-
-	redis_engagement = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", e.RDSHOST, e.RDSPORT),
-		Password: "",
-		DB:       e.RDSENGAGEMENTDB,
 	})
 
 	connStr := fmt.Sprintf(
@@ -223,7 +183,7 @@ func (e *Environment) RunConnectionEnvironment() (
 		Mu: sync.Mutex{},
 	}
 
-	search_engine = meilisearch.New(fmt.Sprintf("http://%s:%s", e.MEILIHOST, e.MEILIPORT), meilisearch.WithAPIKey(e.MEILIKEY))
+	// search_engine = meilisearch.New(fmt.Sprintf("http://%s:%s", e.MEILIHOST, e.MEILIPORT), meilisearch.WithAPIKey(e.MEILIKEY))
 
 	media_storage, err_media := minio.New(e.MINIO_ENDPOINT, &minio.Options{
 		Creds:  credentials.NewStaticV4(e.MINIO_ACCESS_KEY, e.MINIO_SECRET_KEY, ""),

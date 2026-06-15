@@ -15,6 +15,7 @@ import (
 	kurir_media_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/media_services"
 	kurir_pengiriman_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/pengiriman_services"
 	kurir_rekening_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services"
+
 )
 
 func DeleteKurirHandler(db *config.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
