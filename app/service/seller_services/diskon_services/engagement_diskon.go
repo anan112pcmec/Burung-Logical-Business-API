@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -118,7 +118,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 
 	go func(Dp models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -211,7 +211,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 
 	go func(IdDp int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedDiskonProduk models.DiskonProduk
@@ -299,7 +299,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 
 	go func(Dp models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -415,7 +415,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 
 	go func(Bdd models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -517,7 +517,7 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 
 	go func(Bdd models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{

@@ -9,6 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
@@ -166,7 +167,7 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 
 	go func(It int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataTransaksiUpdated models.Transaksi
@@ -297,7 +298,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 
 			go func(Pe models.PengirimanEkspedisi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
 
 				thresholdSeller := sot_threshold.SellerThreshold{
@@ -352,7 +353,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 
 			go func(P models.Pengiriman, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
 
 				thresholdSeller := sot_threshold.SellerThreshold{
@@ -466,7 +467,7 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 
 	go func(It int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataTransaksiUpdated models.Transaksi

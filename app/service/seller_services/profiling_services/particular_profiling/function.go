@@ -1,4 +1,4 @@
-﻿package seller_particular_profiling
+package seller_particular_profiling
 
 import (
 	"context"

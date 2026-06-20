@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -113,7 +113,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.AlamatGudang); err != nil {
@@ -241,7 +241,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 
 	go func(IdAlamatGudang int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedAlamatGudang models.AlamatGudang
@@ -365,7 +365,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 			IdSeller: int64(A.IDSeller),
 		}
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.AlamatGudang); err != nil {

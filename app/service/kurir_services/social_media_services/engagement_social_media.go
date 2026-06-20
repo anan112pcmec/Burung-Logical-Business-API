@@ -1,14 +1,14 @@
-﻿package kurir_social_media_services
+package kurir_social_media_services
 
 import (
 	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -65,7 +65,7 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 		}
 
 		go func(mesm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
-			konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 			newCreatedEngagementSocialMediaKurir := mb_cud_serializer.NewJsonPayload().SetPayload(mesm).SetTableName(mesm.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.CreatePublish(konteks, publisher, newCreatedEngagementSocialMediaKurir); err != nil {
@@ -102,7 +102,7 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 	}
 
 	go func(mesm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		newUpdatedEngagementSocialMediaKurir := mb_cud_serializer.NewJsonPayload().SetPayload(mesm).SetTableName(mesm.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.UpdatePublish(konteks, publisher, newUpdatedEngagementSocialMediaKurir); err != nil {
@@ -119,4 +119,3 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 		},
 	}
 }
-

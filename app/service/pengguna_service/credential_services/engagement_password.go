@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -86,7 +87,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 				log.Println("[INFO] Email OTP berhasil dikirim.")
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 			fields := map[string]interface{}{
 				"id_user":       user.ID,
@@ -118,7 +119,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 				log.Println("[INFO] Email notifikasi PIN berhasil dikirim.")
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 			fields := map[string]interface{}{
 				"id_user":       user.ID,
@@ -192,7 +193,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna models.Pengguna
@@ -271,7 +272,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna models.Pengguna
@@ -346,7 +347,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna models.Pengguna
@@ -421,7 +422,7 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna models.Pengguna

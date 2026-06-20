@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
@@ -74,7 +74,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Increment(konteks, Trh, stsk_pengguna.Wishlist); err != nil {
@@ -149,7 +149,7 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Decrement(konteks, Trh, stsk_pengguna.Wishlist); err != nil {

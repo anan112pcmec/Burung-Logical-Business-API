@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
@@ -78,7 +78,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 
 	go func(Ddata models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -171,7 +171,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 
 	go func(IdD int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var distributorDataUpdated models.DistributorData
@@ -249,7 +249,7 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 
 	go func(Ddata models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -344,7 +344,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 
 	go func(Db models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -440,7 +440,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 
 	go func(IdB int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var brandDataUpdated models.BrandData
@@ -518,7 +518,7 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 
 	go func(Db models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{

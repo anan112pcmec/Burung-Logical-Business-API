@@ -13,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
@@ -88,7 +89,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 
 		go func(Pp models.MediaSellerProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdSeller := sot_threshold.SellerThreshold{
@@ -123,7 +124,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 
 		go func(IdPp int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataPhotoProfilUpdated models.MediaSellerProfilFoto
@@ -191,7 +192,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 
 	go func(Dmfps models.MediaSellerProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -276,7 +277,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 
 		go func(Bf models.MediaSellerBannerFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdSeller := sot_threshold.SellerThreshold{
@@ -307,7 +308,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 
 		go func(IdBf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBannerFotoUpdated models.MediaSellerBannerFoto
@@ -376,7 +377,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 
 	go func(Dmbfs models.MediaSellerBannerFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -464,7 +465,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 
 	go func(Tffs []models.MediaSellerTokoFisikFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if len(Tffs) > 0 {
@@ -528,7 +529,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 				return
 			}
 
-			ctxRemove, cancel := context.WithTimeout(ctx, 2*time.Second)
+			ctxRemove, cancel := context.WithTimeout(ctx, settings.TimeoutContext)
 			defer cancel()
 
 			if err := ms.RemoveObject(ctxRemove, media_storage_database_seeders.BucketFotoName, data.DataMediaFotoTokoFisik[angka].KeyMedia, minio.RemoveObjectOptions{
@@ -568,7 +569,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 
 	go func(Dtfh []models.MediaSellerTokoFisikFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if len(Dtfh) > 0 {
@@ -661,7 +662,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 
 		go func(Ef models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			etalaseFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ef).SetTableName(Ef.TableName()).SetRole(mb_cud_seeders.Seller)
@@ -684,7 +685,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 
 		go func(IdEf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataEtalaseFotoUpdated models.MediaEtalaseFoto
@@ -752,7 +753,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 
 	go func(Dmef models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		etalaseFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmef).SetTableName(Dmef.TableName()).SetRole(mb_cud_seeders.Seller)
@@ -872,7 +873,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 
 	go func(Mbif []models.MediaBarangIndukFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -964,7 +965,7 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 
 	go func(Dmbifh []models.MediaBarangIndukFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
@@ -1063,7 +1064,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 
 		go func(Biv models.MediaBarangIndukVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1094,7 +1095,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 
 		go func(IdBiv int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBarangIndukVideoUpdated models.MediaBarangIndukVideo
@@ -1162,7 +1163,7 @@ func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangIndu
 
 	go func(Dmbiv models.MediaBarangIndukVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1279,7 +1280,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 
 		go func(Mkbf models.MediaKategoriBarangFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
@@ -1310,7 +1311,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 
 		go func(IdMkbf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataKategoriBarangFotoUpdated models.MediaKategoriBarangFoto
@@ -1378,7 +1379,7 @@ func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBaran
 
 	go func(Dmkbf models.MediaKategoriBarangFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
@@ -1472,7 +1473,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 
 		go func(Mddd models.MediaDistributorDataDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1503,7 +1504,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 
 		go func(IdMddd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataDokumenUpdated models.MediaDistributorDataDokumen
@@ -1599,7 +1600,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 
 	go func(Dmddd models.MediaDistributorDataDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1686,7 +1687,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 
 		go func(Mddnf models.MediaDistributorDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1717,7 +1718,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 
 		go func(IdMddnf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataNPWPFotoUpdated models.MediaDistributorDataNPWPFoto
@@ -1813,7 +1814,7 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 
 	go func(Dmdnf models.MediaDistributorDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1901,7 +1902,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 
 		go func(Mddnibf models.MediaDistributorDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1932,7 +1933,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 
 		go func(IdMddnibf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataNIBFotoUpdated models.MediaDistributorDataNIBFoto
@@ -2029,7 +2030,7 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 
 	go func(Dmdnibf models.MediaDistributorDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -2116,7 +2117,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 
 		go func(Mddskd models.MediaDistributorDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -2147,7 +2148,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 
 		go func(IdMddskd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataSuratKerjasamaDokumenUpdated models.MediaDistributorDataSuratKerjasamaDokumen
@@ -2243,7 +2244,7 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 
 	go func(Dmdskd models.MediaDistributorDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -2339,7 +2340,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 
 		go func(Mbdpd models.MediaBrandDataPerwakilanDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2370,7 +2371,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 
 		go func(IdMbdpd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataPerwakilanDokumenUpdated models.MediaBrandDataPerwakilanDokumen
@@ -2466,7 +2467,7 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 
 	go func(Dmbdpd models.MediaBrandDataPerwakilanDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2562,7 +2563,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 
 		go func(Mbdsf models.MediaBrandDataSertifikatFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2593,7 +2594,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 
 		go func(IdMbdsf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataSertifikatFotoUpdated models.MediaBrandDataSertifikatFoto
@@ -2689,7 +2690,7 @@ func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBra
 
 	go func(Dmbdsf models.MediaBrandDataSertifikatFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2785,7 +2786,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 
 		go func(Mbdnibf models.MediaBrandDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2816,7 +2817,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 
 		go func(IdMbdnibf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataNIBFotoUpdated models.MediaBrandDataNIBFoto
@@ -2913,7 +2914,7 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 
 	go func(Dmbdnibf models.MediaBrandDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3009,7 +3010,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 
 		go func(Mbdnf models.MediaBrandDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3040,7 +3041,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 
 		go func(IdMbdnf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataNPWPFotoUpdated models.MediaBrandDataNPWPFoto
@@ -3136,7 +3137,7 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 
 	go func(Dmbdnf models.MediaBrandDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3232,7 +3233,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 
 		go func(Mbdlf models.MediaBrandDataLogoFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3263,7 +3264,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 
 		go func(IdMbdlf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataLogoFotoUpdated models.MediaBrandDataLogoFoto
@@ -3360,7 +3361,7 @@ func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDat
 
 	go func(Dmbdlf models.MediaBrandDataLogoFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3456,7 +3457,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 
 		go func(Mbdskd models.MediaBrandDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3487,7 +3488,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 
 		go func(IdMbdskd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataSuratKerjasamaDokumenUpdated models.MediaBrandDataSuratKerjasamaDokumen
@@ -3584,7 +3585,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 
 	go func(Dmbdskd models.MediaBrandDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3679,7 +3680,7 @@ func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMed
 
 	go func(Mtaf models.MediaTransaksiApprovedFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdTransaksi := sot_threshold.TransaksiThreshold{
@@ -3775,7 +3776,7 @@ func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTr
 
 	go func(Mtav models.MediaTransaksiApprovedVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdTransaksi := sot_threshold.TransaksiThreshold{

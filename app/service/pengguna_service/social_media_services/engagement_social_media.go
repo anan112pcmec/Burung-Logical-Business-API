@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -67,7 +67,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 
 		go func(Esm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -140,7 +140,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 
 		go func(idEntitySosmed int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var Esm models.EntitySocialMedia
@@ -215,7 +215,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 
 	go func(idEntitySosmed int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var Esm models.EntitySocialMedia
@@ -292,7 +292,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *e
 			}
 
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.Following); err != nil {
@@ -382,7 +382,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.Following); err != nil {

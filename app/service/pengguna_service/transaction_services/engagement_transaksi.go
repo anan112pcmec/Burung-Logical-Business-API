@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
@@ -23,6 +22,7 @@ import (
 	payment_in_gerai "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/gerai"
 	payment_in_va "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/virtual_account"
 	payment_in_wallet "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/wallet"
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
@@ -244,7 +244,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	go func(Dk []models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		var wg sync.WaitGroup
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 		for _, k := range Dk {
 			wg.Add(1)
@@ -1222,7 +1222,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 
 	go func(Dt []models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 		for _, t := range Dt {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
@@ -1579,7 +1579,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 
 	go func(Dt []models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 		for _, t := range Dt {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
@@ -1856,7 +1856,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 
 	go func(Dt []models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 		for _, t := range Dt {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{

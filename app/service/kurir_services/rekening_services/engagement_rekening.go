@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -89,7 +89,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 
 	go func(Rk models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{
@@ -182,7 +182,7 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 
 	go func(IdRk int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var rekeningKurirUpdated models.RekeningKurir
@@ -264,7 +264,7 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 
 	go func(Rk models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{

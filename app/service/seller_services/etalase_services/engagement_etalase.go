@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
@@ -20,7 +20,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_etalase_services_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/etalase_services/response_etalase_services"
-
 )
 
 func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -79,7 +78,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 
 	go func(Es models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -167,7 +166,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 
 	go func(IdE int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedEtalase models.Etalase
@@ -253,7 +252,7 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 
 	go func(De models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -339,7 +338,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 
 	go func(Bke models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
@@ -426,7 +425,7 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 
 	go func(Bke models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{

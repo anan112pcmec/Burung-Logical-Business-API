@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -95,7 +96,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 			}
 
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.MediaPenggunaProfilFoto); err != nil {
@@ -148,7 +149,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 
 		go func(idMppf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataPhotoProfil models.MediaPenggunaProfilFoto
@@ -218,7 +219,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.MediaPenggunaProfilFoto); err != nil {
@@ -338,7 +339,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		customIncr := sot_threshold.CustomCounter{
@@ -353,7 +354,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		for _, mP := range mediaPhotos {
 			go func(Photo models.MediaReviewFoto, publisherr *mb_cud_publisher.Publisher) {
 				ctx_tt := context.Background()
-				kontekss, cancell := context.WithTimeout(ctx_tt, time.Second*5)
+				kontekss, cancell := context.WithTimeout(ctx_tt, settings.TimeoutContext)
 				defer cancell()
 
 				createReviewFotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Photo).SetTableName(Photo.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -453,7 +454,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.MediaReviewVideo); err != nil {

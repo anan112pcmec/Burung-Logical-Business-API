@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -75,7 +76,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 
 		go func(Mkpf models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdKurir := sot_threshold.KurirThreshold{
@@ -106,7 +107,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 
 		go func(IdMkpf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataKurirProfilFotoUpdated models.MediaKurirProfilFoto
@@ -175,7 +176,7 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 
 	go func(Dmfpk models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{
@@ -262,7 +263,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 
 		go func(Mikkkf models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdInformasiKendaraanKurir := sot_threshold.InformasiKendaraanKurirThreshold{
@@ -293,7 +294,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 
 		go func(IdMikkkf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataInformasiKendaraanKurirKendaraanFotoUpdated models.MediaInformasiKendaraanKurirKendaraanFoto
@@ -370,7 +371,7 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 
 	go func(Dmikkkf models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdInformasiKendaraanKurir := sot_threshold.InformasiKendaraanKurirThreshold{
@@ -457,7 +458,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 
 		go func(Mikkbf models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			thresholdInformasiKendaraanKurir := sot_threshold.InformasiKendaraanKurirThreshold{
@@ -488,7 +489,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 
 		go func(IdMikkbf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataInformasiKendaraanKurirBPKBFotoUpdated models.MediaInformasiKendaraanKurirBPKBFoto
@@ -570,7 +571,7 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 
 	go func(Ikkbf models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		informasiKendaraanThreshold := sot_threshold.InformasiKendaraanKurirThreshold{
@@ -657,7 +658,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 
 		go func(Mikks models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			informasiKendaraanThreshold := sot_threshold.InformasiKendaraanKurirThreshold{
@@ -688,7 +689,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 
 		go func(IdMikks int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataInformasiKendaraanKurirSTNKFotoUpdated models.MediaInformasiKendaraanKurirSTNKFoto
@@ -765,7 +766,7 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 
 	go func(Dmikks models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		informasiKendaraanThreshold := sot_threshold.InformasiKendaraanKurirThreshold{
@@ -852,7 +853,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 
 		go func(Mikkf models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
@@ -883,7 +884,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 
 		go func(IdMikkf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataMediaInformasiKurirKTPFotoUpdated models.MediaInformasiKurirKTPFoto
@@ -960,7 +961,7 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 
 	go func(Dmikkf models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
@@ -1054,7 +1055,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 
 	go func(Mppuf models.MediaPengirimanPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		pengirimanThreshold := sot_threshold.PengirimanNonEkspedisiThreshold{
@@ -1149,7 +1150,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 
 	go func(Mpsf models.MediaPengirimanSampaiFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		pengirimanThreshold := sot_threshold.PengirimanNonEkspedisiThreshold{
@@ -1243,7 +1244,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 
 	go func(Mpepuf models.MediaPengirimanEkspedisiPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		pengirimanEkspedisiThreshold := sot_threshold.PengirimanEkspedisiThreshold{
@@ -1338,7 +1339,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 
 	go func(Mpesaf models.MediaPengirimanEkspedisiSampaiAgentFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		pengirimanEkspedisiThreshold := sot_threshold.PengirimanEkspedisiThreshold{

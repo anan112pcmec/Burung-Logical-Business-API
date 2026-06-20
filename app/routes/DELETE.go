@@ -7,13 +7,13 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
-func DeleteHandler(db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher
 
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/userroute"
+)
 
 func DeleteHandler(db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

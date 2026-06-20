@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -21,7 +22,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	response_credential_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/credential_services/response_credential_services"
-
 )
 
 func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
@@ -88,7 +88,7 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 			log.Printf("[INFO] Email OTP berhasil dikirim ke %s", data.DataIdentitas.EmailKurir)
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		fields := map[string]interface{}{
 			"id_kurir":      data.DataIdentitas.IdKurir,
@@ -169,7 +169,7 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 
 	go func(IdKurir int64, Read *gorm.DB, RdsSession *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKurirUpdated models.Kurir

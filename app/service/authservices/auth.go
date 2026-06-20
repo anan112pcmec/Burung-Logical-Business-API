@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -69,7 +70,7 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 				}
 
 				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
 
 				updateOnlinePengguna := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Pengguna)
@@ -84,7 +85,7 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 	}
 
 	go func(u models.Pengguna) {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
@@ -158,7 +159,7 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 					fmt.Println("Seller sudah login di tempat lain")
 				}
 				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
 
 				updateOnlineSeller := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Seller)
@@ -173,7 +174,7 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 	}
 
 	go func(u models.Seller) {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
@@ -248,7 +249,7 @@ func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password strin
 				}
 
 				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
 
 				updateOnlineKurir := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Kurir)
@@ -260,7 +261,7 @@ func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password strin
 	}
 
 	go func(u models.Kurir) {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
@@ -399,7 +400,7 @@ func PreSellerRegistration(db *environment.InternalDBReadWriteSystem, username, 
 	}()
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		key := fmt.Sprintf("registration_seller_pending:%s", Otp)
 		fields := map[string]interface{}{
@@ -465,7 +466,7 @@ func PreKurirRegistration(db *environment.InternalDBReadWriteSystem, nama, email
 	}()
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		key := fmt.Sprintf("registration_kurir_pending:%s", Otp)
 		fields := map[string]interface{}{
@@ -509,7 +510,7 @@ func PreKurirRegistration(db *environment.InternalDBReadWriteSystem, nama, email
 func ValidateUserRegistration(db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUserRegistration"
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 
 	defer cancel()
 
@@ -569,7 +570,7 @@ func ValidateUserRegistration(db *environment.InternalDBReadWriteSystem, OTPkey 
 	} else {
 		go func(u models.Pengguna, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			newPenggunaCreated := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(u.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -597,7 +598,7 @@ func ValidateSellerRegistration(db *environment.InternalDBReadWriteSystem, OTPke
 	services := "ValidateSellerRegistration"
 
 	// Context timeout untuk operasi Redis awal
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), settings.TimeoutContext)
 	defer cancelCtx()
 
 	key := fmt.Sprintf("registration_seller_pending:%s", OTPkey)
@@ -657,7 +658,7 @@ func ValidateSellerRegistration(db *environment.InternalDBReadWriteSystem, OTPke
 		}
 	} else {
 		go func(s models.Seller, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
-			konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			newSellerCreated := mb_cud_serializer.NewJsonPayload().SetPayload(s).SetTableName(s.TableName()).SetRole(mb_cud_seeders.Seller)
@@ -686,7 +687,7 @@ func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey
 	services := "ValidateKurirRegistration"
 
 	// Menggunakan context dengan timeout agar aman dari hang/leak
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), settings.TimeoutContext)
 	defer cancelCtx()
 
 	key := fmt.Sprintf("registration_kurir_pending:%s", OTPkey)
@@ -745,7 +746,7 @@ func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey
 	} else {
 		// POLA SAMA PERSIS: Menjalankan background task secara async untuk kurir
 		go func(k models.Kurir, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
-			konteks, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			// Catatan: Pastikan k.TableName() dan mb_cud_seeders.Kurir sudah terdefinisi di project Anda

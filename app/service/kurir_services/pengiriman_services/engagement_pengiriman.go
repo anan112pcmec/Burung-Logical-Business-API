@@ -13,6 +13,7 @@ import (
 
 	payment_out_constanta "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip"
 	payment_out_disbursment "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip/disbursment"
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
@@ -157,7 +158,7 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *env
 
 	go func(Bkd models.BidKurirData, IdKurir int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{
@@ -242,7 +243,7 @@ func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *
 
 	go func(IdBkd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataBidKurirDataUpdated models.BidKurirData
@@ -405,7 +406,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 
 	go func(Bknes models.BidKurirNonEksScheduler, IdPengiriman int64, IdBkd int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{
@@ -462,7 +463,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 
 		go func(IdBkd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBidKurirDataStatusUpdated models.BidKurirData
@@ -623,7 +624,7 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 
 	go func(Bkes models.BidKurirEksScheduler, IdPengirimanEks int64, IdBkd int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{
@@ -681,7 +682,7 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 
 		go func(IdBkd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
 			var dataBidKurirDataStatusUpdated models.BidKurirData
@@ -813,7 +814,7 @@ func LockSiapAntarBidKurir(ctx context.Context, data PayloadLockSiapAntar, db *e
 
 	go func(IsEks bool, IdsScheduler []int64, IdBkd int64, IdKurir int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if IsEks {
@@ -980,7 +981,7 @@ func PickedUpPengirimanNonEks(ctx context.Context, data PayloadPickedUpPengirima
 
 	go func(Jp models.JejakPengiriman, IdScheduler int64, IdPengiriman int64, IdTransaksi int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		jejakPengirimanCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Jp).SetTableName(Jp.TableName()).SetRole(mb_cud_seeders.Kurir)
@@ -1120,7 +1121,7 @@ func KirimPengirimanNonEks(ctx context.Context, data PayloadKirimPengirimanNonEk
 
 	go func(IdBks, IdP, IdJp int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataBidKurirSchedulerUpdated models.BidKurirNonEksScheduler
@@ -1217,7 +1218,7 @@ func UpdateInformasiPerjalananPengirimanNonEks(ctx context.Context, data Payload
 
 	go func(IdJp int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataJejakPengirimanUpdated models.JejakPengiriman
@@ -1609,7 +1610,7 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 
 	go func(Bknes models.BidKurirNonEksScheduler, Ipengiriman, IbidKurir, IjejakPengiriman, ITransaksi int64, Sds models.PayOutSeller, Sdk models.PayOutKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher, f bool) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -1829,7 +1830,7 @@ func PickedUpPengirimanEks(ctx context.Context, data PayloadPickedUpPengirimanEk
 
 	go func(Jpe models.JejakPengirimanEkspedisi, IdScheduler int64, IdPengirimanEks int64, IdTransaksi int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		// CREATE
@@ -1980,7 +1981,7 @@ func KirimPengirimanEks(ctx context.Context, data PayloadKirimPengirimanEks, db 
 
 	go func(IdScheduler, IdPengirimanEks, IdJejakPengirimanEks int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataSchedulerUpdated models.BidKurirEksScheduler
@@ -2077,7 +2078,7 @@ func UpdateInformasiPerjalananPengirimanEks(ctx context.Context, data PayloadUpd
 
 	go func(IdJejakPengirimanEks int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataJejakPengirimanEksUpdated models.JejakPengirimanEkspedisi
@@ -2385,7 +2386,7 @@ func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, d
 
 	go func(Bkes models.BidKurirEksScheduler, IdPengirimanEks, IdBidKurir, IdJejakPengirimanEks, IdTransaksi, IdKurir int64, Sdk models.PayOutKurir, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher, f bool) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{
@@ -2612,7 +2613,7 @@ func NonaktifkanBidKurir(ctx context.Context, data PayloadNonaktifkanBidKurir, d
 
 	go func(Bkd models.BidKurirData, IdKurir int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{

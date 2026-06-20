@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -23,7 +23,6 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-
 )
 
 var fieldBarangViewed = "viewed_barang_induk"
@@ -114,7 +113,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.BarangDisukai); err != nil {
@@ -183,7 +182,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.BarangDisukai); err != nil {
@@ -249,7 +248,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Inisialisasi(konteks, Trh); err != nil {
@@ -325,7 +324,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -382,7 +381,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
@@ -436,7 +435,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -481,7 +480,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -545,7 +544,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 
 	go func(IdKc int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKomentarChild models.KomentarChild
@@ -615,7 +614,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -722,7 +721,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.Keranjang); err != nil {
@@ -822,7 +821,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 
 	go func(IdKeranjang int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKeranjang models.Keranjang
@@ -906,7 +905,7 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Decrement(konteks, Trh, stsk_pengguna.Keranjang); err != nil {
@@ -1010,7 +1009,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Increment(konteks, Trh, stsk_pengguna.Review); err != nil {
@@ -1092,7 +1091,7 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.ReviewLike); err != nil {
@@ -1163,7 +1162,7 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.ReviewDislike); err != nil {

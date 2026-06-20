@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
@@ -84,7 +84,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 
 	go func(Ikk models.InformasiKendaraanKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{
@@ -181,7 +181,7 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 
 	go func(IdIkk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataInformasiKendaraanUpdated models.InformasiKendaraanKurir
@@ -267,7 +267,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 
 	go func(Ik models.InformasiKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKurir := sot_threshold.KurirThreshold{
@@ -361,7 +361,7 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 
 	go func(IdIk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataInformasiKurirUpdated models.InformasiKurir

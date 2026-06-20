@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -19,7 +19,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	seller_particular_profiling "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/profiling_services/particular_profiling"
 	seller_response_profiling "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/profiling_services/response_profiling"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +59,7 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 
 	go func(BSeller models.Seller, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*models.Seller](&BSeller)
@@ -139,7 +138,7 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 
 	go func(IdS int32, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedSeller models.Seller

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -21,7 +21,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services/response_alamat_service_kurir"
-
 )
 
 func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -107,7 +106,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 
 	go func(Ak models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{
@@ -217,7 +216,7 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 
 	go func(IdAk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var alamatKurirUpdated models.AlamatKurir
@@ -303,7 +302,7 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 
 	go func(Ak models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{

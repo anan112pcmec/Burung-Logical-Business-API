@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
@@ -183,7 +183,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh.Write, stsk_seller.BarangInduk); err != nil {
@@ -282,7 +282,7 @@ func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSys
 
 	go func(IdBarangInduk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var updatedBarangInduk models.BarangInduk
@@ -408,7 +408,7 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 
 	go func(DBI models.BarangInduk, DBK []models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := Trh.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Where(&sot_threshold.BarangIndukThreshold{
@@ -609,7 +609,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 
 	go func(Kb []models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		for _, kategoribarangdata := range Kb {
@@ -707,7 +707,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated models.KategoriBarang
@@ -812,7 +812,7 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 
 	go func(Kb models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
@@ -985,7 +985,7 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangupdated models.KategoriBarang
@@ -1066,7 +1066,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1151,7 +1151,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated models.KategoriBarang
@@ -1239,7 +1239,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1340,7 +1340,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1441,7 +1441,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated models.KategoriBarang
@@ -1507,7 +1507,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Inisialisasi(konteks, Trh); err != nil {
@@ -1578,7 +1578,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName()).SetRole(mb_cud_seeders.Seller)
@@ -1645,7 +1645,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
@@ -1706,7 +1706,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -1769,7 +1769,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -1827,7 +1827,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 
 	go func(IdKc int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		var dataKomentarChild models.KomentarChild
@@ -1892,7 +1892,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		}
 
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {

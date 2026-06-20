@@ -9,6 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -117,7 +118,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 	} else {
 		go func(IdEsm int64, Read gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx := context.Background()
-			konteks, cancel := context.WithCancel(ctx)
+			konteks, cancel := context.WithTimeout(ctx, settings.TimeoutContext)
 			defer cancel()
 
 			var Udesm models.EntitySocialMedia

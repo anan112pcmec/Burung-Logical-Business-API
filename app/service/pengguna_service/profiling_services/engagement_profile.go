@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -19,7 +19,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	particular_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/particular_profiling"
 	response_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/response_profiling"
-
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +69,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 
 	go func(Bpengguna models.Pengguna, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, time.Second*5)
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
 		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*models.Pengguna](&Bpengguna)
