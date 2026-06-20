@@ -1,4 +1,4 @@
-package seller_alamat_services
+﻿package seller_alamat_services
 
 import (
 	"context"
@@ -10,12 +10,12 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -29,7 +29,7 @@ import (
 // gudang yang boleh dilampirkan alamat nya
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -141,7 +141,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 // Berfungsi Untuk Seller manakala mereka ingin mengedit gudang mereka entah perubahan titik, nama dll
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -270,7 +270,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *con
 // Berfungsi Untuk Menghapus Suatu Alamat Gudang Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)

@@ -1,4 +1,4 @@
-package particular_profiling_pengguna
+﻿package particular_profiling_pengguna
 
 import (
 	"context"
@@ -6,18 +6,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
-
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur mengubah username pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahUsernamePengguna(ctx context.Context, db *config.InternalDBReadWriteSystem, id_pengguna int64, username string) ResponseUbahUsername {
+func UbahUsernamePengguna(ctx context.Context, db *environment.InternalDBReadWriteSystem, id_pengguna int64, username string) ResponseUbahUsername {
 
 	var countUsername int64
 
@@ -101,7 +100,7 @@ func UbahUsernamePengguna(ctx context.Context, db *config.InternalDBReadWriteSys
 // Fungsi Prosedur mengubah nama pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahNamaPengguna(ctx context.Context, id_pengguna int64, nama string, db *config.InternalDBReadWriteSystem) ResponseUbahNama {
+func UbahNamaPengguna(ctx context.Context, id_pengguna int64, nama string, db *environment.InternalDBReadWriteSystem) ResponseUbahNama {
 
 	if err_db := db.Write.WithContext(ctx).Model(&models.Pengguna{}).Where(&models.Pengguna{ID: id_pengguna}).Update("nama", nama).Error; err_db == nil {
 		log.Printf("[INFO] Nama berhasil diubah untuk pengguna ID %d", id_pengguna)
@@ -121,7 +120,7 @@ func UbahNamaPengguna(ctx context.Context, id_pengguna int64, nama string, db *c
 // Fungsi Prosedur mengubah email pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahEmailPengguna(ctx context.Context, id_pengguna int64, email string, db *config.InternalDBReadWriteSystem) ResponseUbahEmail {
+func UbahEmailPengguna(ctx context.Context, id_pengguna int64, email string, db *environment.InternalDBReadWriteSystem) ResponseUbahEmail {
 
 	// ambil email lama
 	var email_lama string

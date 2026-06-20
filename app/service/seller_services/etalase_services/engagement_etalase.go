@@ -1,4 +1,4 @@
-package seller_etalase_services
+﻿package seller_etalase_services
 
 import (
 	"context"
@@ -9,20 +9,21 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_etalase "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/etalase"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_etalase_services_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/etalase_services/response_etalase_services"
+
 )
 
-func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -112,7 +113,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *c
 	}
 }
 
-func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -191,7 +192,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *config.
 	}
 }
 
-func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -284,7 +285,7 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *confi
 	}
 }
 
-func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKeEtalase, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKeEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahkanBarangKeEtalase"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -373,7 +374,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 	}
 }
 
-func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalase, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusBarangDariEtalase"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {

@@ -1,4 +1,4 @@
-package seller_diskon_services
+﻿package seller_diskon_services
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -17,6 +16,7 @@ import (
 	stsk_diskon_produk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/diskon_produk"
 	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -24,7 +24,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services/response_diskon_services_seller"
 )
 
-func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahDiskonProduk"
 
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -153,7 +153,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 	}
 }
 
-func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditDiskonProduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -237,7 +237,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *con
 	}
 }
 
-func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusDiskonProduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -332,7 +332,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *c
 	}
 }
 
-func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPadaBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPadaBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TetapkanDiskonPadaBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -466,7 +466,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 	}
 }
 
-func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusDiskonPadaBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {

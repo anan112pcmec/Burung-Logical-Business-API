@@ -1,4 +1,4 @@
-package pengguna_alamat_services
+﻿package pengguna_alamat_services
 
 import (
 	"context"
@@ -9,25 +9,24 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Masukan Alamat Pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanAlamatPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -151,7 +150,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 	}
 }
 
-func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditAlamatPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -277,7 +276,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 // Fungsi Hapus Alamat Pengguna
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusAlamatPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {

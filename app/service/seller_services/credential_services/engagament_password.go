@@ -1,4 +1,4 @@
-package seller_credential_services
+﻿package seller_credential_services
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -27,7 +27,7 @@ import (
 // Berfungsi untuk mengirim kode otp ke gmail nantinya sebelum password benar benar diubah
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSeller, db *config.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSeller, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "PreUbahPasswordSeller"
 
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -108,7 +108,7 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 	}
 }
 
-func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *config.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordSeller"
 
 	if data.OtpKeyValidateSeller == "" {

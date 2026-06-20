@@ -1,4 +1,4 @@
-package kurir_rekening_services
+﻿package kurir_rekening_services
 
 import (
 	"context"
@@ -9,11 +9,11 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -21,7 +21,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services/response_rekening_services_kurir"
 )
 
-func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanRekeningKurir"
 
 	_, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
@@ -115,7 +115,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 	}
 }
 
-func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditRekeningKurir"
 
 	_, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
@@ -208,7 +208,7 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *c
 	}
 }
 
-func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusRekeningKurir"
 
 	_, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)

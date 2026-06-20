@@ -1,4 +1,4 @@
-package config
+package environment
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ type Environment struct {
 	DB_MASTER_HOST, DB_MASTER_USER, DB_MASTER_PASS, DB_MASTER_NAME, DB_MASTER_PORT                                         string
 	DB_REPLICA_SYSTEM_HOST, DB_REPLICA_SYSTEM_USER, DB_REPLICA_SYSTEM_PASS, DB_REPLICA_SYSTEM_NAME, DB_REPLICA_SYSTEM_PORT string
 	RDSHOST, RDSPORT                                                                                                       string
-	RDSAUTHDB, RDSSESSIONDB, RDSENGAGEMENTDB                                                                               int
+	RDSAUTHDB, RDSSESSIONDB                                                                                                int
 	MEILIHOST, MEILIKEY, MEILIPORT                                                                                         string
 	RMQ_HOST, RMQ_USER, RMQ_PASS, EXCHANGE, RMQ_PORT                                                                       string
 	MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_SIGNED_URL_EXPIRE_SEC                                        string
@@ -182,8 +182,6 @@ func (e *Environment) RunConnectionEnvironment() (
 		},
 		Mu: sync.Mutex{},
 	}
-
-	// search_engine = meilisearch.New(fmt.Sprintf("http://%s:%s", e.MEILIHOST, e.MEILIPORT), meilisearch.WithAPIKey(e.MEILIKEY))
 
 	media_storage, err_media := minio.New(e.MINIO_ENDPOINT, &minio.Options{
 		Creds:  credentials.NewStaticV4(e.MINIO_ACCESS_KEY, e.MINIO_SECRET_KEY, ""),

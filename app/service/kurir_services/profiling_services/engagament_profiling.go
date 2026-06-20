@@ -1,4 +1,4 @@
-package kurir_profiling_service
+﻿package kurir_profiling_service
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -21,7 +21,7 @@ import (
 	response_profiling_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/profiling_services/response_profiling"
 )
 
-func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	var wg sync.WaitGroup
 	services := "GeneralProfilingKurir"
 
@@ -98,7 +98,7 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 	}
 }
 
-func GeneralProfilingKurir(ctx context.Context, data PayloadGeneralProfiling, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func GeneralProfilingKurir(ctx context.Context, data PayloadGeneralProfiling, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "GeneralProfilingKurir"
 	var hasil_update_deskripsi particular_profiling_kurir.ResponseUbahDeskripsi
 
@@ -148,3 +148,4 @@ func GeneralProfilingKurir(ctx context.Context, data PayloadGeneralProfiling, db
 	}
 
 }
+

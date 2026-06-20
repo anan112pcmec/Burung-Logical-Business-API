@@ -1,4 +1,4 @@
-package pengguna_social_media_service
+﻿package pengguna_social_media_service
 
 import (
 	"context"
@@ -10,12 +10,12 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -27,7 +27,7 @@ import (
 // Berfungsi Untuk menautkan atau melampirkan akun / social media mereka ke sistem burung
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTautkanSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTautkanSocialMedia, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahkanSocialMediaPenguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -171,7 +171,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 // Berfungsi Untuk hapus social media mereka yang terhubung ke sistem burung
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMedia, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EngageHapusSocialMedia"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -245,7 +245,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 // Berfungsi Untuk Memfollow sebuah seller
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "FollowSeller"
 
 	_, status := data.IdentitasUser.Validating(ctx, db.Read, rds_session)
@@ -330,7 +330,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *c
 // Berfungsi Untuk unfollowe seller
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UnfollowSeller"
 
 	_, status := data.IdentitasUser.Validating(ctx, db.Read, rds_session)

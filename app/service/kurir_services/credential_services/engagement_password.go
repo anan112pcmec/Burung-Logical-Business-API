@@ -1,4 +1,4 @@
-package kurir_credential_services
+﻿package kurir_credential_services
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -24,7 +24,7 @@ import (
 
 )
 
-func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *config.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
+func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
 	services := "PreUbahPasswordKurir"
 
 	kurir, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session)
@@ -117,7 +117,7 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 	}
 }
 
-func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPassword, db *config.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordKurir"
 
 	_, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session)

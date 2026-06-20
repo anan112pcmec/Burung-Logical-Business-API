@@ -1,4 +1,4 @@
-package seller_profiling_services
+﻿package seller_profiling_services
 
 import (
 	"context"
@@ -10,22 +10,23 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	seller_particular_profiling "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/profiling_services/particular_profiling"
 	seller_response_profiling "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/profiling_services/response_profiling"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Update Personal Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UpdatePersonalSeller(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadUpdateProfilePersonalSeller, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUpdateProfilePersonalSeller, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UpdatePersonalSeller"
 	var hasil_update_nama seller_particular_profiling.ResponseUbahNama
 	var hasil_update_username seller_particular_profiling.ResponseUbahUsername
@@ -97,7 +98,7 @@ func UpdatePersonalSeller(ctx context.Context, db *config.InternalDBReadWriteSys
 // Fungsi Prosedur Update Info General Public
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UpdateInfoGeneralPublic(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadUpdateInfoGeneralSeller, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUpdateInfoGeneralSeller, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UpdatePersonalSeller"
 	var hasil_update_punchline seller_particular_profiling.ResponseUbahPunchline
 	var hasil_update_deskripsi seller_particular_profiling.ResponseUbahDeskripsi

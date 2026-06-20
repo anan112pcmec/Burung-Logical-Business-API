@@ -1,4 +1,4 @@
-package seller_particular_profiling
+﻿package seller_particular_profiling
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 )
@@ -17,7 +17,7 @@ import (
 // Fungsi Prosedur Particular Ubah Username Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahUsernameSeller(ctx context.Context, id_seller int32, username string, db *config.InternalDBReadWriteSystem) ResponseUbahUsername {
+func UbahUsernameSeller(ctx context.Context, id_seller int32, username string, db *environment.InternalDBReadWriteSystem) ResponseUbahUsername {
 	var countUsername int64
 	saran := make([]string, 0, 3)
 
@@ -78,7 +78,7 @@ func UbahUsernameSeller(ctx context.Context, id_seller int32, username string, d
 // Fungsi Prosedur Particular Ubah Nama Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahNamaSeller(ctx context.Context, id_seller int32, nama string, db *config.InternalDBReadWriteSystem) ResponseUbahNama {
+func UbahNamaSeller(ctx context.Context, id_seller int32, nama string, db *environment.InternalDBReadWriteSystem) ResponseUbahNama {
 
 	var nama_seller string
 	if err := db.Read.WithContext(ctx).Model(&models.Seller{}).Select("nama").Where(&models.Seller{
@@ -106,7 +106,7 @@ func UbahNamaSeller(ctx context.Context, id_seller int32, nama string, db *confi
 	}
 }
 
-func UbahEmailSeller(ctx context.Context, id_seller int32, email string, db *config.InternalDBReadWriteSystem) ResponseUbahEmail {
+func UbahEmailSeller(ctx context.Context, id_seller int32, email string, db *environment.InternalDBReadWriteSystem) ResponseUbahEmail {
 	sudah_ada := ""
 	if err_sama := db.Read.WithContext(ctx).Model(models.Seller{}).Select("email").Where(models.Seller{ID: id_seller, Email: email}).First(&sudah_ada).Error; err_sama != nil {
 		fmt.Println("Gak Ada")
@@ -159,7 +159,7 @@ func UbahSellerDedicationSeller(id_seller int32, seller_dedication string, db *g
 // Fungsi Prosedur Particular Ubah Jam Operasional Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahJamOperasionalSeller(ctx context.Context, id_seller int32, jam_operasional string, db *config.InternalDBReadWriteSystem) ResponseUbahJamOperasional {
+func UbahJamOperasionalSeller(ctx context.Context, id_seller int32, jam_operasional string, db *environment.InternalDBReadWriteSystem) ResponseUbahJamOperasional {
 	if id_seller == 0 {
 		return ResponseUbahJamOperasional{
 			Message: "Gagal Id seller tidak Valid",
@@ -196,7 +196,7 @@ func UbahJamOperasionalSeller(ctx context.Context, id_seller int32, jam_operasio
 // Fungsi Prosedur Particular Ubah Punchline Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahPunchlineSeller(ctx context.Context, id_seller int32, punchline string, db *config.InternalDBReadWriteSystem) ResponseUbahPunchline {
+func UbahPunchlineSeller(ctx context.Context, id_seller int32, punchline string, db *environment.InternalDBReadWriteSystem) ResponseUbahPunchline {
 	if id_seller == 0 {
 		return ResponseUbahPunchline{
 			Message: "Gagal, Seller Tidak Valid",
@@ -233,7 +233,7 @@ func UbahPunchlineSeller(ctx context.Context, id_seller int32, punchline string,
 // Fungsi Prosedur Particular Ubah Deskripsi Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahDeskripsiSeller(ctx context.Context, id_seller int32, deskripsi string, db *config.InternalDBReadWriteSystem) ResponseUbahDeskripsi {
+func UbahDeskripsiSeller(ctx context.Context, id_seller int32, deskripsi string, db *environment.InternalDBReadWriteSystem) ResponseUbahDeskripsi {
 	if id_seller == 0 {
 		return ResponseUbahDeskripsi{
 			Message: "Gagal, Seller kredensial tidak valid",
@@ -266,7 +266,7 @@ func UbahDeskripsiSeller(ctx context.Context, id_seller int32, deskripsi string,
 	}
 }
 
-func UbahSellerDedication(ctx context.Context, id_seller int32, dedication string, db *config.InternalDBReadWriteSystem) ResponseUbahDedication {
+func UbahSellerDedication(ctx context.Context, id_seller int32, dedication string, db *environment.InternalDBReadWriteSystem) ResponseUbahDedication {
 	if id_seller == 0 {
 		return ResponseUbahDedication{
 			Message: "Gagal id tidak valid",

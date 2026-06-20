@@ -1,4 +1,4 @@
-package pengguna_media_services
+﻿package pengguna_media_services
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_review "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/review"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -25,7 +25,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
-func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
+func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "UbahFotoProfilPengguna"
 
 	// Validasi identitas pengguna
@@ -74,7 +74,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 
 	minIOUploadUrl := url.String()
 
-	// Kalau belum ada → insert
+	// Kalau belum ada â†’ insert
 	if id_data_photo_exist == 0 {
 		newPhoto := models.MediaPenggunaProfilFoto{
 			IdPengguna: data.IdentitasPengguna.ID,
@@ -174,7 +174,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 	}
 }
 
-func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusFotoProfilPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -239,7 +239,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 	}
 }
 
-func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
+func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaReviewFoto"
 	const LimitPhoto = 5
 
@@ -372,7 +372,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	}
 }
 
-func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *config.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
+func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	services := "TambahMediaReviewVideo"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {

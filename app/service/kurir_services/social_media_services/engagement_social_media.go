@@ -1,4 +1,4 @@
-package kurir_social_media_services
+﻿package kurir_social_media_services
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -19,7 +19,7 @@ import (
 	response_social_media_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/social_media_services/response_social_media_services"
 )
 
-func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMedia, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMedia, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EngagementSocialMediaKurir"
 
 	if _, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session); !status {
@@ -119,3 +119,4 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 		},
 	}
 }
+

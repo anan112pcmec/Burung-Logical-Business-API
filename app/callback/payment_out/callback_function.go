@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 )
 
-func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *config.InternalDBReadWriteSystem) int16 {
+func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *environment.InternalDBReadWriteSystem) int16 {
 	var id_payout int64 = 0
 	var untuk string = ""
 	if err := db.Read.WithContext(ctx).Model(&models.PayOutKurir{}).Select("id").Where(&models.PayOutKurir{

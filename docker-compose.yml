@@ -1,11 +1,15 @@
-services:
+networks:
+  cassandra_net:
+    driver: bridge
 
+services:
   redis:
     image: redis:latest
     container_name: redis_burung_cache
     ports:
       - "6379:6379"
     restart: unless-stopped
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq_burung_message_broker
@@ -29,16 +33,41 @@ services:
       - "7700:7700"
     restart: unless-stopped
 
-  cassandra:
+  # =========================================================================
+  # CLUSTER 1: burung_historical (Cukup 1 Node untuk Dev)
+  # =========================================================================
+  historical-node1:
     image: cassandra:4.1
-    container_name: cassandra_burung_hystorical_data
+    container_name: cassandra_historical_n1
+    networks:
+      - cassandra_net
     environment:
-      - CASSANDRA_CLUSTER_NAME=burung_cluster
-      - CASSANDRA_NUM_TOKENS=8
+      - CASSANDRA_CLUSTER_NAME=burung_historical
+      - CASSANDRA_NUM_TOKENS=1
+      - CASSANDRA_ENDPOINT_SNITCH=SimpleSnitch
     ports:
       - "9042:9042"
     restart: unless-stopped
 
+  # =========================================================================
+  # CLUSTER 2: burung_sot_replica (Cukup 1 Node untuk Dev)
+  # =========================================================================
+  sot-node1:
+    image: cassandra:4.1
+    container_name: cassandra_sot_n1
+    networks:
+      - cassandra_net
+    environment:
+      - CASSANDRA_CLUSTER_NAME=burung_sot_replica
+      - CASSANDRA_NUM_TOKENS=1
+      - CASSANDRA_ENDPOINT_SNITCH=SimpleSnitch
+    ports:
+      - "9043:9042"
+    restart: unless-stopped
+
+  # =========================================================================
+  # SISA SERVICE
+  # =========================================================================
   minio:
     image: minio/minio:latest
     container_name: minio_burung_storage

@@ -1,4 +1,4 @@
-package seller_barang_service
+﻿package seller_barang_service
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
@@ -19,6 +18,7 @@ import (
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_komentar "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/komentar"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -30,7 +30,7 @@ import (
 // Berfungsi untuk melayani seller yang hendak memasukan barang nya ke sistem burung
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadMasukanBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadMasukanBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -173,7 +173,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 		}
 	}
 
-	go func(Bi models.BarangInduk, Kb []models.KategoriBarang, Trh *config.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
+	go func(Bi models.BarangInduk, Kb []models.KategoriBarang, Trh *environment.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(Bi.SellerID),
 		}
@@ -235,7 +235,7 @@ func MasukanBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyste
 // Berfungsi untuk seller dalam melakukan edit atau pembaruan informasi seputar barang induknya
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadEditBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -313,7 +313,7 @@ func EditBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, 
 // nya
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadHapusBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadHapusBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusBarang"
 
 	// Validasi kredensial seller
@@ -357,7 +357,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 		}
 	}
 
-	// ✅ 3. Early exit jika masih ada transaksi aktif
+	// âœ… 3. Early exit jika masih ada transaksi aktif
 	if id_varian_dalam_transaksi > 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
@@ -377,19 +377,19 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 	// Jalankan proses penghapusan dalam goroutine (asynchronous)
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
-		// 🔸 Hapus varian (permanent delete)
+		// ðŸ”¸ Hapus varian (permanent delete)
 		if err := tx.Unscoped().Model(&models.VarianBarang{}).Where(&models.VarianBarang{IdBarangInduk: int32(data.IdBarangInduk)}).
 			Delete(&models.VarianBarang{}).Error; err != nil {
 			return fmt.Errorf("hapus varian gagal: %w", err)
 		}
 
-		// 🔸 Hapus kategori (soft delete)
+		// ðŸ”¸ Hapus kategori (soft delete)
 		if err := tx.Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{IdBarangInduk: int32(data.IdBarangInduk)}).
 			Delete(&models.KategoriBarang{}).Error; err != nil {
 			return fmt.Errorf("hapus kategori gagal: %w", err)
 		}
 
-		// 🔸 Hapus barang induk (soft delete)
+		// ðŸ”¸ Hapus barang induk (soft delete)
 		if err := tx.Model(&models.BarangInduk{}).Where(&models.BarangInduk{ID: int32(data.IdBarangInduk)}).
 			Delete(&models.BarangInduk{}).Error; err != nil {
 			return fmt.Errorf("hapus barang induk gagal: %w", err)
@@ -449,7 +449,7 @@ func HapusBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem,
 // Berfungsi untuk seller menambahkan kategori barang pada barang induk
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadTambahKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadTambahKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahKategoriBarang"
 
 	// Validasi kredensial seller
@@ -524,7 +524,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 
 	var kategori_barang []models.KategoriBarang
 
-	// 1️⃣ Loop validasi dan siapkan batch kategori
+	// 1ï¸âƒ£ Loop validasi dan siapkan batch kategori
 	for i := range data.KategoriBarang {
 		var id_data_kategori_barang int64 = 0
 
@@ -581,7 +581,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 			for s := 0; s < int(kategori.Stok); s++ {
 				varian_barang_total = append(varian_barang_total, models.VarianBarang{
 					IdBarangInduk: data.IdBarangInduk,
-					IdKategori:    kategori.ID, // 🧠 langsung pakai ID dari hasil insert batch
+					IdKategori:    kategori.ID, // ðŸ§  langsung pakai ID dari hasil insert batch
 					Sku:           kategori.Sku,
 					Status:        "Ready",
 				})
@@ -640,7 +640,7 @@ func TambahKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSys
 // Berfungsi untuk mengedit data informasi tentang kategori barang induk yang dituju
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadEditKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditKategoriBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -736,7 +736,7 @@ func EditKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 // Berfungsi untuk menghapus kategori barang induk yang ada
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadHapusKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadHapusKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKategoriBarang"
 
 	// Validasi kredensial seller
@@ -839,7 +839,7 @@ func HapusKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyst
 // STOK BARANG
 // ////////////////////////////////////////////////////////////////////////////////
 
-func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadEditStokKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadEditStokKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditStokBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -1009,7 +1009,7 @@ func EditStokKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteS
 	}
 }
 
-func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadDownBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadDownBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "DownStokBarangInduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -1098,7 +1098,7 @@ func DownStokBarangInduk(ctx context.Context, db *config.InternalDBReadWriteSyst
 	}
 }
 
-func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSystem, data PayloadDownKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadDownKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "DownKategoriBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -1175,7 +1175,7 @@ func DownKategoriBarang(ctx context.Context, db *config.InternalDBReadWriteSyste
 	}
 }
 
-func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditRekeningBarangInduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -1270,7 +1270,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 	}
 }
 
-func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahAlamatGudangBarangInduk"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -1371,7 +1371,7 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 	}
 }
 
-func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatBarangKategori, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatBarangKategori, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahAlamatGudangBarangKategori"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -1464,7 +1464,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 	}
 }
 
-func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahKomentarBarang"
 	is_seller := false
 	var id_seller_take int64 = 0
@@ -1532,7 +1532,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 	}
 }
 
-func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditKomentarBarang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
@@ -1595,7 +1595,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 	}
 }
 
-func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKomentarBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -1666,7 +1666,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 	}
 }
 
-func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanChildKomentar"
 	is_seller := false
 
@@ -1726,7 +1726,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 	}
 }
 
-func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MentionChildKomentar"
 
 	is_seller := false
@@ -1789,7 +1789,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 	}
 }
 
-func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditChildKomentar"
 
 	var id_edit_child_komentar int64 = 0
@@ -1850,7 +1850,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *c
 	}
 }
 
-func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusChildKomentar"
 
 	var childKomentar models.KomentarChild

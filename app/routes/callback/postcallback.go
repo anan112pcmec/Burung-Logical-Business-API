@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	callback_payment_out "github.com/anan112pcmec/Burung-backend-1/app/callback/payment_out"
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 )
 
-func CallbackPostHandler(w http.ResponseWriter, r *http.Request, db *config.InternalDBReadWriteSystem) {
+func CallbackPostHandler(w http.ResponseWriter, r *http.Request, db *environment.InternalDBReadWriteSystem) {
 	var status int16
 
 	ctx := r.Context()

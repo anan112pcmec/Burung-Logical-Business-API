@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 )
 
-func UbahNama(id_kurir int64, username_kurir, nama string, db *config.InternalDBReadWriteSystem) ResponseUbahNama {
+func UbahNama(id_kurir int64, username_kurir, nama string, db *environment.InternalDBReadWriteSystem) ResponseUbahNama {
 	if nama == "" {
 		log.Printf("[WARN] Nama kosong pada permintaan ubah nama kurir ID %d", id_kurir)
 		return ResponseUbahNama{
@@ -51,7 +51,7 @@ func UbahNama(id_kurir int64, username_kurir, nama string, db *config.InternalDB
 	}
 }
 
-func UbahUsernameKurir(db *config.InternalDBReadWriteSystem, id_kurir int64, username string) ResponseUbahUsername {
+func UbahUsernameKurir(db *environment.InternalDBReadWriteSystem, id_kurir int64, username string) ResponseUbahUsername {
 	if id_kurir == 0 {
 		log.Printf("[WARN] ID kurir tidak valid pada permintaan ubah username.")
 		return ResponseUbahUsername{
@@ -126,7 +126,7 @@ func UbahUsernameKurir(db *config.InternalDBReadWriteSystem, id_kurir int64, use
 	}
 }
 
-func UbahEmail(id_kurir int64, username, email string, db *config.InternalDBReadWriteSystem) ResponseUbahGmail {
+func UbahEmail(id_kurir int64, username, email string, db *environment.InternalDBReadWriteSystem) ResponseUbahGmail {
 	if id_kurir == 0 && username == "" {
 		log.Printf("[WARN] ID kurir dan username kosong pada permintaan ubah email.")
 		return ResponseUbahGmail{
@@ -179,7 +179,7 @@ func UbahEmail(id_kurir int64, username, email string, db *config.InternalDBRead
 	}
 }
 
-func UbahDeskripsi(id_kurir int64, username, deskripsi string, db *config.InternalDBReadWriteSystem) ResponseUbahDeskripsi {
+func UbahDeskripsi(id_kurir int64, username, deskripsi string, db *environment.InternalDBReadWriteSystem) ResponseUbahDeskripsi {
 	if username == "" && id_kurir == 0 {
 		log.Printf("[WARN] ID kurir dan username kosong pada permintaan ubah deskripsi.")
 		return ResponseUbahDeskripsi{

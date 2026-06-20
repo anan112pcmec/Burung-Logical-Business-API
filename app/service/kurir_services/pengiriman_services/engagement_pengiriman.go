@@ -13,7 +13,6 @@ import (
 
 	payment_out_constanta "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip"
 	payment_out_disbursment "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip/disbursment"
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
@@ -26,13 +25,14 @@ import (
 	stsk_pengiriman "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengiriman"
 	stsk_pengiriman_ekspedisi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengiriman_ekspedisi"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 )
 
-func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "AktifkanBidKurir"
 
 	kurir, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
@@ -196,7 +196,7 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *con
 	}
 }
 
-func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "UpdatePosisiBidKurir"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -267,7 +267,7 @@ func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *
 	}
 }
 
-func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPengirimanNonEksManualReguler, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPengirimanNonEksManualReguler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "AmbilPengirimanManualReguler"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -488,7 +488,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 	}
 }
 
-func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengirimanEksManualReguler, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengirimanEksManualReguler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "AmbilPengirimanEksManualReguler"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -707,7 +707,7 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 	}
 }
 
-func LockSiapAntarBidKurir(ctx context.Context, data PayloadLockSiapAntar, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func LockSiapAntarBidKurir(ctx context.Context, data PayloadLockSiapAntar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "LockSiapAntarBidKurir"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -878,7 +878,7 @@ func LockSiapAntarBidKurir(ctx context.Context, data PayloadLockSiapAntar, db *c
 	}
 }
 
-func PickedUpPengirimanNonEks(ctx context.Context, data PayloadPickedUpPengirimanNonEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func PickedUpPengirimanNonEks(ctx context.Context, data PayloadPickedUpPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "PickedUpPengiriman"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -1034,7 +1034,7 @@ func PickedUpPengirimanNonEks(ctx context.Context, data PayloadPickedUpPengirima
 	}
 }
 
-func KirimPengirimanNonEks(ctx context.Context, data PayloadKirimPengirimanNonEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func KirimPengirimanNonEks(ctx context.Context, data PayloadKirimPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "KirimPengirimanNonEks"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -1170,7 +1170,7 @@ func KirimPengirimanNonEks(ctx context.Context, data PayloadKirimPengirimanNonEk
 	}
 }
 
-func UpdateInformasiPerjalananPengirimanNonEks(ctx context.Context, data PayloadUpdateInformasiPerjalananPengiriman, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UpdateInformasiPerjalananPengirimanNonEks(ctx context.Context, data PayloadUpdateInformasiPerjalananPengiriman, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "UpdateInformasiPengirimanNonEks"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -1242,7 +1242,7 @@ func UpdateInformasiPerjalananPengirimanNonEks(ctx context.Context, data Payload
 	}
 }
 
-func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNonEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "SampaiPengirimanNonEks"
 	var wg sync.WaitGroup
 	var final bool = false
@@ -1727,7 +1727,7 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 	}
 }
 
-func PickedUpPengirimanEks(ctx context.Context, data PayloadPickedUpPengirimanEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func PickedUpPengirimanEks(ctx context.Context, data PayloadPickedUpPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "PickedUpPengirimanEks"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -1885,7 +1885,7 @@ func PickedUpPengirimanEks(ctx context.Context, data PayloadPickedUpPengirimanEk
 	}
 }
 
-func KirimPengirimanEks(ctx context.Context, data PayloadKirimPengirimanEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func KirimPengirimanEks(ctx context.Context, data PayloadKirimPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "KirimPengirimanEks"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -2030,7 +2030,7 @@ func KirimPengirimanEks(ctx context.Context, data PayloadKirimPengirimanEks, db 
 	}
 }
 
-func UpdateInformasiPerjalananPengirimanEks(ctx context.Context, data PayloadUpdateInformasiPerjalananPengirimanEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UpdateInformasiPerjalananPengirimanEks(ctx context.Context, data PayloadUpdateInformasiPerjalananPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "UpdateInformasiPerjalananPengirimanEks"
 
 	if _, status := data.IdenititasKurir.Validating(ctx, db.Read, rds_session); !status {
@@ -2102,7 +2102,7 @@ func UpdateInformasiPerjalananPengirimanEks(ctx context.Context, data PayloadUpd
 	}
 }
 
-func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "SampaiPengirimanEks"
 	var wg sync.WaitGroup
 	var final bool = false
@@ -2501,7 +2501,7 @@ func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, d
 	}
 }
 
-func NonaktifkanBidKurir(ctx context.Context, data PayloadNonaktifkanBidKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func NonaktifkanBidKurir(ctx context.Context, data PayloadNonaktifkanBidKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "NonaktifkanBidKurir"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {

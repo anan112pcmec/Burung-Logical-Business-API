@@ -24,7 +24,6 @@ import (
 	payment_in_va "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/virtual_account"
 	payment_in_wallet "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/wallet"
 	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/jenis_kendaraan_kurir"
@@ -36,6 +35,7 @@ import (
 	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -44,7 +44,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
 )
 
-func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "CheckoutBarangUser"
 	log.Printf("[%s] Memulai proses checkout untuk user ID: %v", services, data.IdentitasPengguna.ID)
 
@@ -311,7 +311,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *con
 // Befungsi Untuk MembatalkanCheckout yang telah dilakukan
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
 	services := "BatalCheckoutKeranjang"
 
 	var varianIDs []int64
@@ -385,7 +385,7 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 // pendukungnya)
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *config.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
+func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	services := "SnapTransaksiUser"
 	fmt.Println("[TRACE] Start SnapTransaksi")
 
@@ -957,7 +957,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *co
 	}
 }
 
-func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.SnapTransaksi, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.SnapTransaksi, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
 	services := "BatalTransaksi"
 
 	var total_varian int64 = 0
@@ -1031,7 +1031,7 @@ func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.Snap
 // jenis pembayaran yang dilakukan oleh pengguna disini adalah VA (virtual account)
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func LockTransaksiVa(data PayloadLockTransaksiVa, db *config.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "LockTransaksiVa"
 
 	for i := 0; i < len(data.DataHold); i++ {
@@ -1309,7 +1309,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *config.InternalDBReadWrite
 	}
 }
 
-func PaidFailedTransaksiVa(data PayloadPaidFailedTransaksiVa, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func PaidFailedTransaksiVa(data PayloadPaidFailedTransaksiVa, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
 	services := "PaidFailedTransaksiVa"
 
 	bank, err_p := payment_gateaway.ParseVirtualAccount(data.PaymentResult)
@@ -1464,7 +1464,7 @@ func PaidFailedTransaksiVa(data PayloadPaidFailedTransaksiVa, db *config.Interna
 // jenis pembayaran yang dilakukan oleh pengguna disini adalah Wallet
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *config.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "LockTransaksiWallet"
 
 	for _, keranjang := range data.DataHold {
@@ -1666,7 +1666,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *config.InternalDBR
 	}
 }
 
-func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
 	services := "PaidFailedTransaksiWallet"
 
 	var resp payment_in_wallet.Response = &data.PaymentResult
@@ -1733,7 +1733,7 @@ func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *config
 // jenis pembayaran yang dilakukan oleh pengguna disini adalah Gerai
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *config.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "LockTransaksiGerai"
 
 	for _, keranjang := range data.DataHold {
@@ -1943,7 +1943,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *config.InternalDBRea
 	}
 }
 
-func PaidFailedTransaksiGerai(data PayloadPaidFailedTransaksiGerai, db *config.InternalDBReadWriteSystem) *response.ResponseForm {
+func PaidFailedTransaksiGerai(data PayloadPaidFailedTransaksiGerai, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
 	services := "PaidFailedTransaksiGerai"
 
 	var resp payment_in_gerai.Response = &data.PaymentResult

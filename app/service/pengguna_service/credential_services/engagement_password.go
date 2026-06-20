@@ -1,4 +1,4 @@
-package pengguna_credential_services
+﻿package pengguna_credential_services
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -32,7 +32,7 @@ import (
 // yang tidak diinginkan dan penyalahgunaan pihak lain pada sebuah akun
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client) *response.ResponseForm {
+func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client) *response.ResponseForm {
 	services := "PreUbahPasswordPengguna"
 
 	if data.FaktorKedua != "OTP" && data.FaktorKedua != "PIN" {
@@ -151,7 +151,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 	}
 }
 
-func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidateOTPPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidateOTPPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordPenggunaViaOtp"
 
 	var id_user int64
@@ -223,7 +223,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 
 }
 
-func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *config.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUbahPasswordPenggunaViaPin"
 
 	var pin_user string
@@ -301,7 +301,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 	}
 }
 
-func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MembuatSecretPinPengguna"
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
@@ -376,7 +376,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 	}
 }
 
-func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UpdateSecretPinPengguna"
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)

@@ -1,4 +1,4 @@
-package seller_credential_services
+﻿package seller_credential_services
 
 import (
 	"context"
@@ -10,15 +10,16 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,7 +27,7 @@ import (
 // Berfungsi untuk menambahkan rekening seller ke database
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "TambahRekeningSeller"
 
 	// validasi kredensial seller
@@ -157,7 +158,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 // Berfungsi untuk mengedit rekening seller di database
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditRekeningSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -241,7 +242,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *con
 // Berfungsi untuk mengubah rekening default
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekeningSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekeningSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "SetDefaultRekeningSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -327,7 +328,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 // Berfungsi untuk Menghapus Data Rekening Seller Yang sudah ada di db
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusRekeningSeller"
 
 	// Validasi kredensial seller

@@ -12,9 +12,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -29,7 +29,7 @@ import (
 // :Bertujuan Untuk menangani aksi Login Dari Pengguna atau seller atau kurir,
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func PenggunaLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "PenggunaLogin"
 	var user models.Pengguna
 
@@ -112,7 +112,7 @@ func PenggunaLogin(db *config.InternalDBReadWriteSystem, email, password string,
 	}
 }
 
-func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "SellerLogin"
 	var seller models.Seller
 
@@ -201,7 +201,7 @@ func SellerLogin(db *config.InternalDBReadWriteSystem, email, password string, r
 	}
 }
 
-func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "KurirLogin"
 
 	var kurir models.Kurir
@@ -294,7 +294,7 @@ func KurirLogin(db *config.InternalDBReadWriteSystem, email, password string, rd
 // :Manfaatnya tidak akan banyak akun spam, semua akun yang terintegrasi valid dengan gmail nya dan identitas lain
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func PreUserRegistration(db *config.InternalDBReadWriteSystem, username, nama, email, password string, rds *redis.Client) *response.ResponseForm {
+func PreUserRegistration(db *environment.InternalDBReadWriteSystem, username, nama, email, password string, rds *redis.Client) *response.ResponseForm {
 	services := "PreUserRegistration"
 	ctx := context.Background()
 
@@ -361,7 +361,7 @@ func PreUserRegistration(db *config.InternalDBReadWriteSystem, username, nama, e
 	}
 }
 
-func PreSellerRegistration(db *config.InternalDBReadWriteSystem, username, nama, email string, jenis string, SellerDedication string, password string, rds *redis.Client) *response.ResponseForm {
+func PreSellerRegistration(db *environment.InternalDBReadWriteSystem, username, nama, email string, jenis string, SellerDedication string, password string, rds *redis.Client) *response.ResponseForm {
 	services := "PreSellerRegistration"
 
 	var seller int64 = 0
@@ -436,7 +436,7 @@ func PreSellerRegistration(db *config.InternalDBReadWriteSystem, username, nama,
 	}
 }
 
-func PreKurirRegistration(db *config.InternalDBReadWriteSystem, nama, email, password, username string, rds *redis.Client) *response.ResponseForm {
+func PreKurirRegistration(db *environment.InternalDBReadWriteSystem, nama, email, password, username string, rds *redis.Client) *response.ResponseForm {
 	services := "PreKurirRegistration"
 
 	var kurir int64 = 0
@@ -506,7 +506,7 @@ func PreKurirRegistration(db *config.InternalDBReadWriteSystem, nama, email, pas
 // :Bermanfaat dalam memvalidasi sebuah pengguna (bukan orang iseng/bot/dll) supaya bisa dipertanggung jawabkan
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func ValidateUserRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateUserRegistration(db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUserRegistration"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -593,7 +593,7 @@ func ValidateUserRegistration(db *config.InternalDBReadWriteSystem, OTPkey strin
 	}
 }
 
-func ValidateSellerRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateSellerRegistration(db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateSellerRegistration"
 
 	// Context timeout untuk operasi Redis awal
@@ -681,7 +681,7 @@ func ValidateSellerRegistration(db *config.InternalDBReadWriteSystem, OTPkey str
 	}
 }
 
-func ValidateKurirRegistration(db *config.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 
 	services := "ValidateKurirRegistration"
 

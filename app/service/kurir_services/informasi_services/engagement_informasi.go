@@ -1,4 +1,4 @@
-package kurir_informasi_services
+﻿package kurir_informasi_services
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/config"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
+	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -21,7 +21,7 @@ import (
 	response_informasi_services_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services/response_informasi_services"
 )
 
-func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKendaraan, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "AjukanInformasiKendaraanKurir"
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
@@ -119,7 +119,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 	}
 }
 
-func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKendaraan, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditInformasiKendaraanKurir"
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
@@ -208,7 +208,7 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 	}
 }
 
-func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "AjukanInformasiKurir"
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
@@ -302,7 +302,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 	}
 }
 
-func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir, db *config.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditInformasiKurir"
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
