@@ -995,7 +995,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 		}
 	}
 
-	go func(R models.Review, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(IdTransaksi int64, R models.Review, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		penggunaThreshold := sot_threshold.PenggunaThreshold{
 			IdPengguna: R.IdPengguna,
 		}
@@ -1029,7 +1029,19 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 			fmt.Println("Gagal publish create review ke message broker")
 		}
 
-	}(newReview, db.Write, cud_publisher)
+		var DTU models.Transaksi
+		if err := Trh.WithContext(ctx).Model(&models.Transaksi{}).Where(&models.Transaksi{
+			ID: IdTransaksi,
+		}).Limit(1).Scan(&DTU).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data transaksi", err)
+		}
+
+		updateTransaksiPublish := mb_cud_serializer.NewJsonPayload().SetPayload(DTU).SetTableName("UpdateBerikanReviewBarangIIUpdateTransaksi").SetRole(mb_cud_seeders.Pengguna)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateTransaksiPublish); err != nil {
+			fmt.Println("Gagal publish update transaksi ke message broker")
+		}
+
+	}(id_transaksi_data_selesai, newReview, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -1098,8 +1110,15 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 			fmt.Println("Gagal increment count like review ke review threshold")
 		}
 
-		UpdateLikeReviewBarang := mb_cud_serializer.NewJsonPayload().SetPayload(IdReview).SetTableName(models.ReviewLike{}.TableName()).SetRole(mb_cud_seeders.Pengguna)
-		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](ctx_t, publisher, UpdateLikeReviewBarang); err != nil {
+		var R models.ReviewLike
+		if err := Trh.WithContext(ctx).Model(&models.ReviewLike{}).Where(&models.ReviewLike{
+			ID: IdReview,
+		}).Limit(1).Scan(&R).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data review")
+		}
+
+		CreateLikeReviewBarang := mb_cud_serializer.NewJsonPayload().SetPayload(R).SetTableName(R.TableName()).SetRole(mb_cud_seeders.Pengguna)
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](ctx_t, publisher, CreateLikeReviewBarang); err != nil {
 			fmt.Println("Gagal publish create review ke message broker")
 		}
 	}(id_review_like, db.Write, cud_publisher)
@@ -1169,8 +1188,15 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 			fmt.Println("Gagal increment count like review dislike ke review threshold")
 		}
 
-		UpdateUnlikeReviewBarang := mb_cud_serializer.NewJsonPayload().SetPayload(IdReview).SetTableName(models.ReviewLike{}.TableName()).SetRole(mb_cud_seeders.Pengguna)
-		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](ctx_t, publisher, UpdateUnlikeReviewBarang); err != nil {
+		var R models.ReviewLike
+		if err := Trh.WithContext(ctx).Model(&models.ReviewLike{}).Where(&models.ReviewLike{
+			ID: IdReview,
+		}).Limit(1).Scan(&R).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data review")
+		}
+
+		DeleteUnLikeReviewBarang := mb_cud_serializer.NewJsonPayload().SetPayload(R).SetTableName(R.TableName()).SetRole(mb_cud_seeders.Pengguna)
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](ctx_t, publisher, DeleteUnLikeReviewBarang); err != nil {
 			fmt.Println("Gagal publish create review ke message broker")
 		}
 	}(id_review_like, db.Write, cud_publisher)
