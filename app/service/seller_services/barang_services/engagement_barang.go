@@ -1083,7 +1083,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		}
 
 		for _, dk := range updatesDownKategori {
-			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Seller)
+			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(services).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 				fmt.Println("Gagal publish updated kategori barang stok ke message broker")
 			}
@@ -1161,7 +1161,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
-		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName("DownKategoriBarang").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
 			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
 		}

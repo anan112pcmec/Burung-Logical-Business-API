@@ -223,6 +223,7 @@ func UpSystemData(db *gorm.DB) {
 
 	modelsToMigrate := []interface{}{
 		&models.AlamatEkspedisi{},
+		&models.KebijakanSistem{},
 	}
 
 	wg.Add(len(modelsToMigrate))

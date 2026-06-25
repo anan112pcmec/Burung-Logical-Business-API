@@ -3,7 +3,7 @@ package pengiriman_enums
 // Enums jenis pengiriman
 var (
 	Reguler = "Reguler"
-	Fast    = "Fast"
+	Express = "Express"
 	Instant = "Instant"
 )
 

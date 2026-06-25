@@ -98,17 +98,33 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *env
 		}
 	}
 
-	var SlotTersisa int8 = 0
+	var QuerySlotTersisa string = "maksimal_bid_kurir_reguler"
 
 	switch data.JenisPengiriman {
 	case pengiriman_enums.Instant:
-		SlotTersisa = 1
-	case pengiriman_enums.Fast:
-		SlotTersisa = 5
+		QuerySlotTersisa = "maksimal_bid_kurir_instant"
+	case pengiriman_enums.Express:
+		QuerySlotTersisa = "maksimal_bid_kurir_express"
 	case pengiriman_enums.Reguler:
-		SlotTersisa = 8
+		QuerySlotTersisa = "maksimal_bid_kurir_reguler"
 	default:
-		SlotTersisa = 0
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal data jenis pengiriman tidak valid",
+		}
+	}
+
+	var SlotTersisa int
+
+	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select(QuerySlotTersisa).Where(&models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&SlotTersisa).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Ada kegagalan perhitungan di server",
+		}
 	}
 
 	if data.Mode == "manual" && data.JenisPengiriman != pengiriman_enums.Reguler {

@@ -135,6 +135,30 @@ func Run() {
 	maintain_cache.DataOperasionalPengirimanUp()
 
 	// Database Seeding (JSON Location Data)
+
+	var KebijakanSistemdata models.KebijakanSistem
+	if err := db_system.Read.Model(&models.KebijakanSistem{}).Where(&models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&KebijakanSistemdata).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		fmt.Println("Error DB saat read KebjakanSistemData", err)
+		return
+	} else {
+		byteValue, err := os.ReadFile("./operational_data/kebijakan_sistem.json")
+		if err != nil {
+			fmt.Println("Gagal baca file:", err)
+			return
+		}
+
+		if err := json.Unmarshal(byteValue, &KebijakanSistemdata); err != nil {
+			fmt.Println("Gagal unmarshal JSON:", err)
+			return
+		}
+
+		if err := db_system.Write.Create(&KebijakanSistemdata).Error; err != nil {
+			fmt.Println("gagal memasukan data kebijakan sistem ke dalam sistem:", err)
+		}
+
+	}
 	var dump_ekspedisi models.AlamatEkspedisi
 	err := db_system.Read.Model(&models.AlamatEkspedisi{}).Limit(1).Take(&dump_ekspedisi).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

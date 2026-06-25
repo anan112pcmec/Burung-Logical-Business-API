@@ -583,11 +583,21 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 	}
 
-	var biaya_platform = data_cache.OperationalPengirimanData.CommittedOperationalData.DataTarifPengiriman.TarifSistem
+	var HargaTarifKurirPerKg int64
+	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("tarif_per_kg").Where(&models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&HargaTarifKurirPerKg).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Ada kegagalan perhitungan di server",
+		}
+	}
+
 	var AlamatGudang map[int64]models.AlamatGudang = make(map[int64]models.AlamatGudang, lenData)
 	var dataTransaksi []response_transaction_pengguna.DataTransaksi = make([]response_transaction_pengguna.DataTransaksi, 0, lenData)
+	var fee_platform int64 = 0
 
-	fmt.Println("Berhasil Mengambil biaya platform:", biaya_platform)
 	for i := 0; i < lenData; i++ {
 		// Defensive: Validate price and weight
 		if data.DataCheckout.DataResponse[i].HargaKategori <= 0 {
@@ -610,7 +620,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 		totalHargapembelian := data.DataCheckout.DataResponse[i].HargaKategori * data.DataCheckout.DataResponse[i].Dipesan
 		beratTotal := data.DataCheckout.DataResponse[i].BeratKategori * int16(data.DataCheckout.DataResponse[i].Dipesan) / 1000
-		totalHargaBerat := data_cache.OperationalPengirimanData.CommittedOperationalData.DataTarifPengiriman.TarifKurirPerKg * int64(beratTotal)
+		totalHargaBerat := HargaTarifKurirPerKg * int64(beratTotal)
 
 		hasil = append(hasil, midtrans.ItemDetails{
 			ID:           fmt.Sprintf("%v--%v", data.DataCheckout.DataResponse[i].IdBarangInduk, data.DataCheckout.DataResponse[i].IdKategoriBarang),
@@ -745,32 +755,63 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 		}
 
-		if Jarak >= 80 {
+		var JarakMasukEkspedisi int
+
+		if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("jarak_masuk_ekspedisi").Where(&models.KebijakanSistem{
+			StatusActive: true,
+		}).Limit(1).Take(&JarakMasukEkspedisi).Error; err != nil {
+			return &response.ResponseForm{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+				Message:  "terjadi kesalahan di perhitungan sistem",
+			}
+		}
+
+		if Jarak >= float64(JarakMasukEkspedisi) {
 			isEkspedisi = true
 		}
 
 		// Defensive: Validate delivery service type
-		validLayanan := map[string]bool{"reguler": true, "fast": true, "instant": true}
+		validLayanan := map[string]bool{"reguler": true, "express": true, "instant": true}
 		if !validLayanan[data.LayananPengirimanKurir] {
 			data.LayananPengirimanKurir = "reguler"
 		}
 
+		var maxKmQuery string = ""
+		var TarifQuery string = "tarif_pengiriman_reguler"
 		switch data.LayananPengirimanKurir {
-		case "fast":
-			if Jarak > 50 {
-				data.LayananPengirimanKurir = "reguler"
-			}
+		case "express":
+			maxKmQuery = "max_jarak_km_express"
+			TarifQuery = "tarif_pengiriman_express"
 		case "instant":
-			if Jarak > 30 {
-				data.LayananPengirimanKurir = "reguler"
-			}
-		default:
-			// Already reguler or handled above
+			maxKmQuery = "max_jarak_km_instant"
+			TarifQuery = "tarif_pengiriman_instant"
 		}
 
-		// Defensive: Validate tarif data exists
-		if _, exists := data_cache.DataTarifJenisPengiriman[data.LayananPengirimanKurir]; !exists {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+		if maxKmQuery == "" {
+			continue
+		} else {
+			var jaraks int
+
+			if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select(maxKmQuery).Where(&models.KebijakanSistem{
+				StatusActive: true,
+			}).Limit(1).Take(&jaraks).Error; err != nil {
+				return &response.ResponseForm{
+					Status:   http.StatusInternalServerError,
+					Services: services,
+					Message:  "Ada kegagalan perhitungan di server",
+				}
+			}
+
+			if Jarak > float64(jaraks) {
+				data.LayananPengirimanKurir = "reguler"
+			}
+		}
+
+		var Tarif int64 = 0
+		if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select(TarifQuery).Where(&models.KebijakanSistem{
+			StatusActive: true,
+		}).Limit(1).Take(&Tarif).Error; err != nil {
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -778,7 +819,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 		}
 
-		hargaJarak += data_cache.DataTarifJenisPengiriman[data.LayananPengirimanKurir].Harga
+		hargaJarak += Tarif * int64(Jarak)
 
 		var hargaEkspedisi int64 = 0
 		if isEkspedisi {
@@ -841,8 +882,23 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			Jarak:             Jarak,
 			TotalTagihan:      int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi,
 		}
+
+		fee_platform += dataTransaksiIterasi.TotalTagihan
 		dataTransaksi = append(dataTransaksi, dataTransaksiIterasi)
 	}
+
+	var persen_platform float32
+	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("komisi_sistem_per_transaksi_kebijakan_sistem").Where(&models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&persen_platform).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Ada kegagalan perhitungan di server",
+		}
+	}
+
+	fee_platform = int64(float32(persen_platform) * float32(fee_platform))
 
 	var harga_kirim int64 = 0
 	for i := 0; i < len(dataTransaksi); i++ {
@@ -862,13 +918,13 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 	// ==== Biaya aplikasi ====
 	hasil = append(hasil, midtrans.ItemDetails{
 		ID:           "fee-app",
-		Price:        biaya_platform,
+		Price:        fee_platform,
 		Qty:          1,
 		Name:         "Biaya Aplikasi",
 		MerchantName: "Platform",
 		Category:     "fee",
 	})
-	total += biaya_platform
+	total += fee_platform
 
 	// Defensive: Add item prices to total
 	for i := 0; i < len(dataTransaksi); i++ {
