@@ -4,11 +4,32 @@ Backend service untuk operasi bisnis inti — menangani write, read, penyimpanan
 
 ## Stack
 
-![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
-![MinIO](https://img.shields.io/badge/MinIO-C72E49?logo=minio&logoColor=white)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-FF4438?logo=redis&logoColor=white)
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="90">
+        <img src="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_LightBlue.png" height="40" alt="go logo" />
+        <br/><sub><b>Go</b></sub>
+      </td>
+      <td align="center" width="90">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" height="40" alt="postgresql logo" />
+        <br/><sub><b>PostgreSQL</b></sub>
+      </td>
+      <td align="center" width="90">
+        <img src="https://cdn.simpleicons.org/minio/C72E49" height="40" alt="minio logo" />
+        <br/><sub><b>MinIO</b></sub>
+      </td>
+      <td align="center" width="90">
+        <img src="https://cdn.simpleicons.org/rabbitmq/FF6600" height="40" alt="rabbitmq logo" />
+        <br/><sub><b>RabbitMQ</b></sub>
+      </td>
+      <td align="center" width="90">
+        <img src="https://cdn.simpleicons.org/redis/FF4438" height="40" alt="redis logo" />
+        <br/><sub><b>Redis</b></sub>
+      </td>
+    </tr>
+  </table>
+</div> 
 
 ## Architecture
 
