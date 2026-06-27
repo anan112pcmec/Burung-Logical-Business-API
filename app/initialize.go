@@ -137,27 +137,71 @@ func Run() {
 	// Database Seeding (JSON Location Data)
 
 	var KebijakanSistemdata models.KebijakanSistem
-	if err := db_system.Read.Model(&models.KebijakanSistem{}).Where(&models.KebijakanSistem{
-		StatusActive: true,
-	}).Limit(1).Take(&KebijakanSistemdata).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		fmt.Println("Error DB saat read KebjakanSistemData", err)
-		return
-	} else {
-		byteValue, err := os.ReadFile("./operational_data/kebijakan_sistem.json")
-		if err != nil {
-			fmt.Println("Gagal baca file:", err)
+
+	if err := db_system.Read.Model(&models.KebijakanSistem{}).
+		Where(&models.KebijakanSistem{StatusActive: true}).
+		Limit(1).Take(&KebijakanSistemdata).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Data tidak ada di DB, ambil dari JSON (Fallback)
+			fmt.Println("Data KebijakanSistem tidak ditemukan di DB. Membaca dari JSON...")
+
+			byteValue, err := os.ReadFile("./operational_data/kebijakan_sistem.json")
+			if err != nil {
+				fmt.Println("Gagal baca file JSON KebijakanSistem:", err)
+				return
+			}
+
+			if err := json.Unmarshal(byteValue, &KebijakanSistemdata); err != nil {
+				fmt.Println("Gagal unmarshal JSON KebijakanSistem:", err)
+				return
+			}
+
+			// Simpan data dari JSON ke DB Write
+			if err := db_system.Write.Create(&KebijakanSistemdata).Error; err != nil {
+				fmt.Println("Gagal memasukan data KebijakanSistem ke DB:", err)
+			} else {
+				fmt.Println("Berhasil sinkronisasi KebijakanSistem dari JSON ke DB.")
+			}
+		} else {
+			// Error database lainnya (misal: koneksi putus)
+			fmt.Println("Error DB saat read KebijakanSistemData:", err)
 			return
 		}
+	}
 
-		if err := json.Unmarshal(byteValue, &KebijakanSistemdata); err != nil {
-			fmt.Println("Gagal unmarshal JSON:", err)
+	// ==========================================
+	// 2. VERSI REKENING SISTEM (Sesuai Request)
+	// ==========================================
+	var RekeningSistemdata models.RekeningSistem
+
+	if err := db_system.Read.Model(&models.RekeningSistem{}).
+		Where(&models.RekeningSistem{CurrentActive: true}). // Sesuaikan field status di modelmu jika berbeda
+		Limit(1).Take(&RekeningSistemdata).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Data tidak ada di DB, ambil dari JSON (Fallback)
+			fmt.Println("Data RekeningSistem tidak ditemukan di DB. Membaca dari JSON...")
+
+			byteValue, err := os.ReadFile("./operational_data/rekening_sistem.json")
+			if err != nil {
+				fmt.Println("Gagal baca file JSON RekeningSistem:", err)
+				return
+			}
+
+			if err := json.Unmarshal(byteValue, &RekeningSistemdata); err != nil {
+				fmt.Println("Gagal unmarshal JSON RekeningSistem:", err)
+				return
+			}
+
+			// Simpan data dari JSON ke DB Write
+			if err := db_system.Write.Create(&RekeningSistemdata).Error; err != nil {
+				fmt.Println("Gagal memasukan data RekeningSistem ke DB:", err)
+			} else {
+				fmt.Println("Berhasil sinkronisasi RekeningSistem dari JSON ke DB.")
+			}
+		} else {
+			fmt.Println("Error DB saat read RekeningSistemData:", err)
 			return
 		}
-
-		if err := db_system.Write.Create(&KebijakanSistemdata).Error; err != nil {
-			fmt.Println("gagal memasukan data kebijakan sistem ke dalam sistem:", err)
-		}
-
 	}
 	var dump_ekspedisi models.AlamatEkspedisi
 	err := db_system.Read.Model(&models.AlamatEkspedisi{}).Limit(1).Take(&dump_ekspedisi).Error

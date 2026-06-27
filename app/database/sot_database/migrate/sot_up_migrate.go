@@ -219,11 +219,13 @@ func UpEngagementEntity(db *gorm.DB) {
 
 func UpSystemData(db *gorm.DB) {
 	var wg sync.WaitGroup
-	errCh := make(chan error, 1)
+	errCh := make(chan error, 4)
 
 	modelsToMigrate := []interface{}{
 		&models.AlamatEkspedisi{},
 		&models.KebijakanSistem{},
+		&models.RekeningSistem{},
+		&models.PayOutSistem{},
 	}
 
 	wg.Add(len(modelsToMigrate))

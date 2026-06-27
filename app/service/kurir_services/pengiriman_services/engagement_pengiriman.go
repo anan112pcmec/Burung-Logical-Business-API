@@ -1374,6 +1374,7 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 	var (
 		dataRekeningSeller models.RekeningSeller
 		dataRekeningKurir  models.RekeningKurir
+		dataRekeningSistem models.RekeningSistem
 		NamaKotaSeller     string
 		NamaKotaKurir      string
 		EmailSeller        string
@@ -1407,6 +1408,16 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal menemukan rekening kurir",
+		}
+	}
+
+	if err := db.Read.WithContext(ctx).Model(&models.RekeningSistem{}).Where(&models.RekeningSistem{
+		CurrentActive: true,
+	}).Limit(1).Take(&dataRekeningSistem).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal menemukan rekening sistem",
 		}
 	}
 
@@ -1474,6 +1485,22 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 		}
 	}
 
+	dataDisburstMentSistem, SistemSucess := payment_out_disbursment.ReqCreateDisbursment(payment_out_disbursment.PayloadCreateDisbursment{
+		AccountNumber:    dataRekeningSistem.NomorRekening,
+		BankCode:         dataRekeningSistem.NamaBank,
+		Amount:           strconv.Itoa(int(dataTransaksi.SistemPaid)),
+		Remark:           "Komisi sistem",
+		ReciepentCity:    payment_out_constanta.CityFlipJawaCode[dataRekeningSistem.PusatKota],
+		BeneficiaryEmail: "burung@gmail.com",
+	})
+
+	if !SistemSucess {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang gangguan mohon bersabar dan coba ulang",
+		}
+	}
 	if !dataDisbursmentSeller.Validating() {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -1494,6 +1521,7 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 	saveDisbursmentSeller := models.PayOutSeller{
 		IdSeller:         int64(dataTransaksi.IdSeller),
 		IdDisbursment:    DisbursmentSeller.ID,
+		IdTransaksi:      IdTransaksiPengiriman,
 		UserId:           int(DisbursmentSeller.UserID),
 		Amount:           int(DisbursmentSeller.Amount),
 		Status:           DisbursmentSeller.Status,
@@ -1521,6 +1549,7 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 	DisbursmentKurir := dataDisbursmentKurir.ReturnDisburstment()
 	saveDisbursmentKurir := models.PayOutKurir{
 		IdKurir:          data.IdentitasKurir.IdKurir, // Pastikan field ini ada
+		IdPengiriman:     data.IdPengiriman,
 		IdDisbursment:    DisbursmentKurir.ID,
 		UserId:           int(DisbursmentKurir.UserID),
 		Amount:           int(DisbursmentKurir.Amount),
@@ -1546,6 +1575,33 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 		IsVirtualAccount: DisbursmentKurir.IsVirtualAccount,
 	}
 
+	DisburstmentSistem := dataDisburstMentSistem.ReturnDisburstment()
+	saveDisburstmentSistem := models.PayOutSistem{
+		IdDisburstment:   DisburstmentSistem.ID,
+		IdTransaksi:      IdTransaksiPengiriman,
+		UserId:           int(DisbursmentKurir.UserID),
+		Amount:           int(DisbursmentKurir.Amount),
+		Status:           DisburstmentSistem.Status,
+		Reason:           DisburstmentSistem.Reason,
+		Timestamp:        DisburstmentSistem.Timestamp,
+		BankCode:         DisburstmentSistem.BankCode,
+		AccountNumber:    DisburstmentSistem.AccountNumber,
+		RecipientName:    DisburstmentSistem.RecipientName,
+		SenderBank:       DisburstmentSistem.SenderBank,
+		Remark:           DisburstmentSistem.Remark,
+		Receipt:          DisburstmentSistem.Receipt,
+		TimeServed:       DisburstmentSistem.TimeServed,
+		BundleId:         DisburstmentSistem.BundleID,
+		CompanyId:        DisburstmentSistem.CompanyID,
+		RecipientCity:    DisburstmentSistem.RecipientCity,
+		CreatedFrom:      DisburstmentSistem.CreatedFrom,
+		Direction:        DisburstmentSistem.Direction,
+		Sender:           DisburstmentSistem.Sender,
+		Fee:              DisburstmentSistem.Fee,
+		BeneficiaryEmail: DisburstmentSistem.BeneficiaryEmail,
+		IdempotencyKey:   DisburstmentSistem.IdempotencyKey,
+		IsVirtualAccount: DisburstmentSistem.IsVirtualAccount,
+	}
 	var deletedBidKurirNonEksScheduler models.BidKurirNonEksScheduler
 	if err := db.Read.WithContext(ctx).Model(&models.BidKurirNonEksScheduler{}).Where(&models.BidKurirNonEksScheduler{
 		IdBid:        data.IdBidKurir,
@@ -1598,6 +1654,10 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 		}
 
 		if err := tx.Create(&saveDisbursmentKurir).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&saveDisburstmentSistem).Error; err != nil {
 			return err
 		}
 
@@ -2288,6 +2348,7 @@ func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, d
 	saveDisbursmentKurir := models.PayOutKurir{
 		IdKurir:          data.IdentitasKurir.IdKurir,
 		IdDisbursment:    DisbursmentKurir.ID,
+		IdPengiriman:     data.IdPengirimanEks,
 		UserId:           int(DisbursmentKurir.UserID),
 		Amount:           int(DisbursmentKurir.Amount),
 		Status:           DisbursmentKurir.Status,

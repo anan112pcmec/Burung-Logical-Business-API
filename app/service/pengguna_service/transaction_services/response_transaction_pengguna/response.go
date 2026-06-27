@@ -4,7 +4,6 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-
 )
 
 type CheckoutData struct {
@@ -58,7 +57,8 @@ type DataTransaksi struct {
 	LayananKurir      string  `json:"layanan_kurir"`   // layanan kurir yang dipilih (reguler, fast, instant)
 	Jarak             float64 `json:"jarak_km"`        // jarak pengiriman
 	IsEkspedisi       bool    `json:"is_ekspedisi"`    // true jika pengiriman antar provinsi/kota
-	TotalTagihan      int64   `json:"total_tagihan"`   // total semua biaya
+	KomisiSistem      int64   `json:"komisi_sistem"`
+	TotalTagihan      int64   `json:"total_tagihan"` // total semua biaya
 }
 
 type SnapTransaksi struct {

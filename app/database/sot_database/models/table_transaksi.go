@@ -55,6 +55,7 @@ type Transaksi struct {
 	IsEkspedisi         bool           `gorm:"column:is_ekspedisi;not null;default:false" json:"is_ekspedisi"`
 	SellerPaid          int64          `gorm:"column:seller_paid;type:int8;not null" json:"seller_paid"`
 	KurirPaid           int64          `gorm:"column:kurir_paid;type:int8;not null" json:"kurir_paid"`
+	SistemPaid          int64          `gorm:"column:sistem_paid;int8;not null" json:"sistem_paid"`
 	EkspedisiPaid       int64          `gorm:"column:ekspedisi_paid;type:int8;not null" json:"ekspedisi_paid"`
 	Total               int64          `gorm:"column:total;type:int8;not null" json:"total"`
 	Reviewed            bool           `gorm:"column:reviewed;type:bool;not null;default:false" json:"reviewed"`

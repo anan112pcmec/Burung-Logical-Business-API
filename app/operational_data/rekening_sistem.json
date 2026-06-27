@@ -1,0 +1,11 @@
+{
+  "id_rekening_sistem": 1,
+  "nama_bank_rekening_sistem": "Bank Central Asia (BCA)",
+  "nomor_rekening_sistem": "8001234567",
+  "pemilik_rekening_sistem": "PT Maju Mundur Sejahtera",
+  "pusat_kota_rekening_sistem": "Jakarta Pusat",
+  "current": true,
+  "created_at": "2026-06-27T18:00:00Z",
+  "updated_at": "2026-06-27T18:30:00Z",
+  "deleted_at": null
+}

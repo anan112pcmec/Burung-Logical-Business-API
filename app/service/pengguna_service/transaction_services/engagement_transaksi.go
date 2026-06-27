@@ -598,6 +598,17 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 	var dataTransaksi []response_transaction_pengguna.DataTransaksi = make([]response_transaction_pengguna.DataTransaksi, 0, lenData)
 	var fee_platform int64 = 0
 
+	var persen_platform float32
+	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("komisi_sistem_per_transaksi_kebijakan_sistem").Where(&models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&persen_platform).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Ada kegagalan perhitungan di server",
+		}
+	}
+
 	for i := 0; i < lenData; i++ {
 		// Defensive: Validate price and weight
 		if data.DataCheckout.DataResponse[i].HargaKategori <= 0 {
@@ -872,6 +883,9 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 		}
 
+		fee_platform += int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi
+		datafee := int64(float32(persen_platform) * float32(int64(totalHargapembelian)+totalHargaBerat+hargaJarak+hargaEkspedisi))
+
 		dataTransaksiIterasi := response_transaction_pengguna.DataTransaksi{
 			IdAlamatEkspedisi: IdAlamatEkspedisi,
 			HargaBarang:       int64(totalHargapembelian),
@@ -879,23 +893,12 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			HargaJarak:        hargaJarak,
 			HargaEkspedisi:    hargaEkspedisi,
 			IsEkspedisi:       isEkspedisi,
+			KomisiSistem:      datafee,
 			Jarak:             Jarak,
-			TotalTagihan:      int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi,
+			TotalTagihan:      int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi + datafee,
 		}
 
-		fee_platform += dataTransaksiIterasi.TotalTagihan
 		dataTransaksi = append(dataTransaksi, dataTransaksiIterasi)
-	}
-
-	var persen_platform float32
-	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("komisi_sistem_per_transaksi_kebijakan_sistem").Where(&models.KebijakanSistem{
-		StatusActive: true,
-	}).Limit(1).Take(&persen_platform).Error; err != nil {
-		return &response.ResponseForm{
-			Status:   http.StatusInternalServerError,
-			Services: services,
-			Message:  "Ada kegagalan perhitungan di server",
-		}
 	}
 
 	fee_platform = int64(float32(persen_platform) * float32(fee_platform))
@@ -1240,6 +1243,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 				IsEkspedisi:         data.DataTransaksi[i].IsEkspedisi,
 				SellerPaid:          data.DataTransaksi[i].HargaBarang,
 				KurirPaid:           data.DataTransaksi[i].HargaBerat + data.DataTransaksi[i].HargaJarak,
+				SistemPaid:          data.DataTransaksi[i].KomisiSistem,
 				EkspedisiPaid:       data.DataTransaksi[i].HargaEkspedisi,
 				Total:               data.DataTransaksi[i].TotalTagihan,
 			})
@@ -1599,6 +1603,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 				IsEkspedisi:         data.DataTransaksi[i].IsEkspedisi,
 				SellerPaid:          data.DataTransaksi[i].HargaBarang,
 				KurirPaid:           data.DataTransaksi[i].HargaBerat + data.DataTransaksi[i].HargaJarak,
+				SistemPaid:          data.DataTransaksi[i].KomisiSistem,
 				EkspedisiPaid:       data.DataTransaksi[i].HargaEkspedisi,
 				Total:               data.DataTransaksi[i].TotalTagihan,
 			})
@@ -1876,6 +1881,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 				IsEkspedisi:         data.DataTransaksi[i].IsEkspedisi,
 				SellerPaid:          data.DataTransaksi[i].HargaBarang,
 				KurirPaid:           data.DataTransaksi[i].HargaBerat + data.DataTransaksi[i].HargaJarak,
+				SistemPaid:          data.DataTransaksi[i].KomisiSistem,
 				EkspedisiPaid:       data.DataTransaksi[i].HargaEkspedisi,
 				Total:               data.DataTransaksi[i].TotalTagihan,
 			})
