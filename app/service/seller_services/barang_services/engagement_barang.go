@@ -835,6 +835,107 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 	}
 }
 
+func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUbahHargaKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	services := "UbahHargaKategoriBarang"
+
+	// 1. Validasi kredensial seller
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal: Kredensial seller tidak valid",
+		}
+	}
+
+	// 2. Ambil data kategori untuk mengecek kepemilikan dan status keaktifannya
+	var data_kategori models.KategoriBarang
+	if err := db.Read.WithContext(ctx).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+		ID:            data.IdKategoriBarang,
+		IdBarangInduk: data.IdBarangInduk,
+		SellerID:      data.IdentitasSeller.IdSeller,
+	}).Limit(1).Scan(&data_kategori).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if data_kategori.ID == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data kategori barang tidak valid",
+		}
+	}
+
+	// =========================================================================
+	// [VALIDASI CRITICAL]: Harga hanya boleh diubah jika kategori sudah "Down"
+	// =========================================================================
+	// Catatan: Ganti `IsActive` atau kondisinya sesuai dengan nama field status di struct Anda
+	// (misal: data_kategori.Status == "Active")
+	var exist_varian_transaksi int64 = 0
+	if errStock := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").
+		Where("id_barang_induk = ? AND id_kategori = ? AND status IN ?", data.IdBarangInduk, data.IdKategoriBarang, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
+		Limit(1).Scan(&exist_varian_transaksi).Error; errStock != nil {
+	}
+
+	if exist_varian_transaksi != 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusConflict,
+			Services: services,
+			Message:  "Gagal Kategori ini masih ada dalam transaksi yang belum selesai, Down kan dulu",
+		}
+	}
+
+	// 3. Eksekusi update harga di dalam database transaction
+	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			ID: data.IdKategoriBarang,
+		}).Updates(&models.KategoriBarang{
+			Harga: int32(data.HargaBarangBaru),
+		}).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		fmt.Println(err)
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	// 4. Jalankan broadcast update ke Message Broker secara asynchronous
+	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ctx_t := context.Background()
+		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		defer cancel()
+
+		var dataKategoriBarangUpdated models.KategoriBarang
+		if err := Read.WithContext(konteks).Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			ID: IdKb,
+		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data kategori barang untuk publish")
+			return
+		}
+
+		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
+			fmt.Printf("Gagal publish update harga kategori barang Id: %v ke message broker\n", IdKb)
+		}
+	}(data.IdKategoriBarang, db.Read, cud_publisher)
+
+	log.Printf("[INFO] Harga kategori barang berhasil diubah pada barang induk ID %d oleh seller ID %d (kondisi aman / down)", data.IdBarangInduk, data.IdentitasSeller.IdSeller)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Harga kategori barang berhasil diubah.",
+	}
+}
+
 // ////////////////////////////////////////////////////////////////////////////////
 // STOK BARANG
 // ////////////////////////////////////////////////////////////////////////////////

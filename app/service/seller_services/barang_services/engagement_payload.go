@@ -76,6 +76,13 @@ type PayloadHapusKategori struct {
 	IdKategoriBarang int64                          `json:"id_kategori_barang"`
 }
 
+type PayloadUbahHargaKategori struct {
+	IdentitasSeller  identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBarangInduk    int32                          `json:"id_barang_induk_edit_kategori"`
+	IdKategoriBarang int64                          `json:"id_kategori_barang"`
+	HargaBarangBaru  int64                          `json:"harga_barang_baru"`
+}
+
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Payload Struct Edit Stok Kategori
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

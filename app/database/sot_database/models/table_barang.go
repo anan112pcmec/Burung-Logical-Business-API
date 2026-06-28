@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-
 )
 
 type BarangContract interface {

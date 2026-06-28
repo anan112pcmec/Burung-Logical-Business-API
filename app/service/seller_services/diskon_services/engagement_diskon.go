@@ -63,14 +63,25 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		}
 	}
 
+	var KebijakanSistem models.KebijakanSistem
+	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Where(&models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&KebijakanSistem).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Ada kegagalan perhitungan di server",
+		}
+	}
+
 	var limit int = 0
 	switch seller.Jenis {
 	case "Personal":
-		limit = 5
+		limit = int(KebijakanSistem.LimitMembuatDiskonPersonal)
 	case "Distributor":
-		limit = 10
+		limit = int(KebijakanSistem.LimitMembuatDiskonDistributor)
 	case "Brand":
-		limit = 15
+		limit = int(KebijakanSistem.LimitMembuatDiskonBrand)
 	}
 
 	var id_diskon_produks []int64
