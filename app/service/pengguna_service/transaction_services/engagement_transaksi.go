@@ -25,6 +25,7 @@ import (
 	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
+	enums_barang_di_diskon "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang_di_diskon"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/jenis_kendaraan_kurir"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
@@ -187,6 +188,16 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 			NamaSeller[int64(data.DataCheckout[i].IdSeller)] = namaSeller
 		}
 
+		var IdDiskon int64 = 0
+		if err := db.Read.WithContext(ctx).Model(&models.BarangDiDiskon{}).Select("id_diskon").Where(&models.BarangDiDiskon{
+			SellerId:         data.DataCheckout[i].IdSeller,
+			IdBarangInduk:    data.DataCheckout[i].IdBarangInduk,
+			IdKategoriBarang: data.DataCheckout[i].IdKategori,
+			Status:           enums_barang_di_diskon.Applied,
+		}).Limit(1).Take(&IdDiskon).Error; err != nil {
+			fmt.Println(err)
+		}
+
 		resp := response_transaction_pengguna.CheckoutData{
 			IDUser:           data.IdentitasPengguna.ID,
 			IDSeller:         data.DataCheckout[i].IdSeller,
@@ -197,6 +208,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 			IdAlamatGudang:   KategoriBarang[data.DataCheckout[i].IdKategori].IDAlamat,
 			HargaKategori:    KategoriBarang[data.DataCheckout[i].IdKategori].Harga,
 			NamaBarang:       BarangInduk[int64(data.DataCheckout[i].IdBarangInduk)].NamaBarang,
+			IdDiskon:         IdDiskon,
 			NamaKategori:     KategoriBarang[data.DataCheckout[i].IdKategori].Nama,
 			BeratKategori:    KategoriBarang[data.DataCheckout[i].IdKategori].BeratGram,
 			Dipesan:          int32(data.DataCheckout[i].Jumlah),
@@ -389,24 +401,6 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 	services := "SnapTransaksiUser"
 	fmt.Println("[TRACE] Start SnapTransaksi")
 
-	// Defensive: Validate context
-	if ctx == nil {
-		return &response.ResponseForm{
-			Status:   http.StatusBadRequest,
-			Services: services,
-			Message:  "Context tidak valid",
-		}
-	}
-
-	// Defensive: Validate database connection
-	if db == nil {
-		return &response.ResponseForm{
-			Status:   http.StatusInternalServerError,
-			Services: services,
-			Message:  "Database connection tidak tersedia",
-		}
-	}
-
 	model, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
@@ -416,16 +410,15 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 	}
 
-	// Defensive: Validate checkout data
-	if len(data.DataCheckout.DataResponse) == 0 {
+	lenData := len(data.DataCheckout.DataResponse)
+
+	if lenData == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
 			Message:  "Data checkout kosong",
 		}
 	}
-
-	lenData := len(data.DataCheckout.DataResponse)
 
 	var sellerTransaction map[int32]models.Seller = make(map[int32]models.Seller, lenData)
 
@@ -573,20 +566,10 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	var hasil []midtrans.ItemDetails = make([]midtrans.ItemDetails, 0, lenData)
 
-	// Defensive: Validate operational data
-	if data_cache.OperationalPengirimanData.CommittedOperationalData.DataTarifPengiriman.TarifSistem <= 0 {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
-		return &response.ResponseForm{
-			Status:   http.StatusInternalServerError,
-			Services: services,
-			Message:  "Tarif sistem tidak valid",
-		}
-	}
-
-	var HargaTarifKurirPerKg int64
-	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("tarif_per_kg").Where(&models.KebijakanSistem{
+	var KebijakanSistem models.KebijakanSistem
+	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Where(&models.KebijakanSistem{
 		StatusActive: true,
-	}).Limit(1).Take(&HargaTarifKurirPerKg).Error; err != nil {
+	}).Limit(1).Take(&KebijakanSistem).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -597,17 +580,6 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 	var AlamatGudang map[int64]models.AlamatGudang = make(map[int64]models.AlamatGudang, lenData)
 	var dataTransaksi []response_transaction_pengguna.DataTransaksi = make([]response_transaction_pengguna.DataTransaksi, 0, lenData)
 	var fee_platform int64 = 0
-
-	var persen_platform float32
-	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("komisi_sistem_per_transaksi_kebijakan_sistem").Where(&models.KebijakanSistem{
-		StatusActive: true,
-	}).Limit(1).Take(&persen_platform).Error; err != nil {
-		return &response.ResponseForm{
-			Status:   http.StatusInternalServerError,
-			Services: services,
-			Message:  "Ada kegagalan perhitungan di server",
-		}
-	}
 
 	for i := 0; i < lenData; i++ {
 		// Defensive: Validate price and weight
@@ -631,7 +603,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 		totalHargapembelian := data.DataCheckout.DataResponse[i].HargaKategori * data.DataCheckout.DataResponse[i].Dipesan
 		beratTotal := data.DataCheckout.DataResponse[i].BeratKategori * int16(data.DataCheckout.DataResponse[i].Dipesan) / 1000
-		totalHargaBerat := HargaTarifKurirPerKg * int64(beratTotal)
+		totalHargaBerat := int64(KebijakanSistem.TarifPerkg) * int64(beratTotal)
 
 		hasil = append(hasil, midtrans.ItemDetails{
 			ID:           fmt.Sprintf("%v--%v", data.DataCheckout.DataResponse[i].IdBarangInduk, data.DataCheckout.DataResponse[i].IdKategoriBarang),
@@ -766,19 +738,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 		}
 
-		var JarakMasukEkspedisi int
-
-		if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select("jarak_masuk_ekspedisi").Where(&models.KebijakanSistem{
-			StatusActive: true,
-		}).Limit(1).Take(&JarakMasukEkspedisi).Error; err != nil {
-			return &response.ResponseForm{
-				Status:   http.StatusInternalServerError,
-				Services: services,
-				Message:  "terjadi kesalahan di perhitungan sistem",
-			}
-		}
-
-		if Jarak >= float64(JarakMasukEkspedisi) {
+		if Jarak >= float64(KebijakanSistem.JarakMasukEkspedisi) {
 			isEkspedisi = true
 		}
 
@@ -788,46 +748,18 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			data.LayananPengirimanKurir = "reguler"
 		}
 
-		var maxKmQuery string = ""
-		var TarifQuery string = "tarif_pengiriman_reguler"
+		var Tarif int64 = int64(KebijakanSistem.TarifPengirimanRegulerPerKm)
 		switch data.LayananPengirimanKurir {
 		case "express":
-			maxKmQuery = "max_jarak_km_express"
-			TarifQuery = "tarif_pengiriman_express"
-		case "instant":
-			maxKmQuery = "max_jarak_km_instant"
-			TarifQuery = "tarif_pengiriman_instant"
-		}
-
-		if maxKmQuery == "" {
-			continue
-		} else {
-			var jaraks int
-
-			if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select(maxKmQuery).Where(&models.KebijakanSistem{
-				StatusActive: true,
-			}).Limit(1).Take(&jaraks).Error; err != nil {
-				return &response.ResponseForm{
-					Status:   http.StatusInternalServerError,
-					Services: services,
-					Message:  "Ada kegagalan perhitungan di server",
-				}
-			}
-
-			if Jarak > float64(jaraks) {
+			if Jarak > float64(KebijakanSistem.MaxJarakKmExpress) {
 				data.LayananPengirimanKurir = "reguler"
 			}
-		}
-
-		var Tarif int64 = 0
-		if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Select(TarifQuery).Where(&models.KebijakanSistem{
-			StatusActive: true,
-		}).Limit(1).Take(&Tarif).Error; err != nil {
-			return &response.ResponseForm{
-				Status:   http.StatusInternalServerError,
-				Services: services,
-				Message:  "Tarif pengiriman tidak tersedia",
+			Tarif = int64(KebijakanSistem.TarifPengirimanExpressPerKm)
+		case "instant":
+			if Jarak > float64(KebijakanSistem.MaxJarakKmInstant) {
+				data.LayananPengirimanKurir = "reguler"
 			}
+			Tarif = int64(KebijakanSistem.TarifPengirimanInstantPerKm)
 		}
 
 		hargaJarak += Tarif * int64(Jarak)
@@ -883,25 +815,42 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 		}
 
-		fee_platform += int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi
-		datafee := int64(float32(persen_platform) * float32(int64(totalHargapembelian)+totalHargaBerat+hargaJarak+hargaEkspedisi))
+		totalTagihanTransaksi := int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi
+		if data.DataCheckout.DataResponse[i].IdDiskon != 0 {
+
+			var diskonPersen float32
+			if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Select("diskon_persen").Where(&models.DiskonProduk{
+				ID: data.DataCheckout.DataResponse[i].IdDiskon}).Limit(1).Take(&diskonPersen).Error; err != nil {
+				return &response.ResponseForm{
+					Status:   http.StatusInternalServerError,
+					Services: services,
+					Message:  "Terjadi kesalahan pada sistem",
+				}
+			}
+
+			totalTagihanTransaksi = totalTagihanTransaksi - int64(float32(totalTagihanTransaksi)*diskonPersen)
+		}
+
+		fee_platform += totalTagihanTransaksi
+		datafee := int64(float32(KebijakanSistem.KomisiSistemPerTransaksi) * float32(totalTagihanTransaksi))
 
 		dataTransaksiIterasi := response_transaction_pengguna.DataTransaksi{
 			IdAlamatEkspedisi: IdAlamatEkspedisi,
 			HargaBarang:       int64(totalHargapembelian),
 			HargaBerat:        totalHargaBerat,
+			IdDIskon:          data.DataCheckout.DataResponse[i].IdDiskon,
 			HargaJarak:        hargaJarak,
 			HargaEkspedisi:    hargaEkspedisi,
 			IsEkspedisi:       isEkspedisi,
 			KomisiSistem:      datafee,
 			Jarak:             Jarak,
-			TotalTagihan:      int64(totalHargapembelian) + totalHargaBerat + hargaJarak + hargaEkspedisi + datafee,
+			TotalTagihan:      totalTagihanTransaksi + datafee,
 		}
 
 		dataTransaksi = append(dataTransaksi, dataTransaksiIterasi)
 	}
 
-	fee_platform = int64(float32(persen_platform) * float32(fee_platform))
+	fee_platform = int64(float32(KebijakanSistem.KomisiSistemPerTransaksi) * float32(fee_platform))
 
 	var harga_kirim int64 = 0
 	for i := 0; i < len(dataTransaksi); i++ {
@@ -1232,6 +1181,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 				IdKategoriBarang:    data.DataHold[i].IdKategoriBarang,
 				IdAlamatPengguna:    data.IdAlamatUser,
 				IdPembayaran:        pembayaran.ID,
+				IdDiskon:            data.DataHold[i].IdDiskon,
 				JenisPengiriman:     data.JenisLayananKurir,
 				KendaraanPengiriman: kendaraan,
 				JarakTempuh:         strconv.FormatFloat(data.DataTransaksi[i].Jarak, 'f', 2, 64),
@@ -1592,6 +1542,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 				IdKategoriBarang:    data.DataHold[i].IdKategoriBarang,
 				IdAlamatPengguna:    data.IdAlamatUser,
 				IdPembayaran:        pembayaran.ID,
+				IdDiskon:            data.DataHold[i].IdDiskon,
 				JenisPengiriman:     data.JenisLayananKurir,
 				KendaraanPengiriman: kendaraan,
 				JarakTempuh:         strconv.FormatFloat(data.DataTransaksi[i].Jarak, 'f', 2, 64),
@@ -1870,6 +1821,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 				IdKategoriBarang:    data.DataHold[i].IdKategoriBarang,
 				IdAlamatPengguna:    data.IdAlamatUser,
 				IdPembayaran:        pembayaran.ID,
+				IdDiskon:            data.DataHold[i].IdDiskon,
 				JenisPengiriman:     data.JenisLayananKurir,
 				KendaraanPengiriman: kendaraan,
 				JarakTempuh:         strconv.FormatFloat(data.DataTransaksi[i].Jarak, 'f', 2, 64),

@@ -42,6 +42,7 @@ type Transaksi struct {
 	IdAlamatEkspedisi   int64          `gorm:"column:id_alamat_ekspedisi;type:int8;not null" json:"id_alamat_ekspedisi"`
 	IdPembayaran        int64          `gorm:"column:id_pembayaran;not null" json:"id_pembayaran"`
 	Pembayaran          Pembayaran     `gorm:"foreignKey:IdPembayaran;references:ID" json:"-"`
+	IdDiskon            int64          `gorm:"column:id_diskon;type:int8" json:"id_diskon"`
 	KendaraanPengiriman string         `gorm:"column:kendaraan_pengiriman;type:jenis_kendaraan_kurir;default:'Motor';not null" json:"kendaraan_pengiriman"`
 	JenisPengiriman     string         `gorm:"column:jenis_pengiriman;type:jenis_layanan_kurir;not null" json:"jenis_pengiriman"`
 	JarakTempuh         string         `gorm:"column:jarak_tempuh;not null" json:"jarak_tempuh"`

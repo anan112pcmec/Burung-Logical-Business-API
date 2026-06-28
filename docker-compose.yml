@@ -1,14 +1,30 @@
-networks:
-  cassandra_net:
-    driver: bridge
-
 services:
+  # =========================================================================
+  # POSTGRESQL: Source of Truth (SoT) Replica Sync
+  # =========================================================================
+  postgres_sot:
+    image: postgres:15-alpine
+    container_name: postgres_burung_sot
+    environment:
+      POSTGRES_USER: burung_admin
+      POSTGRES_PASSWORD: burung_secure_pass
+      POSTGRES_DB: burung_sot_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - logical_net
+
   redis:
     image: redis:latest
     container_name: redis_burung_cache
     ports:
       - "6379:6379"
     restart: unless-stopped
+    networks:
+      - logical_net
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -23,51 +39,9 @@ services:
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./definitions_vhost_rmq.json:/etc/rabbitmq/definitions_vhost_rmq.json:ro
-
-  meilisearch:
-    image: getmeili/meilisearch:latest
-    container_name: meilisearch_burung_search_engine
-    environment:
-      MEILI_MASTER_KEY: "SuperSecureKey123456"
-    ports:
-      - "7700:7700"
-    restart: unless-stopped
-
-  # =========================================================================
-  # CLUSTER 1: burung_historical (Cukup 1 Node untuk Dev)
-  # =========================================================================
-  historical-node1:
-    image: cassandra:4.1
-    container_name: cassandra_historical_n1
     networks:
-      - cassandra_net
-    environment:
-      - CASSANDRA_CLUSTER_NAME=burung_historical
-      - CASSANDRA_NUM_TOKENS=1
-      - CASSANDRA_ENDPOINT_SNITCH=SimpleSnitch
-    ports:
-      - "9042:9042"
-    restart: unless-stopped
+      - logical_net
 
-  # =========================================================================
-  # CLUSTER 2: burung_sot_replica (Cukup 1 Node untuk Dev)
-  # =========================================================================
-  sot-node1:
-    image: cassandra:4.1
-    container_name: cassandra_sot_n1
-    networks:
-      - cassandra_net
-    environment:
-      - CASSANDRA_CLUSTER_NAME=burung_sot_replica
-      - CASSANDRA_NUM_TOKENS=1
-      - CASSANDRA_ENDPOINT_SNITCH=SimpleSnitch
-    ports:
-      - "9043:9042"
-    restart: unless-stopped
-
-  # =========================================================================
-  # SISA SERVICE
-  # =========================================================================
   minio:
     image: minio/minio:latest
     container_name: minio_burung_storage
@@ -76,11 +50,18 @@ services:
       MINIO_ROOT_USER: burung_app
       MINIO_ROOT_PASSWORD: burung_app123
     ports:
-      - "9000:9000"   # API S3 compatible
-      - "9001:9001"   # MinIO console UI
+      - "9000:9000"   # API S3
+      - "9001:9001"   # Console UI
     volumes:
       - minio_data:/data
     restart: unless-stopped
+    networks:
+      - logical_net
 
 volumes:
+  postgres_data:
   minio_data:
+
+networks:
+  logical_net:
+    driver: bridge

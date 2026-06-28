@@ -4,6 +4,7 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+
 )
 
 type CheckoutData struct {
@@ -16,6 +17,7 @@ type CheckoutData struct {
 	IdAlamatGudang   int64  `json:"id_alamat_gudang_barang_keranjang"`
 	NamaBarang       string `json:"nama_barang_keranjang"`
 	NamaKategori     string `json:"nama_kategori_barang_keranjang"`
+	IdDiskon  int64  `json:"id_diskon_barang_keranjang"`
 	HargaKategori    int32  `json:"harga_barang_kategori_keranjang"`
 	BeratKategori    int16  `json:"berat_gram_barang_kategori_keranjang"`
 	Dipesan          int32  `json:"dipesan_barang_keranjang"`
@@ -50,6 +52,7 @@ type ResponseDataValidateTransaksi struct {
 
 type DataTransaksi struct {
 	IdAlamatEkspedisi int64   `json:"id_alamat_ekspedisi"`
+	IdDIskon          int64   `json:"id_diskon"`
 	HargaBarang       int64   `json:"harga_barang"`    // total harga barang (HargaKategori * Dipesan)
 	HargaBerat        int64   `json:"harga_berat"`     // biaya berdasarkan berat barang (TarifKurirPerKg * berat)
 	HargaJarak        int64   `json:"harga_jarak"`     // biaya berdasarkan jarak pengiriman
