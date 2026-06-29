@@ -2,14 +2,21 @@ package callback_payment_out
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"time"
+
+	"gorm.io/gorm"
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
+	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
+	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 )
 
-func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *environment.InternalDBReadWriteSystem) int16 {
+func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) int16 {
 	var id_payout int64 = 0
 	var untuk string = ""
 
@@ -50,18 +57,72 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError
+		} else {
+			go func(IPK int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				konteks, cancel := context.WithTimeout(context.Background(), time.Second*6)
+				defer cancel()
+
+				var dataPayoutKurir models.PayOutKurir
+				if err := read.WithContext(konteks).Model(&models.PayOutKurir{}).Where(&models.PayOutKurir{
+					ID: IPK,
+				}).Limit(1).Scan(&dataPayoutKurir).Error; err != nil && err == gorm.ErrRecordNotFound {
+					fmt.Println("Gagal mendapatkan data payout")
+					return
+				}
+				updatePayoutKurirPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutKurir).SetTableName(dataPayoutKurir.TableName()).SetRole(mb_cud_seeders.Kurir)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatePayoutKurirPublish); err != nil {
+					fmt.Println("Gagal update payout gagal publish")
+				}
+			}(id_payout, db.Read, cud_publisher)
 		}
 	case entity_enums.Seller:
 		if err := db.Write.WithContext(ctx).Model(&models.PayOutSeller{}).Where(&models.PayOutSeller{
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError
+		} else {
+			go func(IPS int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				konteks, cancel := context.WithTimeout(context.Background(), time.Second*6)
+				defer cancel()
+
+				var dataPayoutSeller models.PayOutSeller
+				if err := read.WithContext(konteks).Model(&models.PayOutSeller{}).Where(&models.PayOutSeller{
+					ID: IPS,
+				}).Limit(1).Scan(&dataPayoutSeller).Error; err != nil && err == gorm.ErrRecordNotFound {
+					fmt.Println("Gagal menemukan data payout")
+					return
+				}
+
+				updatePayoutSellerPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutSeller).SetTableName(dataPayoutSeller.TableName()).SetRole(mb_cud_seeders.Seller)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, updatePayoutSellerPublish); err != nil {
+					fmt.Println("Gagal publish update payout seller")
+				}
+			}(id_payout, db.Read, cud_publisher)
 		}
 	case "sistem":
 		if err := db.Write.WithContext(ctx).Model(&models.PayOutSistem{}).Where(&models.PayOutSistem{
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError
+		} else {
+			go func(IPS int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				konteks, cancel := context.WithTimeout(context.Background(), time.Second*6)
+				defer cancel()
+
+				var dataPayoutSistem models.PayOutSistem
+				if err := read.WithContext(konteks).Model(&models.PayOutSistem{}).Where(&models.PayOutSistem{
+					ID: IPS,
+				}).Limit(1).Scan(&dataPayoutSistem).Error; err != nil && err == gorm.ErrRecordNotFound {
+					fmt.Println("Gagal menemukan data payout")
+					return
+				}
+
+				updatePayoutSellerPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutSistem).SetTableName(dataPayoutSistem.TableName()).SetRole(mb_cud_seeders.Seller)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, updatePayoutSellerPublish); err != nil {
+					fmt.Println("Gagal publish update payout seller")
+				}
+			}(id_payout, db.Read, cud_publisher)
+
 		}
 	}
 
