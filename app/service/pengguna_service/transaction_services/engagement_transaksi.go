@@ -861,7 +861,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		ID:           "fee-courier",
 		Price:        harga_kirim,
 		Qty:          1,
-		Name:         fmt.Sprintf("Biaya Kurir - %s", data_cache.DataTarifJenisPengiriman[data.LayananPengirimanKurir].Nama),
+		Name:         fmt.Sprintf("Biaya Kurir - %s", data.LayananPengirimanKurir),
 		MerchantName: "Courier",
 		Category:     "fee",
 	})

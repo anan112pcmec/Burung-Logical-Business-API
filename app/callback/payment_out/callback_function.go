@@ -12,13 +12,26 @@ import (
 func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *environment.InternalDBReadWriteSystem) int16 {
 	var id_payout int64 = 0
 	var untuk string = ""
+
+	// 1. Cek di PayOutKurir
 	if err := db.Read.WithContext(ctx).Model(&models.PayOutKurir{}).Select("id").Where(&models.PayOutKurir{
 		IdDisbursment: data.ID,
 	}).Limit(1).Take(&id_payout).Error; err != nil {
+
+		// 2. Cek di PayOutSeller jika di Kurir tidak ada
 		if err := db.Read.WithContext(ctx).Model(&models.PayOutSeller{}).Select("id").Where(&models.PayOutSeller{
 			IdDisbursment: data.ID,
 		}).Limit(1).Take(&id_payout).Error; err != nil {
-			return http.StatusNotFound
+
+			// 3. Cek di PayOutSistem jika di Seller tidak ada
+			if err := db.Read.WithContext(ctx).Model(&models.PayOutSistem{}).Select("id").Where(&models.PayOutSistem{
+				IdDisburstment: data.ID,
+			}).Limit(1).Take(&id_payout).Error; err != nil {
+				return http.StatusNotFound
+			} else {
+				untuk = "sistem" // Pastikan enum ini ada di package Anda, misal: "SISTEM" atau "SYSTEM"
+			}
+
 		} else {
 			untuk = entity_enums.Seller
 		}
@@ -30,6 +43,7 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 		return http.StatusNotFound
 	}
 
+	// Proses Update Status berdasarkan tipe 'untuk'
 	switch untuk {
 	case entity_enums.Kurir:
 		if err := db.Write.WithContext(ctx).Model(&models.PayOutKurir{}).Where(&models.PayOutKurir{
@@ -39,6 +53,12 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 		}
 	case entity_enums.Seller:
 		if err := db.Write.WithContext(ctx).Model(&models.PayOutSeller{}).Where(&models.PayOutSeller{
+			ID: id_payout,
+		}).Update("status", data.Status).Error; err != nil {
+			return http.StatusInternalServerError
+		}
+	case "sistem":
+		if err := db.Write.WithContext(ctx).Model(&models.PayOutSistem{}).Where(&models.PayOutSistem{
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError

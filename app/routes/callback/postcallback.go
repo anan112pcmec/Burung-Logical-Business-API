@@ -13,7 +13,7 @@ func CallbackPostHandler(w http.ResponseWriter, r *http.Request, db *environment
 
 	ctx := r.Context()
 	switch r.URL.Path {
-	case "/callback/payment_out/update_status_disbursment":
+	case "/update_status_disbursment":
 		var data callback_payment_out.PayloadUpdateStatusPaymentOut
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)

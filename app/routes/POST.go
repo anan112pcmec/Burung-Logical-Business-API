@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/userroute"
+
 )
 
 func PostHandler(db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) http.HandlerFunc {
@@ -48,7 +51,9 @@ func PostHandler(db *environment.InternalDBReadWriteSystem, rds_auth, rds_sessio
 			return
 		}
 
-		if len(r.URL.Path) >= 10 && r.URL.Path[:10] == "/callback/" {
+		callbackPath := os.Getenv("FLIP_DISBURSTMENT_CALLBACK_PATH")
+
+		if strings.HasPrefix(r.URL.Path, callbackPath) {
 			callback.CallbackPostHandler(w, r, db)
 		}
 		w.Header().Set("Content-Type", "application/json")

@@ -23,6 +23,7 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -348,7 +349,7 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 	// Cek apakah masih ada varian dalam transaksi (status: Dipesan/Diproses)
 	var id_varian_dalam_transaksi int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").
-		Where("id_barang_induk = ? AND status IN ?", dataBarangInduk.ID, []string{"Dipesan", "Diproses"}).
+		Where("id_barang_induk = ? AND status IN ?", dataBarangInduk.ID, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
 		Limit(1).Scan(&id_varian_dalam_transaksi).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -773,7 +774,7 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 
 	var exist_varian_transaksi int64 = 0
 	if errStock := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").
-		Where("id_barang_induk = ? AND id_kategori = ? AND status IN ?", data.IdBarangInduk, data.IdKategoriBarang, []string{"Dipesan", "Diproses"}).
+		Where("id_barang_induk = ? AND id_kategori = ? AND status IN ?", data.IdBarangInduk, data.IdKategoriBarang, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
 		Limit(1).Scan(&exist_varian_transaksi).Error; errStock != nil {
 	}
 

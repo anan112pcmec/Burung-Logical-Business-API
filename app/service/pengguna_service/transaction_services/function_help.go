@@ -2,9 +2,11 @@ package pengguna_transaction_services
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
+
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////
@@ -16,7 +18,7 @@ func ValidateTransaksi(snapReq *snap.Request) (*snap.Response, bool) {
 	fmt.Println("[TRACE] Start ValidateTransaksi")
 
 	var s snap.Client
-	s.New("Mid-server-7wpABbBW_WURdLxcxc5bX5eb", midtrans.Sandbox)
+	s.New(os.Getenv("MIDTRANS_SERVER_KEY"), midtrans.Sandbox)
 
 	fmt.Println("[TRACE] Membuat transaksi dengan Snap SDK")
 	snapResp, err := s.CreateTransaction(snapReq)

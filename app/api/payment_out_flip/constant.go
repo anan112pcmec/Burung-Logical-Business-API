@@ -2,11 +2,14 @@ package payment_out_constanta
 
 import (
 	"encoding/base64"
+	"os"
+
 )
 
-const SecretKey string = "JDJ5JDEzJGdSUXBJa0VLZEZGV3FDVi5jS01WZy5QZHNBQXp1N3NPSFZ0VVlDTUU2YUFEOG5VTkJwOWFh"
-const Token string = "$2y$13$FFu57hCKeY2/QqKG0iGv7.TM1JnI8oeAbcItPNjBMisae0Mmb06NO"
-
+var (
+	SecretKey string = os.Getenv("FLIP_DISBURSTMENT_SECRET_KEY")
+	Token     string = os.Getenv("FLIP_DISBURSTMENT_TOKEN")
+)
 var Auth = ("Basic " + base64.StdEncoding.EncodeToString([]byte(SecretKey+":")))
 
 var CityFlipJawaCode = map[string]string{

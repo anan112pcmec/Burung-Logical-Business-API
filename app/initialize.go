@@ -22,6 +22,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_exchange_provisioning "github.com/anan112pcmec/Burung-backend-1/app/message_broker/provisioning/cud_exchange"
+
 )
 
 func Getenvi(key, fallback string) string {
@@ -132,7 +133,6 @@ func Run() {
 
 	// Maintain Caches
 	maintain_cache.DataAlamatEkspedisiUp(db_system.Write)
-	maintain_cache.DataOperasionalPengirimanUp()
 
 	// Database Seeding (JSON Location Data)
 
