@@ -69,7 +69,7 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 					fmt.Println("Gagal mendapatkan data payout")
 					return
 				}
-				updatePayoutKurirPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutKurir).SetTableName(dataPayoutKurir.TableName()).SetRole(mb_cud_seeders.Kurir)
+				updatePayoutKurirPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutKurir).SetTableName(dataPayoutKurir.TableName()).SetRole(mb_cud_seeders.Sistem)
 				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatePayoutKurirPublish); err != nil {
 					fmt.Println("Gagal update payout gagal publish")
 				}
@@ -93,7 +93,7 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 					return
 				}
 
-				updatePayoutSellerPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutSeller).SetTableName(dataPayoutSeller.TableName()).SetRole(mb_cud_seeders.Seller)
+				updatePayoutSellerPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutSeller).SetTableName(dataPayoutSeller.TableName()).SetRole(mb_cud_seeders.Sistem)
 				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, updatePayoutSellerPublish); err != nil {
 					fmt.Println("Gagal publish update payout seller")
 				}
@@ -117,7 +117,7 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 					return
 				}
 
-				updatePayoutSellerPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutSistem).SetTableName(dataPayoutSistem.TableName()).SetRole(mb_cud_seeders.Seller)
+				updatePayoutSellerPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPayoutSistem).SetTableName(dataPayoutSistem.TableName()).SetRole(mb_cud_seeders.Sistem)
 				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, cud_publisher, updatePayoutSellerPublish); err != nil {
 					fmt.Println("Gagal publish update payout seller")
 				}
