@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -19,6 +18,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	particular_profiling_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/profiling_services/particular_profiling"
 	response_profiling_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/profiling_services/response_profiling"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {

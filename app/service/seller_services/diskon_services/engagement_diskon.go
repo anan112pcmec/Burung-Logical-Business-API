@@ -8,7 +8,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -22,6 +21,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services/response_diskon_services_seller"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {

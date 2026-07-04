@@ -22,7 +22,6 @@ import (
 	payment_in_gerai "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/gerai"
 	payment_in_va "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/virtual_account"
 	payment_in_wallet "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/wallet"
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	data_cache "github.com/anan112pcmec/Burung-backend-1/app/cache/data"
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	enums_barang_di_diskon "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang_di_diskon"
@@ -43,6 +42,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {

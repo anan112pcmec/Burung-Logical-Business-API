@@ -13,7 +13,6 @@ import (
 
 	payment_out_constanta "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip"
 	payment_out_disbursment "github.com/anan112pcmec/Burung-backend-1/app/api/payment_out_flip/disbursment"
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
@@ -31,6 +30,7 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {

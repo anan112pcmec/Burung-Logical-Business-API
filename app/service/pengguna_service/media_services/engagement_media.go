@@ -11,7 +11,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -24,6 +23,7 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {

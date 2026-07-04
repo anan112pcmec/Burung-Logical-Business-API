@@ -8,7 +8,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -21,6 +20,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services/response_alamat_service_kurir"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {

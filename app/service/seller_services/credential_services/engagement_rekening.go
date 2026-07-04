@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -19,6 +18,7 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+	settings "github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

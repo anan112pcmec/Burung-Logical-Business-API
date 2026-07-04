@@ -11,7 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	settings "github.com/anan112pcmec/Burung-backend-1/app/app_settings"
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -22,6 +21,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	response_credential_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/credential_services/response_credential_services"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
