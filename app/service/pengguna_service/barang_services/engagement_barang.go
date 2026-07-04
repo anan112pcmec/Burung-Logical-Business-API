@@ -10,7 +10,7 @@ import (
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
@@ -46,7 +46,7 @@ func ViewBarang(data PayloadViewBarang, rds *redis.Client, db *gorm.DB) {
 	// Jika gagal increment di Redis -> fallback update ke DB (asynchronous)
 	if err := rds.HIncrBy(ctx, key, fieldBarangViewed, 1).Err(); err != nil {
 		go func() {
-			_ = db.Model(&models.BarangInduk{}).
+			_ = db.Model(&sot_models.BarangInduk{}).
 				Where("id = ?", data.ID).
 				UpdateColumn("viewed", gorm.Expr("viewed + 1")).Error //ini jadi masalah karna kalo begini semua barang di cache dong?
 		}()
@@ -70,7 +70,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 	}
 
 	var id_pengguna_disukai int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BarangDisukai{}).Select("id").Where(&models.BarangDisukai{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDisukai{}).Select("id").Where(&sot_models.BarangDisukai{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IDBarangInduk,
 	}).Limit(1).Scan(&id_pengguna_disukai).Error; err != nil {
@@ -89,7 +89,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 		}
 	}
 
-	newLikeBarang := models.BarangDisukai{
+	newLikeBarang := sot_models.BarangDisukai{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IDBarangInduk,
 	}
@@ -103,7 +103,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 		}
 	}
 
-	go func(Lb models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Lb sot_models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
 			ID: Lb.IdPengguna,
 		}
@@ -141,8 +141,8 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "UnlikeBarang"
 
-	var barang_disukai models.BarangDisukai
-	if err := db.Read.WithContext(ctx).Model(&models.BarangDisukai{}).Where(&models.BarangDisukai{
+	var barang_disukai sot_models.BarangDisukai
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDisukai{}).Where(&sot_models.BarangDisukai{
 		ID:            data.IdBarangDisukai,
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IdBarangInduk,
@@ -162,9 +162,9 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.BarangDisukai{}).Where(&models.BarangDisukai{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.BarangDisukai{}).Where(&sot_models.BarangDisukai{
 		ID: data.IdBarangDisukai,
-	}).Delete(&models.BarangDisukai{}).Error; err != nil {
+	}).Delete(&sot_models.BarangDisukai{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -172,7 +172,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 		}
 	}
 
-	go func(Bs models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Bs sot_models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
 			IdPengguna: Bs.IdPengguna,
 		}
@@ -222,7 +222,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		}
 	}
 
-	NewKomentar := models.Komentar{
+	NewKomentar := sot_models.Komentar{
 		IdBarangInduk: data.IdBarangInduk,
 		IdEntity:      data.IdentitasPengguna.ID,
 		JenisEntity:   entity_enums.Pengguna,
@@ -238,7 +238,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		}
 	}
 
-	go func(K models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(K sot_models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: int64(K.IdBarangInduk),
 		}
@@ -285,7 +285,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 	}
 
 	var id_komentar int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Select("id").Where(&models.Komentar{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Komentar{}).Select("id").Where(&sot_models.Komentar{
 		ID:          data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
@@ -305,7 +305,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
 		ID: data.IdKomentar,
 	}).Update("komentar", data.Komentar).Error; err != nil {
 		return &response.ResponseForm{
@@ -316,8 +316,8 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 	}
 
 	go func(idKomen int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		komentarData := models.Komentar{}
-		if err := Read.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+		komentarData := sot_models.Komentar{}
+		if err := Read.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
 			ID: idKomen,
 		}).Limit(1).Take(&komentarData); err != nil {
 			return
@@ -344,8 +344,8 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusKomentarBarang"
 
-	var Komentar models.Komentar
-	if err := db.Read.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+	var Komentar sot_models.Komentar
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
 		ID:          data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
@@ -365,9 +365,9 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.Komentar{}).Where(&models.Komentar{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
 		ID: data.IdKomentar,
-	}).Delete(&models.Komentar{}).Error; err != nil {
+	}).Delete(&sot_models.Komentar{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -375,7 +375,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 		}
 	}
 
-	go func(K models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(K sot_models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
 			ID: int64(K.IdBarangInduk),
 		}
@@ -413,7 +413,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		}
 	}
 
-	newKomentar := models.KomentarChild{
+	newKomentar := sot_models.KomentarChild{
 		IdKomentar:  data.IdKomentarBarang,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
@@ -429,7 +429,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		}
 	}
 
-	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Kc sot_models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdKomentar := sot_threshold.KomentarThreshold{
 			IdKomentar: Kc.IdKomentar,
 		}
@@ -458,7 +458,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MentionChildKomentar"
 
-	newKomentar := models.KomentarChild{
+	newKomentar := sot_models.KomentarChild{
 		IdKomentar:  data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
@@ -474,7 +474,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		}
 	}
 
-	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Kc sot_models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdKomentar := sot_threshold.KomentarThreshold{
 			IdKomentar: Kc.IdKomentar,
 		}
@@ -512,7 +512,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 	}
 
 	var id_edit_child_komentar int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Select("id").Where(&models.KomentarChild{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KomentarChild{}).Select("id").Where(&sot_models.KomentarChild{
 		ID:          data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
@@ -532,7 +532,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
 		ID: data.IdKomentar,
 	}).Update("komentar", data.Komentar).Error; err != nil {
 		return &response.ResponseForm{
@@ -547,8 +547,8 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataKomentarChild models.KomentarChild
-		if err := Read.WithContext(konteks).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+		var dataKomentarChild sot_models.KomentarChild
+		if err := Read.WithContext(konteks).Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
 			ID: IdKc,
 		}).Limit(1).Take(&dataKomentarChild).Error; err != nil {
 			return
@@ -578,8 +578,8 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		}
 	}
 
-	var childKomentar models.KomentarChild
-	if err := db.Read.WithContext(ctx).Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+	var childKomentar sot_models.KomentarChild
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
 		ID:          data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
@@ -598,9 +598,9 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 			Message:  "Gagal komentar tidak ditemukan",
 		}
 	}
-	if err := db.Write.Model(&models.KomentarChild{}).Where(&models.KomentarChild{
+	if err := db.Write.Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
 		ID: data.IdKomentar,
-	}).Delete(&models.KomentarChild{}).Error; err != nil {
+	}).Delete(&sot_models.KomentarChild{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -608,7 +608,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		}
 	}
 
-	go func(Kc models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Kc sot_models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		komentarThreshold := sot_threshold.KomentarThreshold{
 			ID: Kc.IdKomentar,
 		}
@@ -650,7 +650,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 	}
 
 	var id_total []int64
-	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Select("id").Where(models.Keranjang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Select("id").Where(sot_models.Keranjang{
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(LIMITKERANJANG).Scan(&id_total).Error; err != nil {
 		return &response.ResponseForm{
@@ -669,7 +669,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 	}
 
 	var id_data_keranjang int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Select("id").Where(&models.Keranjang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Select("id").Where(&sot_models.Keranjang{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdSeller:      data.IdSeller,
 		IdBarangInduk: data.IdBarangInduk,
@@ -690,7 +690,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		}
 	}
 
-	newKeranjang := models.Keranjang{
+	newKeranjang := sot_models.Keranjang{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdSeller:      data.IdSeller,
 		IdBarangInduk: data.IdBarangInduk,
@@ -707,7 +707,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		}
 	}
 
-	go func(K models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(K sot_models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
 			IdPengguna: K.IdPengguna,
 		}
@@ -766,7 +766,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 	}
 
 	var id_data_keranjang int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Select("id").Where(&models.Keranjang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Select("id").Where(&sot_models.Keranjang{
 		ID:         data.IdKeranjang,
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(1).Scan(&id_data_keranjang).Error; err != nil {
@@ -786,7 +786,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 	}
 
 	var id_stok []int64
-	if err := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").Where(&models.VarianBarang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").Where(&sot_models.VarianBarang{
 		IdKategori:    data.IdKategori,
 		IdBarangInduk: data.IdBarangInduk,
 		Status:        "Ready",
@@ -807,8 +807,8 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 	}
 
 	if err := db.Write.WithContext(ctx).
-		Model(&models.Keranjang{}).
-		Where(&models.Keranjang{
+		Model(&sot_models.Keranjang{}).
+		Where(&sot_models.Keranjang{
 			ID: data.IdKeranjang,
 		}).
 		Update("jumlah", data.Jumlah).Error; err != nil {
@@ -824,8 +824,8 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataKeranjang models.Keranjang
-		if err := Read.WithContext(konteks).Model(&models.Keranjang{}).Where(&models.Keranjang{
+		var dataKeranjang sot_models.Keranjang
+		if err := Read.WithContext(konteks).Model(&sot_models.Keranjang{}).Where(&sot_models.Keranjang{
 			ID: IdKeranjang,
 		}).Limit(1).Take(&dataKeranjang).Error; err != nil {
 			return
@@ -860,8 +860,8 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 	}
 
-	var dataKeranjang models.Keranjang
-	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Where(&models.Keranjang{
+	var dataKeranjang sot_models.Keranjang
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Where(&sot_models.Keranjang{
 		ID:         data.IdKeranjang,
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(1).Scan(&dataKeranjang).Error; err != nil {
@@ -880,10 +880,10 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 	}
 
-	if err_hapus := db.Write.WithContext(ctx).Model(&models.Keranjang{}).Where(&models.Keranjang{
+	if err_hapus := db.Write.WithContext(ctx).Model(&sot_models.Keranjang{}).Where(&sot_models.Keranjang{
 		ID:         data.IdKeranjang,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Delete(&models.Keranjang{}).Error; err_hapus != nil {
+	}).Delete(&sot_models.Keranjang{}).Error; err_hapus != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -891,7 +891,7 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		}
 	}
 
-	go func(Dk models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dk sot_models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		penggunaThreshold := sot_threshold.PenggunaThreshold{
 			IdPengguna: Dk.IdPengguna,
 		}
@@ -945,7 +945,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 	}
 
 	var id_transaksi_data_selesai int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Transaksi{}).Select("id").Where(&models.Transaksi{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Transaksi{}).Select("id").Where(&sot_models.Transaksi{
 		IdBarangInduk: data.IdBarangInduk,
 		IdPengguna:    data.IdentitasPengguna.ID,
 		Status:        transaksi_enums.Selesai,
@@ -966,7 +966,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 		}
 	}
 
-	newReview := models.Review{
+	newReview := sot_models.Review{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: int32(data.IdBarangInduk),
 		Rating:        data.Rating,
@@ -978,9 +978,9 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 			return err
 		}
 
-		if err := tx.Model(&models.Transaksi{}).Where(&models.Transaksi{
+		if err := tx.Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 			ID: id_transaksi_data_selesai,
-		}).Updates(&models.Transaksi{
+		}).Updates(&sot_models.Transaksi{
 			Reviewed: true,
 		}).Error; err != nil {
 			return err
@@ -995,7 +995,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 		}
 	}
 
-	go func(IdTransaksi int64, R models.Review, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(IdTransaksi int64, R sot_models.Review, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		penggunaThreshold := sot_threshold.PenggunaThreshold{
 			IdPengguna: R.IdPengguna,
 		}
@@ -1029,8 +1029,8 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 			fmt.Println("Gagal publish create review ke message broker")
 		}
 
-		var DTU models.Transaksi
-		if err := Trh.WithContext(ctx).Model(&models.Transaksi{}).Where(&models.Transaksi{
+		var DTU sot_models.Transaksi
+		if err := Trh.WithContext(ctx).Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 			ID: IdTransaksi,
 		}).Limit(1).Scan(&DTU).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data transaksi", err)
@@ -1062,9 +1062,9 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 	}
 
 	var id_review_like int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.ReviewLike{}).
+	if err := db.Read.WithContext(ctx).Model(&sot_models.ReviewLike{}).
 		Select("id").
-		Where(&models.ReviewLike{
+		Where(&sot_models.ReviewLike{
 			IdPengguna: data.IdentitasPengguna.ID,
 			IdReview:   data.IdReview,
 		}).
@@ -1086,7 +1086,7 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Create(&models.ReviewLike{
+	if err := db.Write.WithContext(ctx).Create(&sot_models.ReviewLike{
 		IdPengguna: data.IdentitasPengguna.ID,
 		IdReview:   data.IdReview,
 	}).Error; err != nil {
@@ -1110,8 +1110,8 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 			fmt.Println("Gagal increment count like review ke review threshold")
 		}
 
-		var R models.ReviewLike
-		if err := Trh.WithContext(ctx).Model(&models.ReviewLike{}).Where(&models.ReviewLike{
+		var R sot_models.ReviewLike
+		if err := Trh.WithContext(ctx).Model(&sot_models.ReviewLike{}).Where(&sot_models.ReviewLike{
 			ID: IdReview,
 		}).Limit(1).Scan(&R).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data review")
@@ -1142,9 +1142,9 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 	}
 
 	var id_review_like int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.ReviewLike{}).
+	if err := db.Read.WithContext(ctx).Model(&sot_models.ReviewLike{}).
 		Select("id").
-		Where(&models.ReviewLike{
+		Where(&sot_models.ReviewLike{
 			IdPengguna: data.IdentitasPengguna.ID,
 			IdReview:   data.IdReview,
 		}).
@@ -1167,7 +1167,7 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 	}
 
 	// Hapus like
-	if err := db.Write.WithContext(ctx).Delete(&models.ReviewLike{}, id_review_like).Error; err != nil {
+	if err := db.Write.WithContext(ctx).Delete(&sot_models.ReviewLike{}, id_review_like).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -1188,8 +1188,8 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 			fmt.Println("Gagal increment count like review dislike ke review threshold")
 		}
 
-		var R models.ReviewLike
-		if err := Trh.WithContext(ctx).Model(&models.ReviewLike{}).Where(&models.ReviewLike{
+		var R sot_models.ReviewLike
+		if err := Trh.WithContext(ctx).Model(&sot_models.ReviewLike{}).Where(&sot_models.ReviewLike{
 			ID: IdReview,
 		}).Limit(1).Scan(&R).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data review")

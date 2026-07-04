@@ -9,7 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -34,7 +34,7 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 	}
 
 	var id_sosmed_table int64 = 0
-	if err := db.Read.Model(models.EntitySocialMedia{}).Select("id").Where(models.EntitySocialMedia{
+	if err := db.Read.Model(sot_models.EntitySocialMedia{}).Select("id").Where(sot_models.EntitySocialMedia{
 		EntityId:   data.DataIdentitas.IdKurir,
 		EntityType: entity_enums.Kurir,
 	}).Limit(1).Scan(&id_sosmed_table).Error; err != nil {
@@ -46,7 +46,7 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 	}
 
 	if id_sosmed_table == 0 {
-		if err_buat_kolom := db.Write.WithContext(ctx).Create(&models.EntitySocialMedia{
+		if err_buat_kolom := db.Write.WithContext(ctx).Create(&sot_models.EntitySocialMedia{
 			EntityId:   data.DataIdentitas.IdKurir,
 			Whatsapp:   data.Data.Whatsapp,
 			Facebook:   data.Data.Facebook,
@@ -64,7 +64,7 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 			}
 		}
 
-		go func(mesm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
+		go func(mesm sot_models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 			newCreatedEngagementSocialMediaKurir := mb_cud_serializer.NewJsonPayload().SetPayload(mesm).SetTableName(mesm.TableName()).SetRole(mb_cud_seeders.Kurir)
@@ -83,9 +83,9 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 		}
 	}
 
-	if err_update := db.Write.WithContext(ctx).Model(models.EntitySocialMedia{}).Where(models.EntitySocialMedia{
+	if err_update := db.Write.WithContext(ctx).Model(sot_models.EntitySocialMedia{}).Where(sot_models.EntitySocialMedia{
 		ID: id_sosmed_table,
-	}).Updates(&models.EntitySocialMedia{
+	}).Updates(&sot_models.EntitySocialMedia{
 		Whatsapp:  data.Data.Whatsapp,
 		Facebook:  data.Data.Facebook,
 		TikTok:    data.Data.TikTok,
@@ -101,7 +101,7 @@ func EngagementSocialMediaKurir(ctx context.Context, data PayloadEngageSocialMed
 		}
 	}
 
-	go func(mesm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
+	go func(mesm sot_models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		newUpdatedEngagementSocialMediaKurir := mb_cud_serializer.NewJsonPayload().SetPayload(mesm).SetTableName(mesm.TableName()).SetRole(mb_cud_seeders.Kurir)

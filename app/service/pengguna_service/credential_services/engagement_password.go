@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -156,7 +156,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 	services := "ValidateUbahPasswordPenggunaViaOtp"
 
 	var id_user int64
-	if check_user := db.Read.Model(models.Pengguna{}).Select("id").Where(models.Pengguna{ID: data.IDPengguna}).First(&id_user).Error; check_user != nil {
+	if check_user := db.Read.Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).First(&id_user).Error; check_user != nil {
 		log.Printf("[WARN] Pengguna tidak ditemukan untuk validasi OTP: %v", check_user)
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -178,7 +178,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 		}
 	}
 
-	if err_change_pass := db.Write.Model(models.Pengguna{}).Where(models.Pengguna{ID: data.IDPengguna}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
+	if err_change_pass := db.Write.Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{ID: data.IDPengguna}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
 		log.Printf("[ERROR] Gagal mengubah password via OTP: %v", err_change_pass)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -196,15 +196,15 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataPengguna models.Pengguna
-		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+		var dataPengguna sot_models.Pengguna
+		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
 		}).Limit(1).Take(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
 			fmt.Println("Gagal update data cache session")
 		}
 
@@ -228,7 +228,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 	services := "ValidateUbahPasswordPenggunaViaPin"
 
 	var pin_user string
-	if check_pin := db.Read.WithContext(ctx).Model(models.Pengguna{}).Select("pin_hash").Where(models.Pengguna{ID: data.IDPengguna}).Limit(1).Scan(&pin_user).Error; check_pin != nil {
+	if check_pin := db.Read.WithContext(ctx).Model(sot_models.Pengguna{}).Select("pin_hash").Where(sot_models.Pengguna{ID: data.IDPengguna}).Limit(1).Scan(&pin_user).Error; check_pin != nil {
 		log.Printf("[WARN] PIN pengguna tidak ditemukan: %v", check_pin)
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -260,7 +260,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 			log.Printf("[WARN] Gagal menghapus OTP key: %v", err_del)
 		}
 
-		if err_change_pass := db.Write.WithContext(ctx).Model(models.Pengguna{}).Where(models.Pengguna{ID: data.IDPengguna}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
+		if err_change_pass := db.Write.WithContext(ctx).Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{ID: data.IDPengguna}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
 			log.Printf("[ERROR] Gagal mengubah password via PIN: %v", err_change_pass)
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
@@ -275,15 +275,15 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataPengguna models.Pengguna
-		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+		var dataPengguna sot_models.Pengguna
+		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
 		}).Limit(1).Take(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
 			fmt.Println("Gagal update data cache session")
 		}
 
@@ -334,8 +334,8 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 		}
 	}
 
-	if errUpdatePin := db.Write.WithContext(ctx).Model(models.Pengguna{}).
-		Where(models.Pengguna{ID: user.ID}).
+	if errUpdatePin := db.Write.WithContext(ctx).Model(sot_models.Pengguna{}).
+		Where(sot_models.Pengguna{ID: user.ID}).
 		Update("pin_hash", string(hashed_pin)).Error; errUpdatePin != nil {
 		log.Printf("[ERROR] Gagal menyimpan PIN ke database: %v", errUpdatePin)
 		return &response.ResponseForm{
@@ -350,15 +350,15 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataPengguna models.Pengguna
-		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+		var dataPengguna sot_models.Pengguna
+		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
 		}).Limit(1).Take(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
 			fmt.Println("Gagal update data cache session")
 		}
 
@@ -409,8 +409,8 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 		}
 	}
 
-	if errUpdatePin := db.Write.WithContext(ctx).Model(models.Pengguna{}).
-		Where(models.Pengguna{ID: user.ID}).
+	if errUpdatePin := db.Write.WithContext(ctx).Model(sot_models.Pengguna{}).
+		Where(sot_models.Pengguna{ID: user.ID}).
 		Update("pin_hash", string(hashed_pin)).Error; errUpdatePin != nil {
 		log.Printf("[ERROR] Gagal menyimpan PIN baru ke database: %v", errUpdatePin)
 		return &response.ResponseForm{
@@ -425,15 +425,15 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataPengguna models.Pengguna
-		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+		var dataPengguna sot_models.Pengguna
+		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
 		}).Limit(1).Take(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Pengguna](konteks, &dataPengguna, rds_session); err != nil {
 			fmt.Println("Gagal update data cache session")
 		}
 

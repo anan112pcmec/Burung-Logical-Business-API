@@ -7,13 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/minio/minio-go/v7"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_informasi_kendaraan_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/informasi_kendaraan"
 	stsk_informasi_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/informasi_kurir"
@@ -27,6 +23,9 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -40,7 +39,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 	}
 
 	var id_data_media_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaKurirProfilFoto{}).Select("id").Where(&models.MediaKurirProfilFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaKurirProfilFoto{}).Select("id").Where(&sot_models.MediaKurirProfilFoto{
 		IdKurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_media_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -49,7 +48,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 		}
 	}
 
-	keyz := models.MediaKurirProfilFoto{}.PathName() + strconv.Itoa(int(data.IdentitasKurir.IdKurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaKurirProfilFoto{}.PathName() + strconv.Itoa(int(data.IdentitasKurir.IdKurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
@@ -62,7 +61,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 	minIOUrl := url.String()
 
 	if id_data_media_foto == 0 {
-		newKurirProfilFoto := models.MediaKurirProfilFoto{
+		newKurirProfilFoto := sot_models.MediaKurirProfilFoto{
 			IdKurir: data.IdentitasKurir.IdKurir,
 			Key:     keyz,
 			Format:  data.Ekstensi,
@@ -74,7 +73,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 			}
 		}
 
-		go func(Mkpf models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Mkpf sot_models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -93,9 +92,9 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 			}
 		}(newKurirProfilFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&models.MediaKurirProfilFoto{}).Where(&models.MediaKurirProfilFoto{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
 			ID: id_data_media_foto,
-		}).Updates(&models.MediaKurirProfilFoto{
+		}).Updates(&sot_models.MediaKurirProfilFoto{
 			Key:    keyz,
 			Format: data.Ekstensi,
 		}).Error; err != nil {
@@ -110,8 +109,8 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var dataKurirProfilFotoUpdated models.MediaKurirProfilFoto
-			if err := Read.WithContext(konteks).Model(&models.MediaKurirProfilFoto{}).Where(&models.MediaKurirProfilFoto{
+			var dataKurirProfilFotoUpdated sot_models.MediaKurirProfilFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
 				ID: IdMkpf,
 			}).Limit(1).Take(&dataKurirProfilFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data kurir profil foto")
@@ -144,8 +143,8 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 		}
 	}
 
-	var data_media_foto_profil_kurir models.MediaKurirProfilFoto
-	if err := db.Read.WithContext(ctx).Model(&models.MediaKurirProfilFoto{}).Where(&models.MediaKurirProfilFoto{
+	var data_media_foto_profil_kurir sot_models.MediaKurirProfilFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
 		ID:  data.IdMediaKurirProfilFoto,
 		Key: data.KeyFoto,
 	}).Limit(1).Scan(&data_media_foto_profil_kurir).Error; err != nil {
@@ -164,9 +163,9 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.MediaKurirProfilFoto{}).Where(&models.MediaKurirProfilFoto{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
 		ID: data.IdMediaKurirProfilFoto,
-	}).Delete(&models.MediaKurirProfilFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaKurirProfilFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -174,7 +173,7 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 		}
 	}
 
-	go func(Dmfpk models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dmfpk sot_models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -211,7 +210,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 	}
 
 	var id_data_informasi_kendaraan_kurir int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKendaraanKurir{}).Select("id").Where(&models.InformasiKendaraanKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Select("id").Where(&sot_models.InformasiKendaraanKurir{
 		IDkurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_informasi_kendaraan_kurir).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -228,7 +227,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 	}
 
 	var id_media_informasi_kendaraan_kurir_kendaraan_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirKendaraanFoto{}).Select("id").Where(&models.MediaInformasiKendaraanKurirKendaraanFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Select("id").Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 		IdInformasiKendaraanKurir: id_data_informasi_kendaraan_kurir,
 	}).Limit(1).Scan(&id_media_informasi_kendaraan_kurir_kendaraan_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -237,7 +236,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 		}
 	}
 
-	keyz := models.MediaInformasiKendaraanKurirKendaraanFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kendaraan_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kendaraan_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
@@ -249,7 +248,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 	}
 
 	if id_media_informasi_kendaraan_kurir_kendaraan_foto == 0 {
-		newInformasiKendaraanKurirKendaraanFoto := models.MediaInformasiKendaraanKurirKendaraanFoto{
+		newInformasiKendaraanKurirKendaraanFoto := sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 			IdInformasiKendaraanKurir: id_data_informasi_kendaraan_kurir,
 			Key:                       keyz,
 			Format:                    data.Ekstensi,
@@ -261,7 +260,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 			}
 		}
 
-		go func(Mikkkf models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Mikkkf sot_models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -280,9 +279,9 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 			}
 		}(newInformasiKendaraanKurirKendaraanFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&models.MediaInformasiKendaraanKurirKendaraanFoto{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 			ID: id_media_informasi_kendaraan_kurir_kendaraan_foto,
-		}).Updates(&models.MediaInformasiKendaraanKurirKendaraanFoto{
+		}).Updates(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 			Key:    keyz,
 			Format: data.Ekstensi,
 		}).Error; err != nil {
@@ -297,8 +296,8 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var dataInformasiKendaraanKurirKendaraanFotoUpdated models.MediaInformasiKendaraanKurirKendaraanFoto
-			if err := Read.WithContext(konteks).Model(&models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&models.MediaInformasiKendaraanKurirKendaraanFoto{
+			var dataInformasiKendaraanKurirKendaraanFotoUpdated sot_models.MediaInformasiKendaraanKurirKendaraanFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 				ID: IdMikkkf,
 			}).Limit(1).Take(&dataInformasiKendaraanKurirKendaraanFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data informasi kendaraan kurir kendaraan foto")
@@ -331,8 +330,8 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 		}
 	}
 
-	var data_media_informasi_kendaraan_kurir_kendaraan_foto models.MediaInformasiKendaraanKurirKendaraanFoto
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&models.MediaInformasiKendaraanKurirKendaraanFoto{
+	var data_media_informasi_kendaraan_kurir_kendaraan_foto sot_models.MediaInformasiKendaraanKurirKendaraanFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 		ID:  data.IdMediaKendaraanKurirKendaraanFoto,
 		Key: data.KeyFoto,
 	}).Limit(1).Scan(&data_media_informasi_kendaraan_kurir_kendaraan_foto).Error; err != nil {
@@ -359,9 +358,9 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&models.MediaInformasiKendaraanKurirKendaraanFoto{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 		ID: data_media_informasi_kendaraan_kurir_kendaraan_foto.ID,
-	}).Delete(&models.MediaInformasiKendaraanKurirKendaraanFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -369,7 +368,7 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 		}
 	}
 
-	go func(Dmikkkf models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dmikkkf sot_models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -406,7 +405,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 	}
 
 	var id_data_informasi_kendaraan_kurir int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKendaraanKurir{}).Select("id").Where(&models.InformasiKendaraanKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Select("id").Where(&sot_models.InformasiKendaraanKurir{
 		IDkurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_informasi_kendaraan_kurir).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -423,7 +422,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 	}
 
 	var id_media_informasi_kendaraan_kurir_bpkb_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Select("id").Where(&models.MediaInformasiKendaraanKurirBPKBFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Select("id").Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 		IdInformasiKendaraanKurir: id_data_informasi_kendaraan_kurir,
 	}).Limit(1).Scan(&id_media_informasi_kendaraan_kurir_bpkb_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -432,7 +431,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 		}
 	}
 
-	keyz := models.MediaInformasiKendaraanKurirBPKBFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kendaraan_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaInformasiKendaraanKurirBPKBFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kendaraan_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
@@ -444,7 +443,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 	}
 
 	if id_media_informasi_kendaraan_kurir_bpkb_foto == 0 {
-		newInformasiKendaraanKurirBPKBFoto := models.MediaInformasiKendaraanKurirBPKBFoto{
+		newInformasiKendaraanKurirBPKBFoto := sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 			IdInformasiKendaraanKurir: id_data_informasi_kendaraan_kurir,
 			Key:                       keyz,
 			Format:                    data.Ekstensi,
@@ -456,7 +455,7 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 			}
 		}
 
-		go func(Mikkbf models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Mikkbf sot_models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -475,9 +474,9 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 			}
 		}(newInformasiKendaraanKurirBPKBFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&models.MediaInformasiKendaraanKurirBPKBFoto{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 			ID: id_media_informasi_kendaraan_kurir_bpkb_foto,
-		}).Updates(&models.MediaInformasiKendaraanKurirBPKBFoto{
+		}).Updates(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 			Key:    keyz,
 			Format: data.Ekstensi,
 		}).Error; err != nil {
@@ -492,8 +491,8 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var dataInformasiKendaraanKurirBPKBFotoUpdated models.MediaInformasiKendaraanKurirBPKBFoto
-			if err := Read.WithContext(konteks).Model(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&models.MediaInformasiKendaraanKurirBPKBFoto{
+			var dataInformasiKendaraanKurirBPKBFotoUpdated sot_models.MediaInformasiKendaraanKurirBPKBFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 				ID: IdMikkbf,
 			}).Limit(1).Take(&dataInformasiKendaraanKurirBPKBFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data informasi kendaraan kurir bpkb foto")
@@ -525,7 +524,7 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 	}
 
 	var id_media_informasi_kendaraan_kurir_bpkb_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Select("id").Where(&models.MediaInformasiKendaraanKurirBPKBFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Select("id").Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 		ID:  data.IdMediaInformasiKendaraanKurirBPKBFoto,
 		Key: data.KeyFoto,
 	}).Limit(1).Scan(&id_media_informasi_kendaraan_kurir_bpkb_foto).Error; err != nil {
@@ -552,16 +551,16 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 		}
 	}
 
-	var dataInformasiKendaraanKurirBpkbFoto models.MediaInformasiKendaraanKurirBPKBFoto
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&models.MediaInformasiKendaraanKurirBPKBFoto{
+	var dataInformasiKendaraanKurirBpkbFoto sot_models.MediaInformasiKendaraanKurirBPKBFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 		ID: id_media_informasi_kendaraan_kurir_bpkb_foto,
 	}).Limit(1).Take(&dataInformasiKendaraanKurirBpkbFoto).Error; err != nil {
 		fmt.Println("Gagal mendapatakn data informasi kendaraan kurir bpkb foto")
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&models.MediaInformasiKendaraanKurirBPKBFoto{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 		ID: id_media_informasi_kendaraan_kurir_bpkb_foto,
-	}).Delete(&models.MediaInformasiKendaraanKurirBPKBFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -569,7 +568,7 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 		}
 	}
 
-	go func(Ikkbf models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ikkbf sot_models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -606,7 +605,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 	}
 
 	var id_data_informasi_kendaraan_kurir int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKendaraanKurir{}).Select("id").Where(&models.InformasiKendaraanKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Select("id").Where(&sot_models.InformasiKendaraanKurir{
 		IDkurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_informasi_kendaraan_kurir).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -623,7 +622,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 	}
 
 	var id_media_informasi_kendaraan_kurir_stnk_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirSTNKFoto{}).Select("id").Where(&models.MediaInformasiKendaraanKurirSTNKFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Select("id").Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 		IdInformasiKendaraanKurir: id_data_informasi_kendaraan_kurir,
 	}).Limit(1).Scan(&id_media_informasi_kendaraan_kurir_stnk_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -632,7 +631,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 		}
 	}
 
-	keyz := models.MediaInformasiKendaraanKurirSTNKFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kendaraan_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaInformasiKendaraanKurirSTNKFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kendaraan_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
@@ -644,7 +643,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 	}
 
 	if id_media_informasi_kendaraan_kurir_stnk_foto == 0 {
-		newInformasiKendaraanKurirSTNKFoto := models.MediaInformasiKendaraanKurirSTNKFoto{
+		newInformasiKendaraanKurirSTNKFoto := sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 			IdInformasiKendaraanKurir: id_data_informasi_kendaraan_kurir,
 			Key:                       keyz,
 			Format:                    data.Ekstensi,
@@ -656,7 +655,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 			}
 		}
 
-		go func(Mikks models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Mikks sot_models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -675,9 +674,9 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 			}
 		}(newInformasiKendaraanKurirSTNKFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&models.MediaInformasiKendaraanKurirSTNKFoto{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 			ID: id_media_informasi_kendaraan_kurir_stnk_foto,
-		}).Updates(&models.MediaInformasiKendaraanKurirSTNKFoto{
+		}).Updates(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 			Key:    keyz,
 			Format: data.Ekstensi,
 		}).Error; err != nil {
@@ -692,8 +691,8 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var dataInformasiKendaraanKurirSTNKFotoUpdated models.MediaInformasiKendaraanKurirSTNKFoto
-			if err := Read.WithContext(konteks).Model(&models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&models.MediaInformasiKendaraanKurirSTNKFoto{
+			var dataInformasiKendaraanKurirSTNKFotoUpdated sot_models.MediaInformasiKendaraanKurirSTNKFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 				ID: IdMikks,
 			}).Limit(1).Take(&dataInformasiKendaraanKurirSTNKFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data informasi kendaraan kurir stnk foto")
@@ -726,8 +725,8 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 		}
 	}
 
-	var data_media_informasi_kendaraan_kurir_stnk_foto models.MediaInformasiKendaraanKurirSTNKFoto
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&models.MediaInformasiKendaraanKurirSTNKFoto{
+	var data_media_informasi_kendaraan_kurir_stnk_foto sot_models.MediaInformasiKendaraanKurirSTNKFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 		ID:  data.IdMediaInformasiKendaraanKurirSTNKFoto,
 		Key: data.KeyFoto,
 	}).Limit(1).Scan(&data_media_informasi_kendaraan_kurir_stnk_foto).Error; err != nil {
@@ -754,9 +753,9 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&models.MediaInformasiKendaraanKurirSTNKFoto{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 		ID: data_media_informasi_kendaraan_kurir_stnk_foto.ID,
-	}).Delete(&models.MediaInformasiKendaraanKurirSTNKFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -764,7 +763,7 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 		}
 	}
 
-	go func(Dmikks models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dmikks sot_models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -801,7 +800,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 	}
 
 	var id_data_informasi_kurir int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKurir{}).Select("id").Where(&models.InformasiKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKurir{}).Select("id").Where(&sot_models.InformasiKurir{
 		IDkurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_informasi_kurir).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -818,7 +817,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 	}
 
 	var id_media_informasi_kurir_ktp_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKurirKTPFoto{}).Select("id").Where(&models.MediaInformasiKurirKTPFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Select("id").Where(&sot_models.MediaInformasiKurirKTPFoto{
 		IdInformasiKurir: id_data_informasi_kurir,
 	}).Limit(1).Scan(&id_media_informasi_kurir_ktp_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -827,7 +826,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 		}
 	}
 
-	keyz := models.MediaInformasiKurirKTPFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaInformasiKurirKTPFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 
@@ -839,7 +838,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 	}
 
 	if id_media_informasi_kurir_ktp_foto == 0 {
-		newMediaInformasiKurirKTPFoto := models.MediaInformasiKurirKTPFoto{
+		newMediaInformasiKurirKTPFoto := sot_models.MediaInformasiKurirKTPFoto{
 			IdInformasiKurir: id_data_informasi_kurir,
 			Key:              keyz,
 			Format:           data.Ekstensi,
@@ -851,7 +850,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 			}
 		}
 
-		go func(Mikkf models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Mikkf sot_models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -870,9 +869,9 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 			}
 		}(newMediaInformasiKurirKTPFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKurirKTPFoto{}).Where(&models.MediaInformasiKurirKTPFoto{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
 			ID: id_media_informasi_kurir_ktp_foto,
-		}).Updates(&models.MediaInformasiKurirKTPFoto{
+		}).Updates(&sot_models.MediaInformasiKurirKTPFoto{
 			Key:    keyz,
 			Format: data.Ekstensi,
 		}).Error; err != nil {
@@ -887,8 +886,8 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var dataMediaInformasiKurirKTPFotoUpdated models.MediaInformasiKurirKTPFoto
-			if err := Read.WithContext(konteks).Model(&models.MediaInformasiKurirKTPFoto{}).Where(&models.MediaInformasiKurirKTPFoto{
+			var dataMediaInformasiKurirKTPFotoUpdated sot_models.MediaInformasiKurirKTPFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
 				ID: IdMikkf,
 			}).Limit(1).Take(&dataMediaInformasiKurirKTPFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data media informasi kurir ktp foto")
@@ -921,8 +920,8 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 		}
 	}
 
-	var data_media_informasi_kurir_ktp_foto models.MediaInformasiKurirKTPFoto
-	if err := db.Read.WithContext(ctx).Model(&models.MediaInformasiKurirKTPFoto{}).Where(&models.MediaInformasiKurirKTPFoto{
+	var data_media_informasi_kurir_ktp_foto sot_models.MediaInformasiKurirKTPFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
 		ID:  data.IdMediaInformasiKurirKTPFoto,
 		Key: data.KeyFoto,
 	}).Limit(1).Scan(&data_media_informasi_kurir_ktp_foto).Error; err != nil {
@@ -949,9 +948,9 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.MediaInformasiKurirKTPFoto{}).Where(&models.MediaInformasiKurirKTPFoto{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
 		ID: data_media_informasi_kurir_ktp_foto.ID,
-	}).Delete(&models.MediaInformasiKurirKTPFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaInformasiKurirKTPFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -959,7 +958,7 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 		}
 	}
 
-	go func(Dmikkf models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dmikkf sot_models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -996,7 +995,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 	}
 
 	var id_data_pengiriman int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Pengiriman{}).Select("id").Where(&models.Pengiriman{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengiriman{}).Select("id").Where(&sot_models.Pengiriman{
 		ID:      data.IdPengiriman,
 		IdKurir: &data.IdentitasKurir.IdKurir,
 		Status:  pengiriman_enums.PickedUp,
@@ -1015,7 +1014,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 	}
 
 	var id_media_pengiriman_picked_up_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaPengirimanPickedUpFoto{}).Select("id").Where(&models.MediaPengirimanPickedUpFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaPengirimanPickedUpFoto{}).Select("id").Where(&sot_models.MediaPengirimanPickedUpFoto{
 		IdPengiriman: id_data_pengiriman,
 	}).Limit(1).Scan(&id_media_pengiriman_picked_up_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -1031,7 +1030,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 		}
 	}
 
-	keyz := models.MediaPengirimanPickedUpFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaPengirimanPickedUpFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
@@ -1041,7 +1040,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 		}
 	}
 
-	newMediaPengirimanPickedUpFoto := models.MediaPengirimanPickedUpFoto{
+	newMediaPengirimanPickedUpFoto := sot_models.MediaPengirimanPickedUpFoto{
 		IdPengiriman: id_data_pengiriman,
 		Key:          keyz,
 		Format:       data.Ekstensi,
@@ -1053,7 +1052,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 		}
 	}
 
-	go func(Mppuf models.MediaPengirimanPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Mppuf sot_models.MediaPengirimanPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -1091,7 +1090,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 	}
 
 	var id_data_pengiriman int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Pengiriman{}).Select("id").Where(&models.Pengiriman{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengiriman{}).Select("id").Where(&sot_models.Pengiriman{
 		ID:      data.IdPengiriman,
 		IdKurir: &data.IdentitasKurir.IdKurir,
 		Status:  pengiriman_enums.Sampai,
@@ -1110,7 +1109,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 	}
 
 	var id_media_pengiriman_sampai_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaPengirimanSampaiFoto{}).Select("id").Where(&models.MediaPengirimanSampaiFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaPengirimanSampaiFoto{}).Select("id").Where(&sot_models.MediaPengirimanSampaiFoto{
 		IdPengiriman: id_data_pengiriman,
 	}).Limit(1).Scan(&id_media_pengiriman_sampai_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -1126,7 +1125,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 		}
 	}
 
-	keyz := models.MediaPengirimanSampaiFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaPengirimanSampaiFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
@@ -1136,7 +1135,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 		}
 	}
 
-	newMediaPengirimanSampaiFoto := models.MediaPengirimanSampaiFoto{
+	newMediaPengirimanSampaiFoto := sot_models.MediaPengirimanSampaiFoto{
 		IdPengiriman: id_data_pengiriman,
 		Key:          keyz,
 		Format:       data.Ekstensi,
@@ -1148,7 +1147,7 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 		}
 	}
 
-	go func(Mpsf models.MediaPengirimanSampaiFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Mpsf sot_models.MediaPengirimanSampaiFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -1185,7 +1184,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 	}
 
 	var id_data_pengiriman_ekspedisi int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.PengirimanEkspedisi{}).Select("id").Where(&models.PengirimanEkspedisi{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.PengirimanEkspedisi{}).Select("id").Where(&sot_models.PengirimanEkspedisi{
 		ID:      data.IdPengirimanEkspedisi,
 		IdKurir: &data.IdentitasKurir.IdKurir,
 		Status:  pengiriman_enums.PickedUp,
@@ -1204,7 +1203,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 	}
 
 	var id_media_pengiriman_ekspedisi_picked_up_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaPengirimanEkspedisiPickedUpFoto{}).Select("id").Where(&models.MediaPengirimanEkspedisiPickedUpFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaPengirimanEkspedisiPickedUpFoto{}).Select("id").Where(&sot_models.MediaPengirimanEkspedisiPickedUpFoto{
 		IdPengirimanEkspedisi: id_data_pengiriman_ekspedisi,
 	}).Limit(1).Scan(&id_media_pengiriman_ekspedisi_picked_up_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -1220,7 +1219,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 		}
 	}
 
-	keyz := models.MediaPengirimanEkspedisiPickedUpFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman_ekspedisi)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaPengirimanEkspedisiPickedUpFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman_ekspedisi)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
@@ -1230,7 +1229,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 		}
 	}
 
-	newMediaPengirimanEkspedisiPickedUpFoto := models.MediaPengirimanEkspedisiPickedUpFoto{
+	newMediaPengirimanEkspedisiPickedUpFoto := sot_models.MediaPengirimanEkspedisiPickedUpFoto{
 		IdPengirimanEkspedisi: id_data_pengiriman_ekspedisi,
 		Key:                   keyz,
 		Format:                data.Ekstensi,
@@ -1242,7 +1241,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 		}
 	}
 
-	go func(Mpepuf models.MediaPengirimanEkspedisiPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Mpepuf sot_models.MediaPengirimanEkspedisiPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -1280,7 +1279,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 	}
 
 	var id_data_pengiriman_ekspedisi int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.PengirimanEkspedisi{}).Select("id").Where(&models.PengirimanEkspedisi{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.PengirimanEkspedisi{}).Select("id").Where(&sot_models.PengirimanEkspedisi{
 		ID:      data.IdPengirimanEkspedisi,
 		IdKurir: &data.IdentitasKurir.IdKurir,
 		Status:  pengiriman_enums.SampaiAgentEkspedisi,
@@ -1299,7 +1298,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 	}
 
 	var id_media_pengiriman_ekspedisi_sampai_agent_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaPengirimanEkspedisiSampaiAgentFoto{}).Select("id").Where(&models.MediaPengirimanEkspedisiSampaiAgentFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaPengirimanEkspedisiSampaiAgentFoto{}).Select("id").Where(&sot_models.MediaPengirimanEkspedisiSampaiAgentFoto{
 		IdPengirimanEkspedisi: id_data_pengiriman_ekspedisi,
 	}).Limit(1).Scan(&id_media_pengiriman_ekspedisi_sampai_agent_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -1315,7 +1314,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 		}
 	}
 
-	keyz := models.MediaPengirimanEkspedisiSampaiAgentFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman_ekspedisi)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+	keyz := sot_models.MediaPengirimanEkspedisiSampaiAgentFoto{}.PathName() + strconv.Itoa(int(id_data_pengiriman_ekspedisi)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
 	if err_url != nil {
@@ -1325,7 +1324,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 		}
 	}
 
-	newMediaPengirimanEkspedisiSampaiAgentFoto := models.MediaPengirimanEkspedisiSampaiAgentFoto{
+	newMediaPengirimanEkspedisiSampaiAgentFoto := sot_models.MediaPengirimanEkspedisiSampaiAgentFoto{
 		IdPengirimanEkspedisi: id_data_pengiriman_ekspedisi,
 		Key:                   keyz,
 		Format:                data.Ekstensi,
@@ -1337,7 +1336,7 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 		}
 	}
 
-	go func(Mpesaf models.MediaPengirimanEkspedisiSampaiAgentFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Mpesaf sot_models.MediaPengirimanEkspedisiSampaiAgentFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

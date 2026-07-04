@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -17,16 +17,16 @@ import (
 // //////////////////////////////////////////////////////////////////////////////////////////
 
 type Response interface {
-	Pembayaran() (models.Pembayaran, bool)
+	Pembayaran() (sot_models.Pembayaran, bool)
 	Pending(rds *redis.Client, id_user int64) bool
 }
 
-func Bayar(r Response) (models.Pembayaran, bool) {
+func Bayar(r Response) (sot_models.Pembayaran, bool) {
 	return r.Pembayaran()
 }
 
 // BCA
-func (b *BcaVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
+func (b *BcaVirtualAccountResponse) Pembayaran() (p sot_models.Pembayaran, s bool) {
 	s = true
 
 	if b.BcaVaNumber == "" || b.OrderId == "" || b.FraudStatus == "" {
@@ -42,7 +42,7 @@ func (b *BcaVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
 		provider = b.VaNumbers[0].Bank
 	}
 
-	p = models.Pembayaran{
+	p = sot_models.Pembayaran{
 		KodeTransaksiPG: b.TransactionId,
 		KodeOrderSistem: b.OrderId,
 		Provider:        provider,
@@ -54,7 +54,7 @@ func (b *BcaVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
 }
 
 // BNI
-func (b *BniVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
+func (b *BniVirtualAccountResponse) Pembayaran() (p sot_models.Pembayaran, s bool) {
 	s = true
 
 	if len(b.VaNumbers) == 0 || b.VaNumbers[0].Bank != "bni" {
@@ -74,7 +74,7 @@ func (b *BniVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
 		provider = b.VaNumbers[0].Bank
 	}
 
-	p = models.Pembayaran{
+	p = sot_models.Pembayaran{
 		KodeTransaksiPG: b.TransactionId,
 		KodeOrderSistem: b.OrderId,
 		Provider:        provider,
@@ -85,7 +85,7 @@ func (b *BniVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
 	return
 }
 
-func (b *BriVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
+func (b *BriVirtualAccountResponse) Pembayaran() (p sot_models.Pembayaran, s bool) {
 	s = true
 
 	if len(b.VaNumbers) == 0 || b.VaNumbers[0].Bank != "bri" {
@@ -105,7 +105,7 @@ func (b *BriVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
 		provider = b.VaNumbers[0].Bank
 	}
 
-	p = models.Pembayaran{
+	p = sot_models.Pembayaran{
 		KodeTransaksiPG: b.TransactionId,
 		KodeOrderSistem: b.OrderId,
 		Provider:        provider,
@@ -117,7 +117,7 @@ func (b *BriVirtualAccountResponse) Pembayaran() (p models.Pembayaran, s bool) {
 }
 
 // PERMATA
-func (b *PermataVirtualAccount) Pembayaran() (p models.Pembayaran, s bool) {
+func (b *PermataVirtualAccount) Pembayaran() (p sot_models.Pembayaran, s bool) {
 	s = true
 
 	if b.PermataVaNumber == "" || b.OrderId == "" || b.FraudStatus == "" {
@@ -129,7 +129,7 @@ func (b *PermataVirtualAccount) Pembayaran() (p models.Pembayaran, s bool) {
 		s = false
 	}
 
-	p = models.Pembayaran{
+	p = sot_models.Pembayaran{
 		KodeTransaksiPG: b.TransactionId,
 		KodeOrderSistem: b.OrderId,
 		Provider:        "permata",

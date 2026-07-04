@@ -3,7 +3,7 @@ package pengguna_transaction_services
 import (
 	payment_gerai "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/gerai"
 	payment_wallet "github.com/anan112pcmec/Burung-backend-1/app/api/payment_in_midtrans/wallet"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/identity_pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
 )
@@ -27,7 +27,7 @@ type PendingTransactionModel struct {
 
 type PayloadCheckoutBarang struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
-	DataCheckout      []models.Keranjang                 `json:"data_checkout"`
+	DataCheckout      []sot_models.Keranjang             `json:"data_checkout"`
 	JenisLayananKurir string                             `json:"jenis_layanan_kurir_checkout_barang"`
 }
 
@@ -37,7 +37,7 @@ type PayloadCheckoutBarang struct {
 
 type PayloadSnapTransaksiRequest struct {
 	IdentitasPengguna      identity_pengguna.IdentityPengguna                 `json:"identitas_pengguna"`
-	AlamatInformation      models.AlamatPengguna                              `json:"data_alamat_transaksi"`
+	AlamatInformation      sot_models.AlamatPengguna                          `json:"data_alamat_transaksi"`
 	DataCheckout           response_transaction_pengguna.ResponseDataCheckout `json:"data_transaksi_item"`
 	PaymentMethod          string                                             `json:"pilihan_pembayaran"`
 	LayananPengirimanKurir string                                             `json:"layanan_pengiriman_kurir"`

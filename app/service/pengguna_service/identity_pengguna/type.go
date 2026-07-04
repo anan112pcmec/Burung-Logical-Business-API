@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 func (i *IdentityPengguna) GetSessionKey() string {
@@ -26,10 +25,10 @@ type IdentityPengguna struct {
 	Email    string `json:"email_pengguna"`
 }
 
-func (i *IdentityPengguna) FallbackDB(ctx context.Context, db *gorm.DB) (model models.Pengguna, status bool) {
-	var user models.Pengguna
+func (i *IdentityPengguna) FallbackDB(ctx context.Context, db *gorm.DB) (model sot_models.Pengguna, status bool) {
+	var user sot_models.Pengguna
 
-	if err_validate := db.WithContext(ctx).Model(models.Pengguna{}).Where(models.Pengguna{
+	if err_validate := db.WithContext(ctx).Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{
 		ID:       i.ID,
 		Username: i.Username,
 		Email:    i.Email,
@@ -40,8 +39,8 @@ func (i *IdentityPengguna) FallbackDB(ctx context.Context, db *gorm.DB) (model m
 	return user, true
 }
 
-func (i *IdentityPengguna) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model models.Pengguna, status bool) {
-	var user models.Pengguna
+func (i *IdentityPengguna) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model sot_models.Pengguna, status bool) {
+	var user sot_models.Pengguna
 
 	if i.ID == 0 {
 		return user, false
@@ -61,7 +60,7 @@ func (i *IdentityPengguna) Validating(ctx context.Context, db *gorm.DB, rds *red
 		return i.FallbackDB(ctx, db)
 	}
 
-	user = models.Pengguna{
+	user = sot_models.Pengguna{
 		ID:             int64(id_pengguna),
 		Username:       cacheSession["username"],
 		Nama:           cacheSession["nama"],

@@ -7,12 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/redis/go-redis/v9"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
-
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -22,6 +18,9 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	response_credential_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/credential_services/response_credential_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+	"github.com/redis/go-redis/v9"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
@@ -154,7 +153,7 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 		log.Printf("[INFO] OTP key %s berhasil dihapus dari Redis.", key)
 	}
 
-	if err_change_pass := db.Write.WithContext(ctx).Model(&models.Kurir{}).Where(&models.Kurir{
+	if err_change_pass := db.Write.WithContext(ctx).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
 		ID: data.DataIdentitas.IdKurir,
 	}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
 		log.Printf("[ERROR] Gagal mengubah password kurir ID %d: %v", data.DataIdentitas.IdKurir, err_change_pass)
@@ -172,15 +171,15 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataKurirUpdated models.Kurir
-		if err := Read.WithContext(konteks).Model(&models.Kurir{}).Where(&models.Kurir{
+		var dataKurirUpdated sot_models.Kurir
+		if err := Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
 			ID: IdKurir,
 		}).Limit(1).Take(&dataKurirUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data kurir")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Kurir](konteks, &dataKurirUpdated, RdsSession); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Kurir](konteks, &dataKurirUpdated, RdsSession); err != nil {
 			fmt.Println("Gagal update data cache session")
 		}
 

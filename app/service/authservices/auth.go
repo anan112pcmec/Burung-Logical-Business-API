@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -32,9 +32,9 @@ import (
 
 func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "PenggunaLogin"
-	var user models.Pengguna
+	var user sot_models.Pengguna
 
-	if err := db.Read.Model(&models.Pengguna{}).Where(&models.Pengguna{Email: email}).Take(&user).Error; err != nil {
+	if err := db.Read.Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{Email: email}).Take(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &response.ResponseForm{
 				Status:   http.StatusNotFound,
@@ -63,9 +63,9 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 			},
 		}
 	} else {
-		go func(u models.Pengguna, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(u sot_models.Pengguna, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			if u.StatusPengguna == "Offline" {
-				if err1 := Write.Model(models.Pengguna{}).Where(models.Pengguna{ID: u.ID}).Update("status", "Online").Error; err1 != nil {
+				if err1 := Write.Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{ID: u.ID}).Update("status", "Online").Error; err1 != nil {
 					fmt.Println("Gagal Ubah Status")
 				}
 
@@ -84,7 +84,7 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 		}(user, *db.Write, cud_publisher)
 	}
 
-	go func(u models.Pengguna) {
+	go func(u sot_models.Pengguna) {
 		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
@@ -115,9 +115,9 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 
 func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "SellerLogin"
-	var seller models.Seller
+	var seller sot_models.Seller
 
-	if err := db.Read.Where(&models.Seller{Email: email}).
+	if err := db.Read.Where(&sot_models.Seller{Email: email}).
 		Select("id", "nama", "username", "email", "password_hash", "status").
 		First(&seller).Error; err != nil {
 
@@ -149,10 +149,10 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 			},
 		}
 	} else {
-		go func(u models.Seller, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(u sot_models.Seller, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			if u.StatusSeller == "Offline" {
-				if err := Write.Model(&models.Seller{}).
-					Where(&models.Seller{ID: u.ID}).
+				if err := Write.Model(&sot_models.Seller{}).
+					Where(&sot_models.Seller{ID: u.ID}).
 					Update("status", "Online").Error; err != nil {
 					fmt.Println("Gagal update status seller:", err)
 				} else {
@@ -173,7 +173,7 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 		}(seller, *db.Write, cud_publisher)
 	}
 
-	go func(u models.Seller) {
+	go func(u sot_models.Seller) {
 		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
@@ -205,8 +205,8 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "KurirLogin"
 
-	var kurir models.Kurir
-	if err := db.Read.Where(&models.Kurir{Email: email}).
+	var kurir sot_models.Kurir
+	if err := db.Read.Where(&sot_models.Kurir{Email: email}).
 		Select("id", "nama", "email", "password_hash", "status").
 		First(&kurir).Error; err != nil {
 
@@ -238,10 +238,10 @@ func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password strin
 			},
 		}
 	} else {
-		go func(u models.Kurir, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(u sot_models.Kurir, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			if u.StatusKurir == "Offline" {
-				if err := Write.Model(&models.Kurir{}).
-					Where(&models.Kurir{ID: u.ID}).
+				if err := Write.Model(&sot_models.Kurir{}).
+					Where(&sot_models.Kurir{ID: u.ID}).
 					Update("status", "Online").Error; err != nil {
 					fmt.Println("Gagal update status kurir:", err)
 				} else {
@@ -260,7 +260,7 @@ func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password strin
 		}(kurir, *db.Write, cud_publisher)
 	}
 
-	go func(u models.Kurir) {
+	go func(u sot_models.Kurir) {
 		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
@@ -300,7 +300,7 @@ func PreUserRegistration(db *environment.InternalDBReadWriteSystem, username, na
 	ctx := context.Background()
 
 	var user int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Pengguna{}).Select("id").Where(&models.Pengguna{Email: email}).Or(&models.Pengguna{Username: username}).Limit(1).Scan(&user).Error; err != nil {
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengguna{}).Select("id").Where(&sot_models.Pengguna{Email: email}).Or(&sot_models.Pengguna{Username: username}).Limit(1).Scan(&user).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -366,9 +366,9 @@ func PreSellerRegistration(db *environment.InternalDBReadWriteSystem, username, 
 	services := "PreSellerRegistration"
 
 	var seller int64 = 0
-	if err := db.Read.Model(&models.Seller{}).Select("id").
-		Where(&models.Seller{Email: email}).
-		Or(&models.Seller{Username: username}).
+	if err := db.Read.Model(&sot_models.Seller{}).Select("id").
+		Where(&sot_models.Seller{Email: email}).
+		Or(&sot_models.Seller{Username: username}).
 		Limit(1).Scan(&seller).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -441,7 +441,7 @@ func PreKurirRegistration(db *environment.InternalDBReadWriteSystem, nama, email
 	services := "PreKurirRegistration"
 
 	var kurir int64 = 0
-	if err := db.Read.Model(&models.Kurir{}).Select("id").Where(&models.Kurir{Email: email}).Or(&models.Kurir{
+	if err := db.Read.Model(&sot_models.Kurir{}).Select("id").Where(&sot_models.Kurir{Email: email}).Or(&sot_models.Kurir{
 		Username: username,
 	}).Limit(1).Scan(&kurir).Error; err != nil {
 		return &response.ResponseForm{
@@ -551,7 +551,7 @@ func ValidateUserRegistration(db *environment.InternalDBReadWriteSystem, OTPkey 
 		}
 	}
 
-	user := models.Pengguna{
+	user := sot_models.Pengguna{
 		Nama:         userData["nama"],
 		Username:     userData["username"],
 		Email:        userData["email"],
@@ -568,7 +568,7 @@ func ValidateUserRegistration(db *environment.InternalDBReadWriteSystem, OTPkey 
 			},
 		}
 	} else {
-		go func(u models.Pengguna, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		go func(u sot_models.Pengguna, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -638,7 +638,7 @@ func ValidateSellerRegistration(db *environment.InternalDBReadWriteSystem, OTPke
 		}
 	}
 
-	seller := models.Seller{
+	seller := sot_models.Seller{
 		Nama:             userData["nama"],
 		Username:         userData["username"],
 		Email:            userData["email"],
@@ -657,7 +657,7 @@ func ValidateSellerRegistration(db *environment.InternalDBReadWriteSystem, OTPke
 			},
 		}
 	} else {
-		go func(s models.Seller, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		go func(s sot_models.Seller, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
@@ -727,7 +727,7 @@ func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey
 		}
 	}
 
-	seller := models.Kurir{
+	seller := sot_models.Kurir{
 		Nama:         userData["nama"],
 		Email:        userData["email"],
 		Username:     userData["username"],
@@ -745,7 +745,7 @@ func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey
 		}
 	} else {
 		// POLA SAMA PERSIS: Menjalankan background task secara async untuk kurir
-		go func(k models.Kurir, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
+		go func(k sot_models.Kurir, key_rds string, rds_con *redis.Client, publisher *mb_cud_publisher.Publisher) {
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 

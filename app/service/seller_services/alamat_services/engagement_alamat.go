@@ -11,7 +11,7 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -60,7 +60,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 	}
 
 	var id_data_alamat int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatGudang{}).Select("id").Where(&models.AlamatGudang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Select("id").Where(&sot_models.AlamatGudang{
 		IDSeller:   data.IdentitasSeller.IdSeller,
 		NamaAlamat: data.NamaAlamat,
 	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
@@ -81,7 +81,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 
 	helper.SanitasiKoordinat(&data.Latitude, &data.Longitude)
 
-	newAlamatGudang := models.AlamatGudang{
+	newAlamatGudang := sot_models.AlamatGudang{
 		IDSeller:        data.IdentitasSeller.IdSeller,
 		PanggilanAlamat: data.PanggilanAlamat,
 		NomorTelephone:  data.NomorTelefon,
@@ -103,7 +103,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		}
 	}
 
-	go func(A models.AlamatGudang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(A sot_models.AlamatGudang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(A.IDSeller),
 		}
@@ -172,7 +172,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 	}
 
 	var id_data_alamat int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatGudang{}).Select("id").Where(&models.AlamatGudang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Select("id").Where(&sot_models.AlamatGudang{
 		ID:       data.IdAlamatGudang,
 		IDSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
@@ -194,7 +194,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 	var idDataTransaksi int64 = 0
 
 	if err := db.Read.WithContext(ctx).
-		Model(&models.Transaksi{}).
+		Model(&sot_models.Transaksi{}).
 		Select("id").
 		Where("id_alamat_gudang = ? AND status != ?", data.IdAlamatGudang, "Selesai").
 		Limit(1).
@@ -218,9 +218,9 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 
 	helper.SanitasiKoordinat(&data.Latitude, &data.Longitude)
 
-	if err := db.Write.WithContext(ctx).Model(&models.AlamatGudang{}).Where(&models.AlamatGudang{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 		ID: data.IdAlamatGudang,
-	}).Updates(&models.AlamatGudang{
+	}).Updates(&sot_models.AlamatGudang{
 		PanggilanAlamat: data.PanggilanAlamat,
 		NomorTelephone:  data.NomorTelefon,
 		NamaAlamat:      data.NamaAlamat,
@@ -244,8 +244,8 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataUpdatedAlamatGudang models.AlamatGudang
-		if err := Read.WithContext(konteks).Model(&models.AlamatGudang{}).Where(&models.AlamatGudang{
+		var dataUpdatedAlamatGudang sot_models.AlamatGudang
+		if err := Read.WithContext(konteks).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 			ID: IdAlamatGudang,
 		}).Limit(1).Take(&dataUpdatedAlamatGudang).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data alamat gudang terbaru")
@@ -284,9 +284,9 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		}
 	}
 
-	var data_alamat models.AlamatGudang
+	var data_alamat sot_models.AlamatGudang
 
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatGudang{}).Where(&models.AlamatGudang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 		ID:       data.IdGudang,
 		IDSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&data_alamat).Error; err != nil {
@@ -306,7 +306,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	}
 
 	var total int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.KategoriBarang{}).Select("id").Where(&models.KategoriBarang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 		IDAlamat: data.IdGudang,
 	}).Limit(1).Scan(&total).Error; err != nil {
 		return &response.ResponseForm{
@@ -327,7 +327,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	var idDataTransaksi int64 = 0
 
 	if err := db.Read.WithContext(ctx).
-		Model(&models.Transaksi{}).
+		Model(&sot_models.Transaksi{}).
 		Select("id").
 		Where("id_alamat_gudang = ? AND status != ?", data.IdGudang, "Selesai").
 		Limit(1).
@@ -349,10 +349,10 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		}
 	}
 
-	if err_hapus := db.Write.WithContext(ctx).Model(&models.AlamatGudang{}).Where(models.AlamatGudang{
+	if err_hapus := db.Write.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(sot_models.AlamatGudang{
 		ID:       data.IdGudang,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Delete(&models.AlamatGudang{}).Error; err_hapus != nil {
+	}).Delete(&sot_models.AlamatGudang{}).Error; err_hapus != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -360,7 +360,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		}
 	}
 
-	go func(A models.AlamatGudang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(A sot_models.AlamatGudang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(A.IDSeller),
 		}

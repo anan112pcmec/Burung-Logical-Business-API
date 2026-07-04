@@ -6,7 +6,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -23,7 +23,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 	switch r.URL.Path {
 	case "/auth/user/registration":
 		if r.Method == http.MethodPost {
-			var data models.Pengguna
+			var data sot_models.Pengguna
 			if err := helper.DecodeJSONBody(r, &data); err != nil {
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
@@ -35,7 +35,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 
 	case "/auth/user/login":
 		if r.Method == http.MethodPost {
-			var data models.Pengguna
+			var data sot_models.Pengguna
 			if err := helper.DecodeJSONBody(r, &data); err != nil {
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
@@ -59,7 +59,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 
 	case "/auth/seller/registration":
 		if r.Method == http.MethodPost {
-			var data models.Seller
+			var data sot_models.Seller
 			if err := helper.DecodeJSONBody(r, &data); err != nil {
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
@@ -71,7 +71,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 
 	case "/auth/seller/login":
 		if r.Method == http.MethodPost {
-			var data models.Seller
+			var data sot_models.Seller
 			if err := helper.DecodeJSONBody(r, &data); err != nil {
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
@@ -95,7 +95,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 
 	case "/auth/kurir/registration":
 		if r.Method == http.MethodPost {
-			var data models.Kurir
+			var data sot_models.Kurir
 			if err := helper.DecodeJSONBody(r, &data); err != nil {
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
@@ -107,7 +107,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 
 	case "/auth/kurir/login":
 		if r.Method == http.MethodPost {
-			var data models.Kurir
+			var data sot_models.Kurir
 			if err := helper.DecodeJSONBody(r, &data); err != nil {
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return

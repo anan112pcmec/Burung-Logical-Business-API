@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
@@ -20,8 +20,8 @@ func UbahUsernamePengguna(ctx context.Context, db *environment.InternalDBReadWri
 
 	var countUsername int64
 
-	if err := db.Read.WithContext(ctx).Model(&models.Pengguna{}).
-		Where(&models.Pengguna{Username: username}).
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengguna{}).
+		Where(&sot_models.Pengguna{Username: username}).
 		Count(&countUsername).Error; err != nil {
 		log.Printf("[ERROR] Gagal memeriksa username: %v", err)
 		return ResponseUbahUsername{
@@ -32,8 +32,8 @@ func UbahUsernamePengguna(ctx context.Context, db *environment.InternalDBReadWri
 
 	// Jika username belum digunakan, langsung ubah
 	if countUsername == 0 {
-		if err_update := db.Write.WithContext(ctx).Model(&models.Pengguna{}).
-			Where(&models.Pengguna{ID: id_pengguna}).
+		if err_update := db.Write.WithContext(ctx).Model(&sot_models.Pengguna{}).
+			Where(&sot_models.Pengguna{ID: id_pengguna}).
 			Update("username", username).Error; err_update == nil {
 			log.Printf("[INFO] Username berhasil diubah untuk pengguna ID %d", id_pengguna)
 			return ResponseUbahUsername{
@@ -60,8 +60,8 @@ func UbahUsernamePengguna(ctx context.Context, db *environment.InternalDBReadWri
 			usernameBaru := username + helper.GenerateRandomDigits()
 			var tmp int64
 
-			if err := db.Read.WithContext(ctx).Model(&models.Pengguna{}).
-				Where(&models.Pengguna{Username: usernameBaru}).
+			if err := db.Read.WithContext(ctx).Model(&sot_models.Pengguna{}).
+				Where(&sot_models.Pengguna{Username: usernameBaru}).
 				Count(&tmp).Error; err != nil {
 				log.Printf("[WARN] Gagal memeriksa ketersediaan saran username: %v", err)
 				continue
@@ -102,7 +102,7 @@ func UbahUsernamePengguna(ctx context.Context, db *environment.InternalDBReadWri
 
 func UbahNamaPengguna(ctx context.Context, id_pengguna int64, nama string, db *environment.InternalDBReadWriteSystem) ResponseUbahNama {
 
-	if err_db := db.Write.WithContext(ctx).Model(&models.Pengguna{}).Where(&models.Pengguna{ID: id_pengguna}).Update("nama", nama).Error; err_db == nil {
+	if err_db := db.Write.WithContext(ctx).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{ID: id_pengguna}).Update("nama", nama).Error; err_db == nil {
 		log.Printf("[INFO] Nama berhasil diubah untuk pengguna ID %d", id_pengguna)
 		return ResponseUbahNama{
 			Message: "Nama berhasil diubah.",
@@ -124,9 +124,9 @@ func UbahEmailPengguna(ctx context.Context, id_pengguna int64, email string, db 
 
 	// ambil email lama
 	var email_lama string
-	if err := db.Read.WithContext(ctx).Model(&models.Pengguna{}).
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengguna{}).
 		Select("email").
-		Where(&models.Pengguna{ID: id_pengguna}).
+		Where(&sot_models.Pengguna{ID: id_pengguna}).
 		Limit(1).Scan(&email_lama).Error; err != nil {
 		log.Printf("[ERROR] Gagal mendapatkan email lama pengguna ID %d: %v", id_pengguna, err)
 		return ResponseUbahEmail{
@@ -136,8 +136,8 @@ func UbahEmailPengguna(ctx context.Context, id_pengguna int64, email string, db 
 	}
 
 	// update email
-	if err := db.Write.WithContext(ctx).Model(&models.Pengguna{}).
-		Where(&models.Pengguna{ID: id_pengguna}).
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Pengguna{}).
+		Where(&sot_models.Pengguna{ID: id_pengguna}).
 		Update("email", email).Error; err != nil {
 		log.Printf("[ERROR] Gagal mengubah email untuk pengguna ID %d: %v", id_pengguna, err)
 		return ResponseUbahEmail{

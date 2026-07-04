@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -67,14 +67,14 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 
 	wg.Wait()
 
-	go func(Bpengguna models.Pengguna, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
+	go func(Bpengguna sot_models.Pengguna, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*models.Pengguna](&Bpengguna)
-		var uptodatePenggunaData models.Pengguna
-		if err := Read.WithContext(konteks).Model(&models.Pengguna{}).Where(&models.Pengguna{
+		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Pengguna](&Bpengguna)
+		var uptodatePenggunaData sot_models.Pengguna
+		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Bpengguna.ID,
 		}).Limit(1).Take(&uptodatePenggunaData); err != nil {
 			fmt.Println("Gagal mengambil data pengguna terbaru")

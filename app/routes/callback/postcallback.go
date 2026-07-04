@@ -6,9 +6,10 @@ import (
 	callback_payment_out "github.com/anan112pcmec/Burung-backend-1/app/callback/payment_out"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
+	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 )
 
-func CallbackPostHandler(w http.ResponseWriter, r *http.Request, db *environment.InternalDBReadWriteSystem) {
+func CallbackPostHandler(w http.ResponseWriter, r *http.Request, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) {
 	var status int16
 
 	ctx := r.Context()
@@ -19,7 +20,7 @@ func CallbackPostHandler(w http.ResponseWriter, r *http.Request, db *environment
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		status = callback_payment_out.UpdateStatusPaymentOut(ctx, data, db)
+		status = callback_payment_out.UpdateStatusPaymentOut(ctx, data, db, cud_publisher)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

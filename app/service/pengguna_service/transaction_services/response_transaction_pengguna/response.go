@@ -3,7 +3,7 @@ package response_transaction_pengguna
 import (
 	"github.com/midtrans/midtrans-go/snap"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 
 )
 
@@ -17,7 +17,7 @@ type CheckoutData struct {
 	IdAlamatGudang   int64  `json:"id_alamat_gudang_barang_keranjang"`
 	NamaBarang       string `json:"nama_barang_keranjang"`
 	NamaKategori     string `json:"nama_kategori_barang_keranjang"`
-	IdDiskon  int64  `json:"id_diskon_barang_keranjang"`
+	IdDiskon         int64  `json:"id_diskon_barang_keranjang"`
 	HargaKategori    int32  `json:"harga_barang_kategori_keranjang"`
 	BeratKategori    int16  `json:"berat_gram_barang_kategori_keranjang"`
 	Dipesan          int32  `json:"dipesan_barang_keranjang"`
@@ -65,10 +65,10 @@ type DataTransaksi struct {
 }
 
 type SnapTransaksi struct {
-	SnapTransaksi *snap.Response        `json:"snap_response_token"`
-	DataCheckout  []CheckoutData        `json:"checkout_data_hold"`
-	DataTransaksi []DataTransaksi       `json:"data_jarak"`
-	DataAlamat    models.AlamatPengguna `json:"alamat_data_hold"`
+	SnapTransaksi *snap.Response            `json:"snap_response_token"`
+	DataCheckout  []CheckoutData            `json:"checkout_data_hold"`
+	DataTransaksi []DataTransaksi           `json:"data_jarak"`
+	DataAlamat    sot_models.AlamatPengguna `json:"alamat_data_hold"`
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

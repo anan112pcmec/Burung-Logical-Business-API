@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
@@ -40,15 +40,15 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 	}
 
 	var id_sosmed_table int64 = 0
-	_ = db.Read.WithContext(ctx).Model(&models.EntitySocialMedia{}).
+	_ = db.Read.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).
 		Select("id").
-		Where(&models.EntitySocialMedia{
+		Where(&sot_models.EntitySocialMedia{
 			EntityId:   data.IdentitasPengguna.ID,
 			EntityType: entity_enums.Pengguna,
 		}).Take(&id_sosmed_table)
 
 	if id_sosmed_table == 0 {
-		newTautkanSocialMedia := models.EntitySocialMedia{
+		newTautkanSocialMedia := sot_models.EntitySocialMedia{
 			EntityId:   data.IdentitasPengguna.ID,
 			Whatsapp:   data.Data.Whatsapp,
 			Facebook:   data.Data.Facebook,
@@ -65,7 +65,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 			}
 		}
 
-		go func(Esm models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
+		go func(Esm sot_models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
 			ctx_t := context.Background()
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
@@ -79,9 +79,9 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		log.Printf("[INFO] Data social media berhasil ditambahkan untuk pengguna ID %d", data.IdentitasPengguna.ID)
 	} else {
 		if data.Data.Whatsapp != "" && data.Data.Whatsapp != "not" {
-			if err_update := db.Write.WithContext(ctx).Model(&models.EntitySocialMedia{}).
-				Where(&models.EntitySocialMedia{ID: id_sosmed_table}).
-				Updates(&models.EntitySocialMedia{
+			if err_update := db.Write.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).
+				Where(&sot_models.EntitySocialMedia{ID: id_sosmed_table}).
+				Updates(&sot_models.EntitySocialMedia{
 					Whatsapp: data.Data.Whatsapp,
 				}).Error; err_update != nil {
 				log.Printf("[ERROR] Gagal memperbarui Whatsapp untuk pengguna ID %d: %v", data.IdentitasPengguna.ID, err_update)
@@ -94,9 +94,9 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		}
 
 		if data.Data.TikTok != "" && data.Data.TikTok != "not" {
-			if err_update := db.Write.WithContext(ctx).Model(&models.EntitySocialMedia{}).
-				Where(&models.EntitySocialMedia{ID: id_sosmed_table}).
-				Updates(&models.EntitySocialMedia{
+			if err_update := db.Write.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).
+				Where(&sot_models.EntitySocialMedia{ID: id_sosmed_table}).
+				Updates(&sot_models.EntitySocialMedia{
 					TikTok: data.Data.TikTok,
 				}).Error; err_update != nil {
 				log.Printf("[ERROR] Gagal memperbarui TikTok untuk pengguna ID %d: %v", data.IdentitasPengguna.ID, err_update)
@@ -109,9 +109,9 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		}
 
 		if data.Data.Facebook != "" && data.Data.Facebook != "not" {
-			if err_update := db.Write.WithContext(ctx).Model(&models.EntitySocialMedia{}).
-				Where(&models.EntitySocialMedia{ID: id_sosmed_table}).
-				Updates(&models.EntitySocialMedia{
+			if err_update := db.Write.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).
+				Where(&sot_models.EntitySocialMedia{ID: id_sosmed_table}).
+				Updates(&sot_models.EntitySocialMedia{
 					Facebook: data.Data.Facebook,
 				}).Error; err_update != nil {
 				log.Printf("[ERROR] Gagal memperbarui Facebook untuk pengguna ID %d: %v", data.IdentitasPengguna.ID, err_update)
@@ -124,9 +124,9 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		}
 
 		if data.Data.Instagram != "" && data.Data.Instagram != "not" {
-			if err_update := db.Write.WithContext(ctx).Model(&models.EntitySocialMedia{}).
-				Where(&models.EntitySocialMedia{ID: id_sosmed_table}).
-				Updates(&models.EntitySocialMedia{
+			if err_update := db.Write.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).
+				Where(&sot_models.EntitySocialMedia{ID: id_sosmed_table}).
+				Updates(&sot_models.EntitySocialMedia{
 					Instagram: data.Data.Instagram,
 				}).Error; err_update != nil {
 				log.Printf("[ERROR] Gagal memperbarui Instagram untuk pengguna ID %d: %v", data.IdentitasPengguna.ID, err_update)
@@ -143,8 +143,8 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var Esm models.EntitySocialMedia
-			if err := Read.WithContext(konteks).Model(&models.EntitySocialMedia{}).Where(&models.EntitySocialMedia{
+			var Esm sot_models.EntitySocialMedia
+			if err := Read.WithContext(konteks).Model(&sot_models.EntitySocialMedia{}).Where(&sot_models.EntitySocialMedia{
 				ID: idEntitySosmed,
 			}).Limit(1).Take(&Esm).Error; err != nil {
 				fmt.Println("Gagal mendapatkan data update entity social media")
@@ -202,8 +202,8 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.EntitySocialMedia{}).
-		Where(&models.EntitySocialMedia{ID: data.IdSocialMedia}).
+	if err := db.Write.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).
+		Where(&sot_models.EntitySocialMedia{ID: data.IdSocialMedia}).
 		Updates(kolom_update).Error; err != nil {
 		log.Printf("[ERROR] Gagal menghapus data %s untuk pengguna ID %d: %v", data.HapusSocialMedia, data.IdentitasPengguna.ID, err)
 		return &response.ResponseForm{
@@ -218,8 +218,8 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var Esm models.EntitySocialMedia
-		if err := Read.WithContext(konteks).Model(&models.EntitySocialMedia{}).Where(&models.EntitySocialMedia{
+		var Esm sot_models.EntitySocialMedia
+		if err := Read.WithContext(konteks).Model(&sot_models.EntitySocialMedia{}).Where(&sot_models.EntitySocialMedia{
 			ID: idEntitySosmed,
 		}).Limit(1).Take(&Esm).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data update entity social media")
@@ -259,8 +259,8 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *e
 
 	var id_data_follower int64 = 0
 
-	if err := db.Read.WithContext(ctx).Model(&models.Follower{}).Select("id").
-		Where(&models.Follower{IdFollower: data.IdentitasUser.ID, IdFollowed: int64(data.IdSeller)}).
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Follower{}).Select("id").
+		Where(&sot_models.Follower{IdFollower: data.IdentitasUser.ID, IdFollowed: int64(data.IdSeller)}).
 		Limit(1).Scan(&id_data_follower).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -270,7 +270,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *e
 	}
 
 	if id_data_follower == 0 {
-		newFollow := models.Follower{
+		newFollow := sot_models.Follower{
 			IdFollower: data.IdentitasUser.ID,
 			IdFollowed: int64(data.IdSeller),
 		}
@@ -282,7 +282,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *e
 			}
 		}
 
-		go func(Nf models.Follower, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Nf sot_models.Follower, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
 				IdPengguna: Nf.IdFollower,
 			}
@@ -342,8 +342,8 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		}
 	}
 
-	var follower models.Follower
-	if err := db.Read.WithContext(ctx).Model(&models.Follower{}).Where(&models.Follower{
+	var follower sot_models.Follower
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Follower{}).Where(&sot_models.Follower{
 		IdFollower: data.IdentitasUser.ID,
 		IdFollowed: int64(data.IdSeller),
 	}).Limit(1).Scan(&follower).Error; err != nil {
@@ -362,9 +362,9 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		}
 	}
 
-	if result := db.Write.WithContext(ctx).Where(&models.Follower{
+	if result := db.Write.WithContext(ctx).Where(&sot_models.Follower{
 		ID: follower.ID,
-	}).Delete(&models.Follower{}).Error; result != nil {
+	}).Delete(&sot_models.Follower{}).Error; result != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -372,7 +372,7 @@ func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db 
 		}
 	}
 
-	go func(Nf models.Follower, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Nf sot_models.Follower, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
 			IdPengguna: Nf.IdFollower,
 		}

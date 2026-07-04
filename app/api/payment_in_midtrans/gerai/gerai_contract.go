@@ -7,9 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/redis/go-redis/v9"
-
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -17,7 +16,7 @@ import (
 // //////////////////////////////////////////////////////////////////////////////////////////
 
 type Response interface {
-	Pembayaran() (models.Pembayaran, bool)
+	Pembayaran() (sot_models.Pembayaran, bool)
 	Pending(rds *redis.Client, id_user int64) bool
 }
 
@@ -25,11 +24,11 @@ type Response interface {
 // Implementasi Pembayaran
 // //////////////////////////////////////////////////////////////////////////////////////////
 
-func Bayar(r Response) (models.Pembayaran, bool) {
+func Bayar(r Response) (sot_models.Pembayaran, bool) {
 	return r.Pembayaran()
 }
 
-func (b *GeraiResponse) Pembayaran() (p models.Pembayaran, s bool) {
+func (b *GeraiResponse) Pembayaran() (p sot_models.Pembayaran, s bool) {
 	s = true
 
 	if b.PaymentType != "cstore" || b.OrderId == "" || b.FraudStatus == "" {
@@ -41,7 +40,7 @@ func (b *GeraiResponse) Pembayaran() (p models.Pembayaran, s bool) {
 		s = false
 	}
 
-	p = models.Pembayaran{
+	p = sot_models.Pembayaran{
 		KodeTransaksiPG: b.TransactionId,
 		KodeOrderSistem: b.OrderId,
 		Provider:        b.PaymentType,

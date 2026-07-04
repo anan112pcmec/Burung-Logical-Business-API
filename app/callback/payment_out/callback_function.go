@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"gorm.io/gorm"
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
+	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPaymentOut, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) int16 {
@@ -21,17 +21,17 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 	var untuk string = ""
 
 	// 1. Cek di PayOutKurir
-	if err := db.Read.WithContext(ctx).Model(&models.PayOutKurir{}).Select("id").Where(&models.PayOutKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.PayOutKurir{}).Select("id").Where(&sot_models.PayOutKurir{
 		IdDisbursment: data.ID,
 	}).Limit(1).Take(&id_payout).Error; err != nil {
 
 		// 2. Cek di PayOutSeller jika di Kurir tidak ada
-		if err := db.Read.WithContext(ctx).Model(&models.PayOutSeller{}).Select("id").Where(&models.PayOutSeller{
+		if err := db.Read.WithContext(ctx).Model(&sot_models.PayOutSeller{}).Select("id").Where(&sot_models.PayOutSeller{
 			IdDisbursment: data.ID,
 		}).Limit(1).Take(&id_payout).Error; err != nil {
 
 			// 3. Cek di PayOutSistem jika di Seller tidak ada
-			if err := db.Read.WithContext(ctx).Model(&models.PayOutSistem{}).Select("id").Where(&models.PayOutSistem{
+			if err := db.Read.WithContext(ctx).Model(&sot_models.PayOutSistem{}).Select("id").Where(&sot_models.PayOutSistem{
 				IdDisburstment: data.ID,
 			}).Limit(1).Take(&id_payout).Error; err != nil {
 				return http.StatusNotFound
@@ -53,17 +53,17 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 	// Proses Update Status berdasarkan tipe 'untuk'
 	switch untuk {
 	case entity_enums.Kurir:
-		if err := db.Write.WithContext(ctx).Model(&models.PayOutKurir{}).Where(&models.PayOutKurir{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.PayOutKurir{}).Where(&sot_models.PayOutKurir{
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError
 		} else {
 			go func(IPK int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-				konteks, cancel := context.WithTimeout(context.Background(), time.Second*6)
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
-				var dataPayoutKurir models.PayOutKurir
-				if err := read.WithContext(konteks).Model(&models.PayOutKurir{}).Where(&models.PayOutKurir{
+				var dataPayoutKurir sot_models.PayOutKurir
+				if err := read.WithContext(konteks).Model(&sot_models.PayOutKurir{}).Where(&sot_models.PayOutKurir{
 					ID: IPK,
 				}).Limit(1).Scan(&dataPayoutKurir).Error; err != nil && err == gorm.ErrRecordNotFound {
 					fmt.Println("Gagal mendapatkan data payout")
@@ -76,17 +76,17 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 			}(id_payout, db.Read, cud_publisher)
 		}
 	case entity_enums.Seller:
-		if err := db.Write.WithContext(ctx).Model(&models.PayOutSeller{}).Where(&models.PayOutSeller{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.PayOutSeller{}).Where(&sot_models.PayOutSeller{
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError
 		} else {
 			go func(IPS int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-				konteks, cancel := context.WithTimeout(context.Background(), time.Second*6)
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
-				var dataPayoutSeller models.PayOutSeller
-				if err := read.WithContext(konteks).Model(&models.PayOutSeller{}).Where(&models.PayOutSeller{
+				var dataPayoutSeller sot_models.PayOutSeller
+				if err := read.WithContext(konteks).Model(&sot_models.PayOutSeller{}).Where(&sot_models.PayOutSeller{
 					ID: IPS,
 				}).Limit(1).Scan(&dataPayoutSeller).Error; err != nil && err == gorm.ErrRecordNotFound {
 					fmt.Println("Gagal menemukan data payout")
@@ -100,17 +100,17 @@ func UpdateStatusPaymentOut(ctx context.Context, data PayloadUpdateStatusPayment
 			}(id_payout, db.Read, cud_publisher)
 		}
 	case "sistem":
-		if err := db.Write.WithContext(ctx).Model(&models.PayOutSistem{}).Where(&models.PayOutSistem{
+		if err := db.Write.WithContext(ctx).Model(&sot_models.PayOutSistem{}).Where(&sot_models.PayOutSistem{
 			ID: id_payout,
 		}).Update("status", data.Status).Error; err != nil {
 			return http.StatusInternalServerError
 		} else {
 			go func(IPS int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-				konteks, cancel := context.WithTimeout(context.Background(), time.Second*6)
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
-				var dataPayoutSistem models.PayOutSistem
-				if err := read.WithContext(konteks).Model(&models.PayOutSistem{}).Where(&models.PayOutSistem{
+				var dataPayoutSistem sot_models.PayOutSistem
+				if err := read.WithContext(konteks).Model(&sot_models.PayOutSistem{}).Where(&sot_models.PayOutSistem{
 					ID: IPS,
 				}).Limit(1).Scan(&dataPayoutSistem).Error; err != nil && err == gorm.ErrRecordNotFound {
 					fmt.Println("Gagal menemukan data payout")

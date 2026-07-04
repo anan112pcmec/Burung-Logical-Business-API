@@ -13,7 +13,7 @@ import (
 
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_review "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/review"
@@ -40,9 +40,9 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 	// Cek apakah data foto profil sudah ada
 	var id_data_photo_exist int64 = 0
 	if err := db.Read.WithContext(ctx).
-		Model(&models.MediaPenggunaProfilFoto{}).
+		Model(&sot_models.MediaPenggunaProfilFoto{}).
 		Select("id").
-		Where(&models.MediaPenggunaProfilFoto{
+		Where(&sot_models.MediaPenggunaProfilFoto{
 			IdPengguna: data.IdentitasPengguna.ID,
 		}).
 		Limit(1).
@@ -55,7 +55,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 	}
 
 	// Generate key baru
-	keyz := models.MediaPenggunaProfilFoto{}.PathName() +
+	keyz := sot_models.MediaPenggunaProfilFoto{}.PathName() +
 		strconv.Itoa(int(data.IdentitasPengguna.ID)) + "/" +
 		helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
 
@@ -75,9 +75,9 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 
 	minIOUploadUrl := url.String()
 
-	// Kalau belum ada â†’ insert
+	// Kalau belum ada Ã¢â€ â€™ insert
 	if id_data_photo_exist == 0 {
-		newPhoto := models.MediaPenggunaProfilFoto{
+		newPhoto := sot_models.MediaPenggunaProfilFoto{
 			IdPengguna: data.IdentitasPengguna.ID,
 			Key:        keyz,
 			Format:     data.Ekstensi,
@@ -90,7 +90,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 			}
 		}
 
-		go func(Mppf models.MediaPenggunaProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(Mppf sot_models.MediaPenggunaProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
 				IdPengguna: Mppf.IdPengguna,
 			}
@@ -112,9 +112,9 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 	} else {
 		var id_data_key_sama int64 = 0
 		if err := db.Read.WithContext(ctx).
-			Model(&models.MediaPenggunaProfilFoto{}).
+			Model(&sot_models.MediaPenggunaProfilFoto{}).
 			Select("id").
-			Where(&models.MediaPenggunaProfilFoto{
+			Where(&sot_models.MediaPenggunaProfilFoto{
 				ID:  id_data_photo_exist,
 				Key: keyz,
 			}).
@@ -135,8 +135,8 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 		}
 
 		if err := db.Write.WithContext(ctx).
-			Model(&models.MediaPenggunaProfilFoto{}).
-			Where(&models.MediaPenggunaProfilFoto{
+			Model(&sot_models.MediaPenggunaProfilFoto{}).
+			Where(&sot_models.MediaPenggunaProfilFoto{
 				ID: id_data_photo_exist,
 			}).
 			Update("key", keyz).Error; err != nil {
@@ -152,8 +152,8 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 			defer cancel()
 
-			var dataPhotoProfil models.MediaPenggunaProfilFoto
-			if err := Read.WithContext(konteks).Model(&models.MediaPenggunaProfilFoto{}).Where(&models.MediaPenggunaProfilFoto{
+			var dataPhotoProfil sot_models.MediaPenggunaProfilFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaPenggunaProfilFoto{}).Where(&sot_models.MediaPenggunaProfilFoto{
 				ID: idMppf,
 			}).Limit(1).Take(&dataPhotoProfil).Error; err != nil {
 				fmt.Println("Gagal mendapatkan data photo profil")
@@ -185,8 +185,8 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		}
 	}
 
-	var data_media_foto models.MediaPenggunaProfilFoto
-	if err := db.Read.WithContext(ctx).Model(&models.MediaPenggunaProfilFoto{}).Where(&models.MediaPenggunaProfilFoto{
+	var data_media_foto sot_models.MediaPenggunaProfilFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaPenggunaProfilFoto{}).Where(&sot_models.MediaPenggunaProfilFoto{
 		ID:         data.IdMediaDataPengguna,
 		IdPengguna: data.IdentitasPengguna.ID,
 		Key:        data.KeyFoto,
@@ -204,16 +204,16 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.MediaPenggunaProfilFoto{}).Where(&models.MediaPenggunaProfilFoto{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaPenggunaProfilFoto{}).Where(&sot_models.MediaPenggunaProfilFoto{
 		ID: data.IdMediaDataPengguna,
-	}).Delete(&models.MediaPenggunaProfilFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaPenggunaProfilFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 		}
 	}
 
-	go func(Mppf models.MediaPenggunaProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Mppf sot_models.MediaPenggunaProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
 			IdPengguna: Mppf.IdPengguna,
 		}
@@ -259,7 +259,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	}
 
 	var id_data_review_produk int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Review{}).Select("id").Where(&models.Review{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Review{}).Select("id").Where(&sot_models.Review{
 		ID:         data.IdReviewData,
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(1).Scan(&id_data_review_produk).Error; err != nil {
@@ -277,7 +277,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	}
 
 	var id_media_review_foto int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaReviewFoto{}).Select("id").Where(&models.MediaReviewFoto{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaReviewFoto{}).Select("id").Where(&sot_models.MediaReviewFoto{
 		IdReview: id_data_review_produk,
 	}).Limit(1).Scan(&id_media_review_foto).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -294,7 +294,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	}
 
 	totalData := len(data.Ekstensi)
-	var simpanDataFotoReview []models.MediaReviewFoto = make([]models.MediaReviewFoto, 0, totalData)
+	var simpanDataFotoReview []sot_models.MediaReviewFoto = make([]sot_models.MediaReviewFoto, 0, totalData)
 	var keyzAndUrl []response.UrlAndKey = make([]response.UrlAndKey, 0, totalData)
 
 	for i := 0; i < totalData; i++ {
@@ -305,7 +305,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 			}
 		}
 
-		keyz := models.MediaReviewFoto{}.PathName() + strconv.Itoa(int(id_data_review_produk)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi[i]
+		keyz := sot_models.MediaReviewFoto{}.PathName() + strconv.Itoa(int(id_data_review_produk)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi[i]
 
 		if url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2); err_url != nil {
 			return &response.ResponseMediaUpload{
@@ -313,7 +313,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 				Services: services,
 			}
 		} else {
-			simpanDataFotoReview = append(simpanDataFotoReview, models.MediaReviewFoto{
+			simpanDataFotoReview = append(simpanDataFotoReview, sot_models.MediaReviewFoto{
 				IdReview: id_data_review_produk,
 				Key:      keyz,
 				Format:   data.Ekstensi[i],
@@ -333,7 +333,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		}
 	}
 
-	go func(mediaPhotos []models.MediaReviewFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(mediaPhotos []sot_models.MediaReviewFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdReview := sot_threshold.ReviewThreshold{
 			IdReview: mediaPhotos[0].IdReview,
 		}
@@ -352,7 +352,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		}
 
 		for _, mP := range mediaPhotos {
-			go func(Photo models.MediaReviewFoto, publisherr *mb_cud_publisher.Publisher) {
+			go func(Photo sot_models.MediaReviewFoto, publisherr *mb_cud_publisher.Publisher) {
 				ctx_tt := context.Background()
 				kontekss, cancell := context.WithTimeout(ctx_tt, settings.TimeoutContext)
 				defer cancell()
@@ -391,7 +391,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 	}
 
 	var id_data_review_produk int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Review{}).Select("id").Where(&models.Review{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Review{}).Select("id").Where(&sot_models.Review{
 		ID:         data.IdReviewData,
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(1).Scan(&id_data_review_produk).Error; err != nil {
@@ -409,7 +409,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 	}
 
 	var id_media_review_video int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.MediaReviewVideo{}).Select("id").Where(&models.MediaReviewVideo{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaReviewVideo{}).Select("id").Where(&sot_models.MediaReviewVideo{
 		IdReview: id_data_review_produk,
 	}).Limit(1).Scan(&id_media_review_video).Error; err != nil {
 		return &response.ResponseMediaUpload{
@@ -425,7 +425,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 		}
 	}
 
-	keyz := models.MediaReviewVideo{}.PathName() + strconv.Itoa(int(id_data_review_produk)) + "/" + helper.GenerateMediaKeyVideo() + "." + data.Ekstensi
+	keyz := sot_models.MediaReviewVideo{}.PathName() + strconv.Itoa(int(id_data_review_produk)) + "/" + helper.GenerateMediaKeyVideo() + "." + data.Ekstensi
 
 	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketVideoName, keyz, time.Minute*2)
 	if err_url != nil {
@@ -435,7 +435,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 		}
 	}
 
-	createVideoReview := models.MediaReviewVideo{
+	createVideoReview := sot_models.MediaReviewVideo{
 		IdReview: data.IdReviewData,
 		Key:      keyz,
 		Format:   data.Ekstensi,
@@ -448,7 +448,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 		}
 	}
 
-	go func(Vr models.MediaReviewVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Vr sot_models.MediaReviewVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		reviewThreshold := sot_threshold.ReviewThreshold{
 			IdReview: Vr.IdReview,
 		}

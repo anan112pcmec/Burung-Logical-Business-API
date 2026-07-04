@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_diskon_produk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/diskon_produk"
@@ -39,7 +39,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 	}
 
 	var id_diskon_produk int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Select("id").Where(&models.DiskonProduk{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Select("id").Where(&sot_models.DiskonProduk{
 		SellerId:     data.IdentitasSeller.IdSeller,
 		Nama:         data.Nama,
 		DiskonPersen: data.DiskonPersen,
@@ -63,8 +63,8 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		}
 	}
 
-	var KebijakanSistem models.KebijakanSistem
-	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Where(&models.KebijakanSistem{
+	var KebijakanSistem sot_models.KebijakanSistem
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KebijakanSistem{}).Where(&sot_models.KebijakanSistem{
 		StatusActive: true,
 	}).Limit(1).Take(&KebijakanSistem).Error; err != nil {
 		return &response.ResponseForm{
@@ -85,7 +85,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 	}
 
 	var id_diskon_produks []int64
-	if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Select("id").Where(&models.DiskonProduk{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Select("id").Where(&sot_models.DiskonProduk{
 		SellerId: data.IdentitasSeller.IdSeller,
 	}).Limit(limit).Scan(&id_diskon_produks).Error; err != nil {
 		return &response.ResponseForm{
@@ -107,7 +107,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		}
 	}
 
-	newDiskonProduk := models.DiskonProduk{
+	newDiskonProduk := sot_models.DiskonProduk{
 		SellerId:      data.IdentitasSeller.IdSeller,
 		Nama:          data.Nama,
 		Deskripsi:     data.Deskripsi,
@@ -127,7 +127,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		}
 	}
 
-	go func(Dp models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dp sot_models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -178,7 +178,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 	}
 
 	var id_diskon_produk int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Select("id").Where(&models.DiskonProduk{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Select("id").Where(&sot_models.DiskonProduk{
 		ID:       data.IdDiskonProduk,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   seller_enum.Draft,
@@ -202,9 +202,9 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		}
 	}
 
-	if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Where(&models.DiskonProduk{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 		ID: data.IdDiskonProduk,
-	}).Updates(&models.DiskonProduk{
+	}).Updates(&sot_models.DiskonProduk{
 		Nama:          data.Nama,
 		Deskripsi:     data.Deskripsi,
 		DiskonPersen:  data.DiskonPersen,
@@ -225,8 +225,8 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataUpdatedDiskonProduk models.DiskonProduk
-		if err := Read.WithContext(konteks).Model(&models.DiskonProduk{}).Where(&models.DiskonProduk{
+		var dataUpdatedDiskonProduk sot_models.DiskonProduk
+		if err := Read.WithContext(konteks).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 			ID: IdDp,
 		}).Limit(1).Take(&data.IdDiskonProduk).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data updated diskon produk")
@@ -261,8 +261,8 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 		}
 	}
 
-	var diskon_produk models.DiskonProduk
-	if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Where(&models.DiskonProduk{
+	var diskon_produk sot_models.DiskonProduk
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 		ID:       data.IdDiskonProduk,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   seller_enum.Draft,
@@ -287,14 +287,14 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.BarangDiDiskon{}).Where(&models.BarangDiDiskon{
+		if err := tx.Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
 			IdDiskon: diskon_produk.ID,
-		}).Delete(&models.BarangDiDiskon{}).Error; err != nil {
+		}).Delete(&sot_models.BarangDiDiskon{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&models.DiskonProduk{}).Where(&models.DiskonProduk{
+		if err := tx.Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 			ID: data.IdDiskonProduk,
-		}).Delete(&models.DiskonProduk{}).Error; err != nil {
+		}).Delete(&sot_models.DiskonProduk{}).Error; err != nil {
 			return err
 		}
 		return nil
@@ -308,7 +308,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 		}
 	}
 
-	go func(Dp models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dp sot_models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -357,7 +357,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 	}
 
 	var id_kategori_barang int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.KategoriBarang{}).Select("id").Where(&models.KategoriBarang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 		ID:            data.IdKategoriBarang,
 		IdBarangInduk: data.IdBarangInduk,
 		SellerID:      data.IdentitasSeller.IdSeller,
@@ -382,7 +382,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 	}
 
 	var id_barang_di_diskon int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BarangDiDiskon{}).Select("id").Where(&models.BarangDiDiskon{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDiDiskon{}).Select("id").Where(&sot_models.BarangDiDiskon{
 		SellerId:         data.IdentitasSeller.IdSeller,
 		IdBarangInduk:    data.IdBarangInduk,
 		IdKategoriBarang: data.IdKategoriBarang,
@@ -406,7 +406,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		}
 	}
 
-	newBarangDiDiskon := models.BarangDiDiskon{
+	newBarangDiDiskon := sot_models.BarangDiDiskon{
 		SellerId:         data.IdentitasSeller.IdSeller,
 		IdDiskon:         data.IdDiskonProduk,
 		IdBarangInduk:    data.IdBarangInduk,
@@ -424,7 +424,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		}
 	}
 
-	go func(Bdd models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Bdd sot_models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -490,8 +490,8 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		}
 	}
 
-	var barang_di_diskon models.BarangDiDiskon
-	if err := db.Read.WithContext(ctx).Model(&models.BarangDiDiskon{}).Where(&models.BarangDiDiskon{
+	var barang_di_diskon sot_models.BarangDiDiskon
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
 		ID:       data.IdBarangDiDiskon,
 		SellerId: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&barang_di_diskon).Error; err != nil {
@@ -514,9 +514,9 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.BarangDiDiskon{}).Where(&models.BarangDiDiskon{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
 		ID: barang_di_diskon.ID,
-	}).Delete(&models.BarangDiDiskon{}).Error; err != nil {
+	}).Delete(&sot_models.BarangDiDiskon{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -526,7 +526,7 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		}
 	}
 
-	go func(Bdd models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Bdd sot_models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

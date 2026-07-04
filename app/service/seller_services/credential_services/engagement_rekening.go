@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -49,9 +49,9 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 	// cek rekening sudah ada
 	var id_rekening int64 = 0
 	if err_check_rekening := db.Read.WithContext(ctx).
-		Model(&models.RekeningSeller{}).
+		Model(&sot_models.RekeningSeller{}).
 		Select("id").
-		Where(models.RekeningSeller{
+		Where(sot_models.RekeningSeller{
 			IDSeller:      data.IdentitasSeller.IdSeller,
 			NamaBank:      data.NamaBank,
 			NomorRekening: data.NomorRekening,
@@ -78,9 +78,9 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 	// cek apakah seller sudah punya rekening lain (buat tentuin default)
 	var id_data_rekening int64 = 0
 	if err := db.Read.WithContext(ctx).
-		Model(&models.RekeningSeller{}).
+		Model(&sot_models.RekeningSeller{}).
 		Select("id").
-		Where(&models.RekeningSeller{
+		Where(&sot_models.RekeningSeller{
 			IDSeller: data.IdentitasSeller.IdSeller,
 		}).
 		Limit(1).
@@ -101,7 +101,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		IsDefault = false
 	}
 
-	newRekening := models.RekeningSeller{
+	newRekening := sot_models.RekeningSeller{
 		IDSeller:        data.IdentitasSeller.IdSeller,
 		NamaBank:        data.NamaBank,
 		NomorRekening:   data.NomorRekening,
@@ -118,7 +118,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		}
 	}
 
-	go func(Dr models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dr sot_models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -177,7 +177,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 	}
 
 	var id_data_rekening int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.RekeningSeller{}).Select("id").Where(&models.RekeningSeller{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekening,
 		IDSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
@@ -196,9 +196,9 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.RekeningSeller{}).Where(&models.RekeningSeller{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 		ID: data.IdRekening,
-	}).Updates(&models.RekeningSeller{
+	}).Updates(&sot_models.RekeningSeller{
 		NamaBank:        data.NamaBank,
 		NomorRekening:   data.NomorRekening,
 		PemilikRekening: data.PemilikiRekening,
@@ -215,8 +215,8 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var updatedRekeningSeller models.RekeningSeller
-		if err := Read.WithContext(konteks).Model(&models.RekeningSeller{}).Where(&models.RekeningSeller{
+		var updatedRekeningSeller sot_models.RekeningSeller
+		if err := Read.WithContext(konteks).Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 			ID: Ir,
 		}).Limit(1).Take(&updatedRekeningSeller).Error; err != nil {
 			fmt.Println("Gagal mengambil data rekening seller")
@@ -253,7 +253,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 	}
 
 	var id_data_rekening int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.RekeningSeller{}).Select("id").Where(&models.RekeningSeller{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekening,
 		IDSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
@@ -273,14 +273,14 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.RekeningSeller{}).Where(&models.RekeningSeller{
+		if err := tx.Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 			IDSeller:  data.IdentitasSeller.IdSeller,
 			IsDefault: true,
 		}).Update("is_default", false).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Model(&models.RekeningSeller{}).Where(&models.RekeningSeller{
+		if err := tx.Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 			ID:       data.IdRekening,
 			IDSeller: data.IdentitasSeller.IdSeller,
 		}).Update("is_default", true).Error; err != nil {
@@ -301,8 +301,8 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var updatedRekeningSeller models.RekeningSeller
-		if err := Read.WithContext(konteks).Model(&models.RekeningSeller{}).Where(&models.RekeningSeller{
+		var updatedRekeningSeller sot_models.RekeningSeller
+		if err := Read.WithContext(konteks).Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 			ID: Ir,
 		}).Limit(1).Take(&updatedRekeningSeller).Error; err != nil {
 			fmt.Println("Gagal mengambil data rekening seller")
@@ -340,11 +340,11 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 	}
 
 	// Validasi apakah rekening ada dan milik seller ini
-	var data_rekening models.RekeningSeller
+	var data_rekening sot_models.RekeningSeller
 	if err := db.Read.WithContext(ctx).
-		Model(&models.RekeningSeller{}).
+		Model(&sot_models.RekeningSeller{}).
 		Select("id").
-		Where(&models.RekeningSeller{
+		Where(&sot_models.RekeningSeller{
 			ID:       data.IdRekening,
 			IDSeller: data.IdentitasSeller.IdSeller,
 		}).
@@ -367,11 +367,11 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 
 	// Hapus rekening
 	if err := db.Write.WithContext(ctx).
-		Where(&models.RekeningSeller{
+		Where(&sot_models.RekeningSeller{
 			ID:            data_rekening.ID,
 			NomorRekening: data.NomorRekening,
 		}).
-		Delete(&models.RekeningSeller{}).Error; err != nil {
+		Delete(&sot_models.RekeningSeller{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -379,7 +379,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		}
 	}
 
-	go func(Dr models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dr sot_models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

@@ -7,9 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/redis/go-redis/v9"
-
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -17,7 +16,7 @@ import (
 // //////////////////////////////////////////////////////////////////////////////////////////
 
 type Response interface {
-	Pembayaran() (models.Pembayaran, bool)
+	Pembayaran() (sot_models.Pembayaran, bool)
 	Pending(rds *redis.Client, id_user int64) bool
 }
 
@@ -25,12 +24,12 @@ type Response interface {
 // Implementasi Pembayaran
 // //////////////////////////////////////////////////////////////////////////////////////////
 
-func Bayar(r Response) (models.Pembayaran, bool) {
+func Bayar(r Response) (sot_models.Pembayaran, bool) {
 	return r.Pembayaran()
 }
 
-func (b *WalletResponse) Pembayaran() (models.Pembayaran, bool) {
-	m := models.Pembayaran{}
+func (b *WalletResponse) Pembayaran() (sot_models.Pembayaran, bool) {
+	m := sot_models.Pembayaran{}
 	var s bool = true
 
 	fmt.Println("[TRACE] Mulai proses Pembayaran WalletResponse")
@@ -54,9 +53,9 @@ func (b *WalletResponse) Pembayaran() (models.Pembayaran, bool) {
 	grossInt := int32(grossFloat)
 	fmt.Printf("[TRACE] GrossAmount dikonversi ke int32: %d\n", grossInt)
 
-	fmt.Println("[TRACE] Membuat objek models.Pembayaran...")
+	fmt.Println("[TRACE] Membuat objek sot_models.Pembayaran...")
 
-	m = models.Pembayaran{
+	m = sot_models.Pembayaran{
 		KodeTransaksiPG: b.TransactionId,
 		KodeOrderSistem: b.OrderId,
 		Provider:        b.PaymentType,

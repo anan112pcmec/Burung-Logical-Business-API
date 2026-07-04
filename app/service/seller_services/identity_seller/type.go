@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 )
 
@@ -47,10 +47,10 @@ func (i IdentitySeller) UpThreshold(ctx context.Context, db *gorm.DB) bool {
 	return true
 }
 
-func (i *IdentitySeller) FallbackDB(ctx context.Context, db *gorm.DB) (model models.Seller, status bool) {
-	var seller models.Seller
+func (i *IdentitySeller) FallbackDB(ctx context.Context, db *gorm.DB) (model sot_models.Seller, status bool) {
+	var seller sot_models.Seller
 
-	_ = db.WithContext(ctx).Model(&models.Seller{}).Where(&models.Seller{
+	_ = db.WithContext(ctx).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 		ID:       i.IdSeller,
 		Username: i.Username,
 		Email:    i.EmailSeller,
@@ -67,8 +67,8 @@ func (i *IdentitySeller) FallbackDB(ctx context.Context, db *gorm.DB) (model mod
 	return seller, true
 }
 
-func (i *IdentitySeller) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model models.Seller, status bool) {
-	var seller models.Seller
+func (i *IdentitySeller) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model sot_models.Seller, status bool) {
+	var seller sot_models.Seller
 	if i.IdSeller == 0 {
 		return seller, false
 	}
@@ -86,7 +86,7 @@ func (i *IdentitySeller) Validating(ctx context.Context, db *gorm.DB, rds *redis
 	if err_id != nil {
 		return i.FallbackDB(ctx, db)
 	}
-	seller = models.Seller{
+	seller = sot_models.Seller{
 		ID:               int32(id_seller),
 		Username:         cacheSession["username"],
 		Nama:             cacheSession["nama"],

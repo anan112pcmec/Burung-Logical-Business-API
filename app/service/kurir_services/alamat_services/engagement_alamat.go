@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -21,6 +18,8 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services/response_alamat_service_kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -56,8 +55,8 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 
 	// Cek apakah alamat sudah ada
 	var id_data_alamat int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatKurir{}).Select("id").
-		Where(&models.AlamatKurir{IdKurir: data.IdentitasKurir.IdKurir}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
+	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatKurir{}).Select("id").
+		Where(&sot_models.AlamatKurir{IdKurir: data.IdentitasKurir.IdKurir}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -80,7 +79,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 	helper.SanitasiKoordinat(&data.Latitude, &data.Longtitude)
 
 	// Simpan alamat baru
-	newAlamatKurir := models.AlamatKurir{
+	newAlamatKurir := sot_models.AlamatKurir{
 		IdKurir:         data.IdentitasKurir.IdKurir,
 		PanggilanAlamat: data.PanggilanAlamat,
 		NomorTelephone:  data.NomorTelephone,
@@ -104,7 +103,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 		}
 	}
 
-	go func(Ak models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ak sot_models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -166,7 +165,7 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 
 	// Cek apakah alamat dengan ID dan kurir terkait benar-benar ada
 	var id_data_alamat int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatKurir{}).Select("id").Where(&models.AlamatKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatKurir{}).Select("id").Where(&sot_models.AlamatKurir{
 		ID:      data.IDAlamatKurir,
 		IdKurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
@@ -190,9 +189,9 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 	}
 
 	// Update data alamat
-	if err := db.Write.WithContext(ctx).Model(&models.AlamatKurir{}).
-		Where(&models.AlamatKurir{ID: data.IDAlamatKurir}).
-		Updates(&models.AlamatKurir{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.AlamatKurir{}).
+		Where(&sot_models.AlamatKurir{ID: data.IDAlamatKurir}).
+		Updates(&sot_models.AlamatKurir{
 			PanggilanAlamat: data.PanggilanAlamat,
 			NomorTelephone:  data.NomorTelephone,
 			NamaAlamat:      data.NamaAlamat,
@@ -219,8 +218,8 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var alamatKurirUpdated models.AlamatKurir
-		if err := Read.WithContext(konteks).Model(&models.AlamatKurir{}).Where(&models.AlamatKurir{
+		var alamatKurirUpdated sot_models.AlamatKurir
+		if err := Read.WithContext(konteks).Model(&sot_models.AlamatKurir{}).Where(&sot_models.AlamatKurir{
 			ID: IdAk,
 		}).Limit(1).Scan(&alamatKurirUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data alamat kurir updated")
@@ -259,8 +258,8 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 	}
 
 	// Cek apakah alamat milik kurir tersebut ada
-	var data_alamat models.AlamatKurir
-	if err := db.Read.WithContext(ctx).Model(&models.AlamatKurir{}).Where(&models.AlamatKurir{
+	var data_alamat sot_models.AlamatKurir
+	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatKurir{}).Where(&sot_models.AlamatKurir{
 		ID:      data.IdAlamatKurir,
 		IdKurir: data.IdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&data_alamat).Error; err != nil {
@@ -284,12 +283,12 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 	}
 
 	// Hapus alamat
-	if err := db.Write.Model(&models.AlamatKurir{}).
-		Where(&models.AlamatKurir{
+	if err := db.Write.Model(&sot_models.AlamatKurir{}).
+		Where(&sot_models.AlamatKurir{
 			ID:      data.IdAlamatKurir,
 			IdKurir: data.IdentitasKurir.IdKurir,
 		}).
-		Delete(&models.AlamatKurir{}).Error; err != nil {
+		Delete(&sot_models.AlamatKurir{}).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -300,7 +299,7 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 		}
 	}
 
-	go func(Ak models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ak sot_models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

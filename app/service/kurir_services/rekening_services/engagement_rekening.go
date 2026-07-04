@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -19,6 +16,8 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services/response_rekening_services_kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -45,9 +44,9 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 
 	var id_alamat int64 = 0
 	if err := db.Read.WithContext(ctx).
-		Model(&models.RekeningKurir{}).
+		Model(&sot_models.RekeningKurir{}).
 		Select("id").
-		Where(&models.RekeningKurir{IdKurir: data.IdentitasKurir.IdKurir}).
+		Where(&sot_models.RekeningKurir{IdKurir: data.IdentitasKurir.IdKurir}).
 		Limit(1).
 		Scan(&id_alamat).Error; err != nil {
 
@@ -70,7 +69,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 		}
 	}
 
-	newRekeningKurir := models.RekeningKurir{
+	newRekeningKurir := sot_models.RekeningKurir{
 		IdKurir:         data.IdentitasKurir.IdKurir,
 		NamaBank:        data.NamaBank,
 		NomorRekening:   data.NomorRekening,
@@ -87,7 +86,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 		}
 	}
 
-	go func(Rk models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Rk sot_models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -139,9 +138,9 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 
 	var id_alamat int64 = 0
 	if err := db.Read.WithContext(ctx).
-		Model(&models.RekeningKurir{}).
+		Model(&sot_models.RekeningKurir{}).
 		Select("id").
-		Where(&models.RekeningKurir{ID: data.IdRekening, IdKurir: data.IdentitasKurir.IdKurir}).
+		Where(&sot_models.RekeningKurir{ID: data.IdRekening, IdKurir: data.IdentitasKurir.IdKurir}).
 		Limit(1).
 		Scan(&id_alamat).Error; err != nil {
 
@@ -164,9 +163,9 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.RekeningKurir{}).Where(&models.RekeningKurir{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.RekeningKurir{}).Where(&sot_models.RekeningKurir{
 		ID: data.IdRekening,
-	}).Updates(&models.RekeningKurir{
+	}).Updates(&sot_models.RekeningKurir{
 		NamaBank:        data.NamaBank,
 		NomorRekening:   data.NomorRekening,
 		PemilikRekening: data.PemilikRekening,
@@ -185,8 +184,8 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var rekeningKurirUpdated models.RekeningKurir
-		if err := Trh.WithContext(konteks).Model(&models.RekeningKurir{}).Where(&models.RekeningKurir{
+		var rekeningKurirUpdated sot_models.RekeningKurir
+		if err := Trh.WithContext(konteks).Model(&sot_models.RekeningKurir{}).Where(&sot_models.RekeningKurir{
 			ID: IdRk,
 		}).Limit(1).Take(&rekeningKurirUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kurir")
@@ -222,11 +221,11 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 		}
 	}
 
-	var data_rekening models.RekeningKurir
+	var data_rekening sot_models.RekeningKurir
 	if err := db.Read.WithContext(ctx).
-		Model(&models.RekeningKurir{}).
+		Model(&sot_models.RekeningKurir{}).
 		Select("id").
-		Where(&models.RekeningKurir{ID: data.IdRekening, IdKurir: data.IdentitasKurir.IdKurir}).
+		Where(&sot_models.RekeningKurir{ID: data.IdRekening, IdKurir: data.IdentitasKurir.IdKurir}).
 		Limit(1).
 		Scan(&data_rekening).Error; err != nil {
 
@@ -249,10 +248,10 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 		}
 	}
 
-	if err := db.Write.Model(&models.RekeningKurir{}).Where(&models.RekeningKurir{
+	if err := db.Write.Model(&sot_models.RekeningKurir{}).Where(&sot_models.RekeningKurir{
 		ID:      data.IdRekening,
 		IdKurir: data.IdentitasKurir.IdKurir,
-	}).Delete(&models.RekeningKurir{}).Error; err != nil {
+	}).Delete(&sot_models.RekeningKurir{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -262,7 +261,7 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 		}
 	}
 
-	go func(Rk models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Rk sot_models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

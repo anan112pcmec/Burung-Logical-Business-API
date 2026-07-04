@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
@@ -20,7 +20,7 @@ func UbahNama(id_kurir int64, username_kurir, nama string, db *environment.Inter
 	}
 
 	var nama_kurir string
-	if err := db.Read.Model(&models.Kurir{}).Select("nama").Where(&models.Kurir{
+	if err := db.Read.Model(&sot_models.Kurir{}).Select("nama").Where(&sot_models.Kurir{
 		ID:       id_kurir,
 		Username: username_kurir,
 	}).Limit(1).Error; err != nil {
@@ -35,7 +35,7 @@ func UbahNama(id_kurir int64, username_kurir, nama string, db *environment.Inter
 		}
 	}
 
-	if err_ubah_nama := db.Write.Model(models.Kurir{}).Where(models.Kurir{
+	if err_ubah_nama := db.Write.Model(sot_models.Kurir{}).Where(sot_models.Kurir{
 		ID:       id_kurir,
 		Username: username_kurir,
 	}).Update("nama", nama).Error; err_ubah_nama != nil {
@@ -62,7 +62,7 @@ func UbahUsernameKurir(db *environment.InternalDBReadWriteSystem, id_kurir int64
 	var countUsername int64
 	saran := make([]string, 0, 3)
 
-	if err := db.Read.Model(&models.Kurir{}).
+	if err := db.Read.Model(&sot_models.Kurir{}).
 		Where("username = ?", username).
 		Count(&countUsername).Error; err != nil {
 		log.Printf("[ERROR] Gagal cek username pada database: %v", err)
@@ -72,7 +72,7 @@ func UbahUsernameKurir(db *environment.InternalDBReadWriteSystem, id_kurir int64
 	}
 
 	if countUsername == 0 {
-		if err_update := db.Write.Model(&models.Kurir{}).
+		if err_update := db.Write.Model(&sot_models.Kurir{}).
 			Where("id = ?", id_kurir).
 			Update("username", username).Error; err_update == nil {
 			log.Printf("[INFO] Username kurir berhasil diubah untuk ID %d", id_kurir)
@@ -93,7 +93,7 @@ func UbahUsernameKurir(db *environment.InternalDBReadWriteSystem, id_kurir int64
 			usernameBaru := username + helper.GenerateRandomDigits()
 			var tmp int64
 
-			if err := db.Read.Model(&models.Kurir{}).
+			if err := db.Read.Model(&sot_models.Kurir{}).
 				Where("username = ?", usernameBaru).
 				Count(&tmp).Error; err != nil {
 				continue
@@ -135,7 +135,7 @@ func UbahEmail(id_kurir int64, username, email string, db *environment.InternalD
 	}
 
 	var emailnya string = ""
-	if err_ambil_email := db.Read.Model(models.Kurir{}).Select("email").Where(models.Kurir{
+	if err_ambil_email := db.Read.Model(sot_models.Kurir{}).Select("email").Where(sot_models.Kurir{
 		ID:       id_kurir,
 		Username: username,
 	}).Limit(1).Take(&emailnya).Error; err_ambil_email != nil {
@@ -151,7 +151,7 @@ func UbahEmail(id_kurir int64, username, email string, db *environment.InternalD
 		}
 	}
 
-	if err_ubah_email := db.Write.Model(models.Kurir{}).Where(models.Kurir{ID: id_kurir, Username: username}).Limit(1).Update("email", email).Error; err_ubah_email != nil {
+	if err_ubah_email := db.Write.Model(sot_models.Kurir{}).Where(sot_models.Kurir{ID: id_kurir, Username: username}).Limit(1).Update("email", email).Error; err_ubah_email != nil {
 		log.Printf("[ERROR] Gagal mengubah email kurir ID %d: %v", id_kurir, err_ubah_email)
 		return ResponseUbahGmail{
 			Message: "Gagal, server sedang sibuk. Coba lagi nanti.",
@@ -188,7 +188,7 @@ func UbahDeskripsi(id_kurir int64, username, deskripsi string, db *environment.I
 	}
 
 	var deskripsi_kurir string
-	if err := db.Read.Model(&models.Kurir{}).Select("deskripsi").Where(&models.Kurir{
+	if err := db.Read.Model(&sot_models.Kurir{}).Select("deskripsi").Where(&sot_models.Kurir{
 		ID: id_kurir,
 	}).Limit(1).Scan(&deskripsi_kurir).Error; err != nil {
 		return ResponseUbahDeskripsi{
@@ -202,7 +202,7 @@ func UbahDeskripsi(id_kurir int64, username, deskripsi string, db *environment.I
 		}
 	}
 
-	if err_ubah_deskripsi := db.Write.Model(models.Kurir{}).Where(models.Kurir{
+	if err_ubah_deskripsi := db.Write.Model(sot_models.Kurir{}).Where(sot_models.Kurir{
 		ID:       id_kurir,
 		Username: username,
 	}).Limit(1).Update("deskripsi", deskripsi).Error; err_ubah_deskripsi != nil {

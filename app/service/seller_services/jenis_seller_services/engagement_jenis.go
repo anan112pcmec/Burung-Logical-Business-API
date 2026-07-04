@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -34,7 +34,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 	}
 
 	var id_data_distributor int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.DistributorData{}).Select("id").Where(&models.DistributorData{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DistributorData{}).Select("id").Where(&sot_models.DistributorData{
 		SellerId: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
 		return &response.ResponseForm{
@@ -56,7 +56,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 		}
 	}
 
-	newDistributorData := models.DistributorData{
+	newDistributorData := sot_models.DistributorData{
 		SellerId:                  data.IdentitasSeller.IdSeller,
 		NamaPerusahaan:            data.NamaPerusahaan,
 		NIB:                       data.NIB,
@@ -76,7 +76,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 		}
 	}
 
-	go func(Ddata models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ddata sot_models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -127,7 +127,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 	}
 
 	var id_data_distributor int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.DistributorData{}).Select("id").Where(&models.DistributorData{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DistributorData{}).Select("id").Where(&sot_models.DistributorData{
 		ID:       data.IdDistributorData,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
@@ -151,9 +151,9 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.DistributorData{}).Where(&models.DistributorData{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.DistributorData{}).Where(&sot_models.DistributorData{
 		ID: data.IdDistributorData,
-	}).Updates(&models.DistributorData{
+	}).Updates(&sot_models.DistributorData{
 		NamaPerusahaan:            data.NamaPerusahaan,
 		NIB:                       data.NIB,
 		NPWP:                      data.NPWP,
@@ -174,8 +174,8 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var distributorDataUpdated models.DistributorData
-		if err := Read.WithContext(konteks).Model(&models.DistributorData{}).Where(&models.DistributorData{
+		var distributorDataUpdated sot_models.DistributorData
+		if err := Read.WithContext(konteks).Model(&sot_models.DistributorData{}).Where(&sot_models.DistributorData{
 			ID: IdD,
 		}).Limit(1).Take(&distributorDataUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil distributor data updated")
@@ -210,8 +210,8 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 		}
 	}
 
-	var data_distributor models.DistributorData
-	if err := db.Read.WithContext(ctx).Model(&models.DistributorData{}).Where(&models.DistributorData{
+	var data_distributor sot_models.DistributorData
+	if err := db.Read.WithContext(ctx).Model(&sot_models.DistributorData{}).Where(&sot_models.DistributorData{
 		ID:       data.IdDistributorData,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
@@ -235,9 +235,9 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.DistributorData{}).Where(&models.DistributorData{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.DistributorData{}).Where(&sot_models.DistributorData{
 		ID: data.IdDistributorData,
-	}).Delete(&models.DistributorData{}).Error; err != nil {
+	}).Delete(&sot_models.DistributorData{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -247,7 +247,7 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 		}
 	}
 
-	go func(Ddata models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ddata sot_models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -296,7 +296,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 	}
 
 	var id_data_brand int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BrandData{}).Select("id").Where(&sot_models.BrandData{
 		SellerId: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
 		return &response.ResponseForm{
@@ -318,7 +318,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 		}
 	}
 
-	newBrandData := models.BrandData{
+	newBrandData := sot_models.BrandData{
 		SellerId:              data.IdentitasSeller.IdSeller,
 		NamaPerusahaan:        data.NamaPerusahaan,
 		NegaraAsal:            data.NegaraAsal,
@@ -342,7 +342,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 		}
 	}
 
-	go func(Db models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Db sot_models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -392,7 +392,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 	}
 
 	var id_data_brand int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Select("id").Where(&models.BrandData{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BrandData{}).Select("id").Where(&sot_models.BrandData{
 		ID:       data.IdDataBrand,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
@@ -416,9 +416,9 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.BrandData{}).Where(&models.BrandData{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.BrandData{}).Where(&sot_models.BrandData{
 		ID: data.IdDataBrand,
-	}).Updates(&models.BrandData{
+	}).Updates(&sot_models.BrandData{
 		NamaPerusahaan:        data.NamaPerusahaan,
 		NegaraAsal:            data.NegaraAsal,
 		LembagaPendaftaran:    data.LembagaPendaftaran,
@@ -443,8 +443,8 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var brandDataUpdated models.BrandData
-		if err := Read.WithContext(konteks).Model(&models.BrandData{}).Where(&models.BrandData{
+		var brandDataUpdated sot_models.BrandData
+		if err := Read.WithContext(konteks).Model(&sot_models.BrandData{}).Where(&sot_models.BrandData{
 			ID: IdB,
 		}).Limit(1).Take(&brandDataUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data brand data")
@@ -479,8 +479,8 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 		}
 	}
 
-	var data_brand models.BrandData
-	if err := db.Read.WithContext(ctx).Model(&models.BrandData{}).Where(&models.BrandData{
+	var data_brand sot_models.BrandData
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BrandData{}).Where(&sot_models.BrandData{
 		ID:       data.IdDataBrand,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
@@ -504,9 +504,9 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.BrandData{}).Where(&models.BrandData{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.BrandData{}).Where(&sot_models.BrandData{
 		ID: data.IdDataBrand,
-	}).Delete(&models.BrandData{}).Error; err != nil {
+	}).Delete(&sot_models.BrandData{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -516,7 +516,7 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 		}
 	}
 
-	go func(Db models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Db sot_models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

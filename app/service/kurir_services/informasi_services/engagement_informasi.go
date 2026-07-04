@@ -6,10 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -19,6 +16,8 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_informasi_services_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services/response_informasi_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -38,7 +37,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 	}
 
 	var id_pengajuan_data_kendaraan int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKendaraanKurir{}).Select("id").Where(&models.InformasiKendaraanKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Select("id").Where(&sot_models.InformasiKendaraanKurir{
 		IDkurir: data.DataIdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_pengajuan_data_kendaraan).Error; err != nil {
 		return &response.ResponseForm{
@@ -60,7 +59,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		}
 	}
 
-	newInformasiKendaraan := models.InformasiKendaraanKurir{
+	newInformasiKendaraan := sot_models.InformasiKendaraanKurir{
 		IDkurir:        data.DataIdentitasKurir.IdKurir,
 		JenisKendaraan: data.JenisKendaraan,
 		NamaKendaraan:  data.NamaKendaraan,
@@ -82,7 +81,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		}
 	}
 
-	go func(Ikk models.InformasiKendaraanKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ikk sot_models.InformasiKendaraanKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -136,7 +135,7 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 	}
 
 	var id_data_informasi_kendaraan int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKendaraanKurir{}).Select("id").Where(&models.InformasiKendaraanKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Select("id").Where(&sot_models.InformasiKendaraanKurir{
 		ID:      data.IdInformasiKendaraan,
 		IDkurir: data.DataIdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_informasi_kendaraan).Error; err != nil {
@@ -159,9 +158,9 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.InformasiKendaraanKurir{}).Where(&models.InformasiKendaraanKurir{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Where(&sot_models.InformasiKendaraanKurir{
 		ID: data.IdInformasiKendaraan,
-	}).Updates(&models.InformasiKendaraanKurir{
+	}).Updates(&sot_models.InformasiKendaraanKurir{
 		JenisKendaraan: data.JenisKendaraan,
 		NamaKendaraan:  data.NamaKendaraan,
 		RodaKendaraan:  data.RodaKendaraan,
@@ -184,8 +183,8 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataInformasiKendaraanUpdated models.InformasiKendaraanKurir
-		if err := Read.WithContext(konteks).Model(&models.InformasiKendaraanKurir{}).Where(&models.InformasiKendaraanKurir{
+		var dataInformasiKendaraanUpdated sot_models.InformasiKendaraanKurir
+		if err := Read.WithContext(konteks).Model(&sot_models.InformasiKendaraanKurir{}).Where(&sot_models.InformasiKendaraanKurir{
 			ID: IdIkk,
 		}).Limit(1).Take(&dataInformasiKendaraanUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data informasi kendaraan kurir")
@@ -225,7 +224,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 	}
 
 	var id_data_pengajuan_informasi int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKurir{}).Select("id").Where(&models.InformasiKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKurir{}).Select("id").Where(&sot_models.InformasiKurir{
 		IDkurir: data.DataIdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_pengajuan_informasi).Error; err != nil {
 		return &response.ResponseForm{
@@ -246,7 +245,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 		}
 	}
 
-	newInformasiKurir := models.InformasiKurir{
+	newInformasiKurir := sot_models.InformasiKurir{
 		IDkurir:      data.DataIdentitasKurir.IdKurir,
 		TanggalLahir: data.TanggalLahir,
 		Alasan:       data.Alasan,
@@ -265,7 +264,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 		}
 	}
 
-	go func(Ik models.InformasiKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Ik sot_models.InformasiKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -319,7 +318,7 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 	}
 
 	var id_data_pengajuan_informasi int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.InformasiKurir{}).Select("id").Where(&models.InformasiKurir{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKurir{}).Select("id").Where(&sot_models.InformasiKurir{
 		ID:      data.IdInformasiKurir,
 		IDkurir: data.DataIdentitasKurir.IdKurir,
 	}).Limit(1).Scan(&id_data_pengajuan_informasi).Error; err != nil {
@@ -342,9 +341,9 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.InformasiKurir{}).Where(&models.InformasiKurir{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.InformasiKurir{}).Where(&sot_models.InformasiKurir{
 		ID: data.IdInformasiKurir,
-	}).Updates(&models.InformasiKurir{
+	}).Updates(&sot_models.InformasiKurir{
 		TanggalLahir: data.TanggalLahir,
 		Alasan:       data.Alasan,
 		Ktp:          data.InformasiKtp,
@@ -364,8 +363,8 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataInformasiKurirUpdated models.InformasiKurir
-		if err := Read.WithContext(konteks).Model(&models.InformasiKurir{}).Where(&models.InformasiKurir{
+		var dataInformasiKurirUpdated sot_models.InformasiKurir
+		if err := Read.WithContext(konteks).Model(&sot_models.InformasiKurir{}).Where(&sot_models.InformasiKurir{
 			ID: IdIk,
 		}).Limit(1).Take(&dataInformasiKurirUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data informasi kurir")

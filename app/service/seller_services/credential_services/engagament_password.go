@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -21,6 +21,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	settings "github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +142,7 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *e
 		log.Printf("[INFO] OTP key %s berhasil dihapus dari Redis.", key)
 	}
 
-	if err_change_pass := db.Write.WithContext(ctx).Model(&models.Seller{}).Where(&models.Seller{
+	if err_change_pass := db.Write.WithContext(ctx).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 		ID: data.IdentitasSeller.IdSeller,
 	}).Update("password_hash", string(result["password_baru"])).Error; err_change_pass != nil {
 		log.Printf("[ERROR] Gagal mengubah password seller ID %d: %v", data.IdentitasSeller.IdSeller, err_change_pass)
@@ -157,15 +158,15 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *e
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataSellerUpdated models.Seller
-		if err := Read.WithContext(konteks).Model(&models.Seller{}).Where(&models.Seller{
+		var dataSellerUpdated sot_models.Seller
+		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: IdSeller,
 		}).Limit(1).Take(&dataSellerUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data seller")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Seller](konteks, &dataSellerUpdated, RdsSession); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Seller](konteks, &dataSellerUpdated, RdsSession); err != nil {
 			fmt.Println("Gagal update data cache session")
 		}
 

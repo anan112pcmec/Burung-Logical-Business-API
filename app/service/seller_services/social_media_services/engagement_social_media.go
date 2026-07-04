@@ -6,11 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
-
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -18,6 +15,8 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_social_media_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/social_media_services/response_social_media_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +38,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 	}
 
 	var id_sosmed_table int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.EntitySocialMedia{}).Select("id").Where(&models.EntitySocialMedia{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.EntitySocialMedia{}).Select("id").Where(&sot_models.EntitySocialMedia{
 		EntityId:   int64(data.IdentitasSeller.IdSeller),
 		EntityType: entity_enums.Seller,
 	}).Scan(&id_sosmed_table).Error; err != nil {
@@ -51,7 +50,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 	}
 
 	if id_sosmed_table == 0 {
-		if err_buat_kolom := db.Write.WithContext(ctx).Create(&models.EntitySocialMedia{
+		if err_buat_kolom := db.Write.WithContext(ctx).Create(&sot_models.EntitySocialMedia{
 			EntityId:   int64(data.IdentitasSeller.IdSeller),
 			Whatsapp:   data.Data.Whatsapp,
 			Facebook:   data.Data.Facebook,
@@ -73,8 +72,8 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 				konteks, cancel := context.WithCancel(ctx)
 				defer cancel()
 
-				var Udesm models.EntitySocialMedia
-				if err := Read.WithContext(konteks).Model(models.EntitySocialMedia{}).Where(models.EntitySocialMedia{
+				var Udesm sot_models.EntitySocialMedia
+				if err := Read.WithContext(konteks).Model(sot_models.EntitySocialMedia{}).Where(sot_models.EntitySocialMedia{
 					ID: IdEsm,
 				}).Limit(1).Take(&Udesm).Error; err != nil {
 					fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")
@@ -99,9 +98,9 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 		}
 	}
 
-	if err_update := db.Write.WithContext(ctx).Model(models.EntitySocialMedia{}).Where(models.EntitySocialMedia{
+	if err_update := db.Write.WithContext(ctx).Model(sot_models.EntitySocialMedia{}).Where(sot_models.EntitySocialMedia{
 		ID: id_sosmed_table,
-	}).Updates(&models.EntitySocialMedia{
+	}).Updates(&sot_models.EntitySocialMedia{
 		Whatsapp:  data.Data.Whatsapp,
 		Facebook:  data.Data.Facebook,
 		TikTok:    data.Data.TikTok,
@@ -121,8 +120,8 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 			konteks, cancel := context.WithTimeout(ctx, settings.TimeoutContext)
 			defer cancel()
 
-			var Udesm models.EntitySocialMedia
-			if err := Read.WithContext(konteks).Model(models.EntitySocialMedia{}).Where(models.EntitySocialMedia{
+			var Udesm sot_models.EntitySocialMedia
+			if err := Read.WithContext(konteks).Model(sot_models.EntitySocialMedia{}).Where(sot_models.EntitySocialMedia{
 				ID: IdEsm,
 			}).Limit(1).Take(&Udesm).Error; err != nil {
 				fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")

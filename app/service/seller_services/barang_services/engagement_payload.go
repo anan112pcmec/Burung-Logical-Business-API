@@ -1,7 +1,7 @@
 package seller_barang_service
 
 import (
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/identity_seller"
 )
 
@@ -11,8 +11,8 @@ import (
 
 type PayloadMasukanBarangInduk struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
-	BarangInduk     models.BarangInduk             `json:"data_barang_induk"`
-	KategoriBarang  []models.KategoriBarang        `json:"data_kategori_barang_induk"`
+	BarangInduk     sot_models.BarangInduk         `json:"data_barang_induk"`
+	KategoriBarang  []sot_models.KategoriBarang    `json:"data_kategori_barang_induk"`
 	IdAlamatGudang  int64                          `json:"id_alamat_gudang"`
 	IdRekening      int64                          `json:"id_rekening"`
 }
@@ -45,7 +45,7 @@ type PayloadHapusBarangInduk struct {
 type PayloadTambahKategori struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBarangInduk   int32                          `json:"id_barang_induk_tambah_kategori"`
-	KategoriBarang  []models.KategoriBarang        `json:"tambah_kategori_barang"`
+	KategoriBarang  []sot_models.KategoriBarang    `json:"tambah_kategori_barang"`
 	IdAlamatGudang  int64                          `json:"id_alamat_gudang"`
 	IdRekening      int64                          `json:"id_rekening"`
 }

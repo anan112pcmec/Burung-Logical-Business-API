@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -68,15 +68,15 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataUpdatedKurir models.Kurir
-		if err := Read.WithContext(konteks).Model(&models.Kurir{}).Where(&models.Kurir{
+		var dataUpdatedKurir sot_models.Kurir
+		if err := Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
 			ID: IdKurir,
 		}).Limit(1).Take(&dataUpdatedKurir).Error; err != nil {
 			fmt.Println("Gagal mendapatakan data updated kurir")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionKey[*models.Kurir](konteks, &dataUpdatedKurir, cache_db_entity_sessioning_seeders.SetSessionKey[*models.Kurir](&dataUpdatedKurir), rds_sesi); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionKey[*sot_models.Kurir](konteks, &dataUpdatedKurir, cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Kurir](&dataUpdatedKurir), rds_sesi); err != nil {
 			fmt.Println("Gagal memperbarui session kurir data ke cache database")
 		}
 
@@ -120,15 +120,15 @@ func GeneralProfilingKurir(ctx context.Context, data PayloadGeneralProfiling, db
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataUpdatedKurir models.Kurir
-		if err := Read.WithContext(konteks).Model(&models.Kurir{}).Where(&models.Kurir{
+		var dataUpdatedKurir sot_models.Kurir
+		if err := Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
 			ID: IdKurir,
 		}).Limit(1).Take(&dataUpdatedKurir).Error; err != nil {
 			fmt.Println("Gagal mendapatakan data updated kurir")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Kurir](konteks, &dataUpdatedKurir, rds_sesi); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Kurir](konteks, &dataUpdatedKurir, rds_sesi); err != nil {
 			fmt.Println("Gagal memperbarui session kurir data ke cache database")
 		}
 

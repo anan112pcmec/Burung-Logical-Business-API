@@ -17,9 +17,8 @@ import (
 	"strings"
 	"time"
 
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"gorm.io/gorm"
-
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 func DecodeJSONBody(r *http.Request, dst interface{}) error {
@@ -196,7 +195,7 @@ func GenerateAutoPaymentId(db *gorm.DB) (string, error) {
 	final := part1 + "-" + part2 + "-" + part3
 
 	var id_data_transaksi []int64
-	err_kode := db.Model(models.Transaksi{}).Select("id").Where(models.Transaksi{KodeOrderSistem: final}).Limit(2).Scan(&id_data_transaksi).Error
+	err_kode := db.Model(sot_models.Transaksi{}).Select("id").Where(sot_models.Transaksi{KodeOrderSistem: final}).Limit(2).Scan(&id_data_transaksi).Error
 	if err_kode != nil {
 		return final, err_kode
 	}
@@ -216,7 +215,7 @@ func Hitungtotal(input []int64) int64 {
 	return total
 }
 
-func UpdateSocialMediaDispatch(data models.EntitySocialMedia) []string {
+func UpdateSocialMediaDispatch(data sot_models.EntitySocialMedia) []string {
 	var hasil []string
 	if data.Instagram != "" {
 		hasil = append(hasil, "instagram")
@@ -241,7 +240,7 @@ func UpdateSocialMediaDispatch(data models.EntitySocialMedia) []string {
 func GenerateOTP() string {
 	otp := ""
 	for i := 0; i < 8; i++ {
-		// ambil angka random 0–9
+		// ambil angka random 0Ã¢â‚¬â€œ9
 		n, _ := crand.Int(crand.Reader, big.NewInt(10))
 		otp += fmt.Sprintf("%d", n.Int64())
 	}
@@ -256,7 +255,7 @@ func SanitasiKoordinat(Latitude *float64, Longitude *float64) {
 	lat := *Latitude
 	long := *Longitude
 
-	// 🔥 JIKA KELEBIHAN DIGIT (contoh: 106.8299 → 10.68299)
+	// Ã°Å¸â€Â¥ JIKA KELEBIHAN DIGIT (contoh: 106.8299 Ã¢â€ â€™ 10.68299)
 	if math.Abs(lat) > 90 {
 		lat = lat / 10
 	}
@@ -264,7 +263,7 @@ func SanitasiKoordinat(Latitude *float64, Longitude *float64) {
 		long = long / 10
 	}
 
-	// 🔥 PASTIKAN DALAM RANGE VALID BUMI
+	// Ã°Å¸â€Â¥ PASTIKAN DALAM RANGE VALID BUMI
 	if lat > 90 {
 		lat = 90
 	}

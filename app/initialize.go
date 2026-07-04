@@ -19,10 +19,9 @@ import (
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/migrate"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_exchange_provisioning "github.com/anan112pcmec/Burung-backend-1/app/message_broker/provisioning/cud_exchange"
-
 )
 
 func Getenvi(key, fallback string) string {
@@ -85,13 +84,13 @@ func Run() {
 
 	// Database Enums & Tables Migration
 	if err := enums.UpEnumsEntity(db_system.Write); err != nil {
-		log.Printf("❌ Gagal UpEnumsEntity: %v", err)
+		log.Printf("ÃƒÂ¢Ã‚ÂÃ…â€™ Gagal UpEnumsEntity: %v", err)
 	}
 	if err := enums.UpBarangEnums(db_system.Write); err != nil {
-		log.Printf("❌ Gagal UpBarangEnums: %v", err)
+		log.Printf("ÃƒÂ¢Ã‚ÂÃ…â€™ Gagal UpBarangEnums: %v", err)
 	}
 	if err := enums.UpEnumsTransaksi(db_system.Write); err != nil {
-		log.Printf("❌ Gagal UpEnumsTransaksi: %v", err)
+		log.Printf("ÃƒÂ¢Ã‚ÂÃ…â€™ Gagal UpEnumsTransaksi: %v", err)
 	}
 
 	migrate.UpEntity(db_system.Write)
@@ -136,10 +135,10 @@ func Run() {
 
 	// Database Seeding (JSON Location Data)
 
-	var KebijakanSistemdata models.KebijakanSistem
+	var KebijakanSistemdata sot_models.KebijakanSistem
 
-	if err := db_system.Read.Model(&models.KebijakanSistem{}).
-		Where(&models.KebijakanSistem{StatusActive: true}).
+	if err := db_system.Read.Model(&sot_models.KebijakanSistem{}).
+		Where(&sot_models.KebijakanSistem{StatusActive: true}).
 		Limit(1).Take(&KebijakanSistemdata).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Data tidak ada di DB, ambil dari JSON (Fallback)
@@ -172,10 +171,10 @@ func Run() {
 	// ==========================================
 	// 2. VERSI REKENING SISTEM (Sesuai Request)
 	// ==========================================
-	var RekeningSistemdata models.RekeningSistem
+	var RekeningSistemdata sot_models.RekeningSistem
 
-	if err := db_system.Read.Model(&models.RekeningSistem{}).
-		Where(&models.RekeningSistem{CurrentActive: true}). // Sesuaikan field status di modelmu jika berbeda
+	if err := db_system.Read.Model(&sot_models.RekeningSistem{}).
+		Where(&sot_models.RekeningSistem{CurrentActive: true}). // Sesuaikan field status di modelmu jika berbeda
 		Limit(1).Take(&RekeningSistemdata).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Data tidak ada di DB, ambil dari JSON (Fallback)
@@ -203,15 +202,15 @@ func Run() {
 			return
 		}
 	}
-	var dump_ekspedisi models.AlamatEkspedisi
-	err := db_system.Read.Model(&models.AlamatEkspedisi{}).Limit(1).Take(&dump_ekspedisi).Error
+	var dump_ekspedisi sot_models.AlamatEkspedisi
+	err := db_system.Read.Model(&sot_models.AlamatEkspedisi{}).Limit(1).Take(&dump_ekspedisi).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		fmt.Println("Error DB saat read:", err)
 		return
 	}
 
 	if dump_ekspedisi.ID == 0 {
-		var dataAlamatEks []models.AlamatEkspedisi
+		var dataAlamatEks []sot_models.AlamatEkspedisi
 
 		byteValue, err := os.ReadFile("../jne_location.json")
 		if err != nil {
@@ -261,7 +260,7 @@ func Run() {
 
 	// Start Web Server
 	port := Getenvi("APPPORT", "8080")
-	fmt.Printf("🚀 Server Burung berjalan di http://localhost:%s\n", port)
+	fmt.Printf("ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Server Burung berjalan di http://localhost:%s\n", port)
 	if err := http.ListenAndServe(port, Router); err != nil {
 		log.Fatalf("Gagal menjalankan server: %v", err)
 	}

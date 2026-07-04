@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 )
 
@@ -15,24 +15,24 @@ func UpEntity(db *gorm.DB) {
 	errCh := make(chan error, 3)
 
 	// Daftar model
-	modelsToMigrate := []struct {
+	sot_modelsToMigrate := []struct {
 		name  string
 		model interface{}
 	}{
-		{"seller", &models.Seller{}},
-		{"pengguna", &models.Pengguna{}},
-		{"kurir", &models.Kurir{}},
+		{"seller", &sot_models.Seller{}},
+		{"pengguna", &sot_models.Pengguna{}},
+		{"kurir", &sot_models.Kurir{}},
 	}
 
-	wg.Add(len(modelsToMigrate))
+	wg.Add(len(sot_modelsToMigrate))
 
-	for _, m := range modelsToMigrate {
+	for _, m := range sot_modelsToMigrate {
 		go func(mName string, mModel interface{}) {
 			defer wg.Done()
 			// Cek dulu apakah table sudah ada
 			hasTable := db.Migrator().HasTable(mModel)
 			if hasTable {
-				log.Printf("Table %s already exists, skipping migration ⚠️", mName)
+				log.Printf("Table %s already exists, skipping migration Ã¢Å¡Â Ã¯Â¸Â", mName)
 				return
 			}
 
@@ -41,7 +41,7 @@ func UpEntity(db *gorm.DB) {
 				errCh <- err
 				return
 			}
-			log.Printf("Migration success: %s ✅", mName)
+			log.Printf("Migration success: %s Ã¢Å“â€¦", mName)
 		}(m.name, m.model)
 	}
 
@@ -55,98 +55,98 @@ func UpEntity(db *gorm.DB) {
 		}
 	}
 
-	log.Println("All migrations completed successfully 🚀")
+	log.Println("All migrations completed successfully Ã°Å¸Å¡â‚¬")
 }
 
 func UpBarang(db *gorm.DB) {
 	// BarangInduk
-	if db.Migrator().HasTable(&models.BarangInduk{}) {
-		log.Println("Table BarangInduk sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.BarangInduk{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.BarangInduk{}) {
+		log.Println("Table BarangInduk sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.BarangInduk{}); err != nil {
 		log.Fatalf("Gagal Migrasi Table BarangInduk: %v", err)
 	} else {
-		log.Println("Migration Table BarangInduk Berhasil ✅")
+		log.Println("Migration Table BarangInduk Berhasil Ã¢Å“â€¦")
 	}
 
 	// KategoriBarang
-	if db.Migrator().HasTable(&models.KategoriBarang{}) {
-		log.Println("Table KategoriBarang sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.KategoriBarang{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.KategoriBarang{}) {
+		log.Println("Table KategoriBarang sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.KategoriBarang{}); err != nil {
 		log.Fatalf("Gagal Migrasi Table KategoriBarang: %v", err)
 	} else {
-		log.Println("Migration Table KategoriBarang Berhasil ✅")
+		log.Println("Migration Table KategoriBarang Berhasil Ã¢Å“â€¦")
 	}
 
 	// VarianBarang
-	if db.Migrator().HasTable(&models.VarianBarang{}) {
-		log.Println("Table VarianBarang sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.VarianBarang{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.VarianBarang{}) {
+		log.Println("Table VarianBarang sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.VarianBarang{}); err != nil {
 		log.Fatalf("Gagal Migrasi Table VarianBarang: %v", err)
 	} else {
-		log.Println("Migration Table VarianBarang Berhasil ✅")
+		log.Println("Migration Table VarianBarang Berhasil Ã¢Å“â€¦")
 	}
 }
 
 func UpTransaksi(db *gorm.DB) {
 	// Transaksi
 	// Pembayaran
-	if db.Migrator().HasTable(&models.Pembayaran{}) {
-		log.Println("Table Pembayaran sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.Pembayaran{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.Pembayaran{}) {
+		log.Println("Table Pembayaran sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.Pembayaran{}); err != nil {
 		log.Fatalf("Gagal Membuat Table Pembayaran: %v", err)
 	} else {
-		log.Println("Berhasil Membuat Table Pembayaran ✅")
+		log.Println("Berhasil Membuat Table Pembayaran Ã¢Å“â€¦")
 	}
 
-	if db.Migrator().HasTable(&models.Transaksi{}) {
-		log.Println("Table Transaksi sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.Transaksi{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.Transaksi{}) {
+		log.Println("Table Transaksi sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.Transaksi{}); err != nil {
 		log.Fatalf("Gagal Migrasi Table Transaksi: %v", err)
 	} else {
-		log.Println("Berhasil membuat Table Transaksi ✅")
+		log.Println("Berhasil membuat Table Transaksi Ã¢Å“â€¦")
 	}
 
-	if db.Migrator().HasTable(&models.TransaksiFailed{}) {
-		log.Println("Table Paid Failed sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.TransaksiFailed{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.TransaksiFailed{}) {
+		log.Println("Table Paid Failed sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.TransaksiFailed{}); err != nil {
 		log.Fatalf("Gagal Migrasi Table Paid Failed: %v", err)
 	} else {
-		log.Println("Berhasil membuat Table Paid Failed ✅")
+		log.Println("Berhasil membuat Table Paid Failed Ã¢Å“â€¦")
 	}
 
 	// Pengiriman
-	if db.Migrator().HasTable(&models.Pengiriman{}) {
-		log.Println("Table Pengiriman sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.Pengiriman{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.Pengiriman{}) {
+		log.Println("Table Pengiriman sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.Pengiriman{}); err != nil {
 		log.Fatalf("Gagal Membuat Table Pengiriman: %v", err)
 	} else {
-		log.Println("Berhasil Membuat Table Pengiriman ✅")
+		log.Println("Berhasil Membuat Table Pengiriman Ã¢Å“â€¦")
 	}
 
 	// JejakPengiriman
-	if db.Migrator().HasTable(&models.JejakPengiriman{}) {
-		log.Println("Table JejakPengiriman sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.JejakPengiriman{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.JejakPengiriman{}) {
+		log.Println("Table JejakPengiriman sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.JejakPengiriman{}); err != nil {
 		log.Fatalf("Gagal Membuat Table JejakPengiriman: %v", err)
 	} else {
-		log.Println("Berhasil Membuat Table Jejak Pengiriman ✅")
+		log.Println("Berhasil Membuat Table Jejak Pengiriman Ã¢Å“â€¦")
 	}
 
-	if db.Migrator().HasTable(&models.PengirimanEkspedisi{}) {
-		log.Println("Table Pengiriman Ekspedisi sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.PengirimanEkspedisi{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.PengirimanEkspedisi{}) {
+		log.Println("Table Pengiriman Ekspedisi sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.PengirimanEkspedisi{}); err != nil {
 		log.Fatalf("Gagal Membuat Table Pengiriman Ekspedisi: %v", err)
 	} else {
-		log.Println("Berhasil Membuat Table Pengiriman Ekspedisi ✅")
+		log.Println("Berhasil Membuat Table Pengiriman Ekspedisi Ã¢Å“â€¦")
 	}
 
 	// JejakPengiriman
-	if db.Migrator().HasTable(&models.JejakPengirimanEkspedisi{}) {
-		log.Println("Table JejakPengiriman Ekspedisi sudah ada, skipping migration ⚠️")
-	} else if err := db.AutoMigrate(&models.JejakPengirimanEkspedisi{}); err != nil {
+	if db.Migrator().HasTable(&sot_models.JejakPengirimanEkspedisi{}) {
+		log.Println("Table JejakPengiriman Ekspedisi sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â")
+	} else if err := db.AutoMigrate(&sot_models.JejakPengirimanEkspedisi{}); err != nil {
 		log.Fatalf("Gagal Membuat Table JejakPengiriman Ekspedisi: %v", err)
 	} else {
-		log.Println("Berhasil Membuat Table Jejak Pengiriman Ekspedisi ✅")
+		log.Println("Berhasil Membuat Table Jejak Pengiriman Ekspedisi Ã¢Å“â€¦")
 	}
 }
 
@@ -154,46 +154,46 @@ func UpEngagementEntity(db *gorm.DB) {
 	var wg sync.WaitGroup
 	errCh := make(chan error, 30)
 
-	modelsToMigrate := []interface{}{
-		&models.Komentar{},
-		&models.KomentarChild{},
-		&models.Keranjang{},
-		&models.BarangDisukai{},
-		&models.Follower{},
-		&models.EntitySocialMedia{},
-		&models.AlamatPengguna{},
-		&models.RekeningSeller{},
-		&models.Jenis_Seller{},
-		&models.BatalTransaksi{},
-		&models.AlamatGudang{},
-		&models.InformasiKendaraanKurir{},
-		&models.InformasiKurir{},
-		&models.AlamatKurir{},
-		&models.RekeningKurir{},
-		&models.DistributorData{},
-		&models.BrandData{},
-		&models.Etalase{},
-		&models.BarangKeEtalase{},
-		&models.DiskonProduk{},
-		&models.BarangDiDiskon{},
-		&models.Review{},
-		&models.ReviewLike{},
-		&models.ReviewDislike{},
-		&models.Wishlist{},
-		&models.BidKurirData{},
-		&models.BidKurirNonEksScheduler{},
-		&models.BidKurirEksScheduler{},
-		&models.PayOutSeller{},
-		&models.PayOutKurir{},
+	sot_modelsToMigrate := []interface{}{
+		&sot_models.Komentar{},
+		&sot_models.KomentarChild{},
+		&sot_models.Keranjang{},
+		&sot_models.BarangDisukai{},
+		&sot_models.Follower{},
+		&sot_models.EntitySocialMedia{},
+		&sot_models.AlamatPengguna{},
+		&sot_models.RekeningSeller{},
+		&sot_models.Jenis_Seller{},
+		&sot_models.BatalTransaksi{},
+		&sot_models.AlamatGudang{},
+		&sot_models.InformasiKendaraanKurir{},
+		&sot_models.InformasiKurir{},
+		&sot_models.AlamatKurir{},
+		&sot_models.RekeningKurir{},
+		&sot_models.DistributorData{},
+		&sot_models.BrandData{},
+		&sot_models.Etalase{},
+		&sot_models.BarangKeEtalase{},
+		&sot_models.DiskonProduk{},
+		&sot_models.BarangDiDiskon{},
+		&sot_models.Review{},
+		&sot_models.ReviewLike{},
+		&sot_models.ReviewDislike{},
+		&sot_models.Wishlist{},
+		&sot_models.BidKurirData{},
+		&sot_models.BidKurirNonEksScheduler{},
+		&sot_models.BidKurirEksScheduler{},
+		&sot_models.PayOutSeller{},
+		&sot_models.PayOutKurir{},
 	}
 
-	wg.Add(len(modelsToMigrate))
+	wg.Add(len(sot_modelsToMigrate))
 
-	for _, m := range modelsToMigrate {
+	for _, m := range sot_modelsToMigrate {
 		go func(model interface{}) {
 			defer wg.Done()
 			if db.Migrator().HasTable(model) {
-				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
+				log.Printf("Table %T sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â", model)
 				return
 			}
 
@@ -201,7 +201,7 @@ func UpEngagementEntity(db *gorm.DB) {
 				errCh <- err
 				return
 			}
-			log.Printf("Migration success: %T ✅", model)
+			log.Printf("Migration success: %T Ã¢Å“â€¦", model)
 		}(m)
 	}
 
@@ -214,27 +214,27 @@ func UpEngagementEntity(db *gorm.DB) {
 		}
 	}
 
-	log.Println("All migrations Engagement entity completed successfully 🚀")
+	log.Println("All migrations Engagement entity completed successfully Ã°Å¸Å¡â‚¬")
 }
 
 func UpSystemData(db *gorm.DB) {
 	var wg sync.WaitGroup
 	errCh := make(chan error, 4)
 
-	modelsToMigrate := []interface{}{
-		&models.AlamatEkspedisi{},
-		&models.KebijakanSistem{},
-		&models.RekeningSistem{},
-		&models.PayOutSistem{},
+	sot_modelsToMigrate := []interface{}{
+		&sot_models.AlamatEkspedisi{},
+		&sot_models.KebijakanSistem{},
+		&sot_models.RekeningSistem{},
+		&sot_models.PayOutSistem{},
 	}
 
-	wg.Add(len(modelsToMigrate))
+	wg.Add(len(sot_modelsToMigrate))
 
-	for _, m := range modelsToMigrate {
+	for _, m := range sot_modelsToMigrate {
 		go func(model interface{}) {
 			defer wg.Done()
 			if db.Migrator().HasTable(model) {
-				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
+				log.Printf("Table %T sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â", model)
 				return
 			}
 
@@ -242,7 +242,7 @@ func UpSystemData(db *gorm.DB) {
 				errCh <- err
 				return
 			}
-			log.Printf("Migration success: %T ✅", model)
+			log.Printf("Migration success: %T Ã¢Å“â€¦", model)
 		}(m)
 	}
 
@@ -255,24 +255,24 @@ func UpSystemData(db *gorm.DB) {
 		}
 	}
 
-	log.Println("All migrations System data completed successfully 🚀")
+	log.Println("All migrations System data completed successfully Ã°Å¸Å¡â‚¬")
 }
 
 func UpTresholdData(db *gorm.DB) {
 	var wg sync.WaitGroup
 	errCh := make(chan error, 1)
 
-	modelsToMigrate := []interface{}{
+	sot_modelsToMigrate := []interface{}{
 		&sot_threshold.ThresholdOrderSeller{},
 	}
 
-	wg.Add(len(modelsToMigrate))
+	wg.Add(len(sot_modelsToMigrate))
 
-	for _, m := range modelsToMigrate {
+	for _, m := range sot_modelsToMigrate {
 		go func(model interface{}) {
 			defer wg.Done()
 			if db.Migrator().HasTable(model) {
-				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
+				log.Printf("Table %T sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â", model)
 				return
 			}
 
@@ -280,7 +280,7 @@ func UpTresholdData(db *gorm.DB) {
 				errCh <- err
 				return
 			}
-			log.Printf("Migration success: %T ✅", model)
+			log.Printf("Migration success: %T Ã¢Å“â€¦", model)
 		}(m)
 	}
 
@@ -293,54 +293,54 @@ func UpTresholdData(db *gorm.DB) {
 		}
 	}
 
-	log.Println("All migrations treshold data completed successfully 🚀")
+	log.Println("All migrations treshold data completed successfully Ã°Å¸Å¡â‚¬")
 }
 
 func UpMediaData(db *gorm.DB) {
 	var wg sync.WaitGroup
 	errCh := make(chan error, 31)
 
-	modelsToMigrate := []interface{}{
-		&models.MediaPenggunaProfilFoto{},
-		&models.MediaSellerProfilFoto{},
-		&models.MediaSellerBannerFoto{},
-		&models.MediaSellerTokoFisikFoto{},
-		&models.MediaKurirProfilFoto{},
-		&models.MediaEtalaseFoto{},
-		&models.MediaBarangIndukFoto{},
-		&models.MediaBarangIndukVideo{},
-		&models.MediaKategoriBarangFoto{},
-		&models.MediaDistributorDataDokumen{},
-		&models.MediaDistributorDataNPWPFoto{},
-		&models.MediaDistributorDataNIBFoto{},
-		&models.MediaDistributorDataSuratKerjasamaDokumen{},
-		&models.MediaBrandDataPerwakilanDokumen{},
-		&models.MediaBrandDataSertifikatFoto{},
-		&models.MediaBrandDataNIBFoto{},
-		&models.MediaBrandDataNPWPFoto{},
-		&models.MediaBrandDataLogoFoto{},
-		&models.MediaBrandDataSuratKerjasamaDokumen{},
-		&models.MediaInformasiKendaraanKurirKendaraanFoto{},
-		&models.MediaInformasiKendaraanKurirBPKBFoto{},
-		&models.MediaInformasiKendaraanKurirSTNKFoto{},
-		&models.MediaInformasiKurirKTPFoto{},
-		&models.MediaReviewFoto{},
-		&models.MediaReviewVideo{},
-		&models.MediaTransaksiApprovedFoto{},
-		&models.MediaTransaksiApprovedVideo{},
-		&models.MediaPengirimanPickedUpFoto{},
-		&models.MediaPengirimanSampaiFoto{},
-		&models.MediaPengirimanEkspedisiPickedUpFoto{},
-		&models.MediaPengirimanEkspedisiSampaiAgentFoto{},
+	sot_modelsToMigrate := []interface{}{
+		&sot_models.MediaPenggunaProfilFoto{},
+		&sot_models.MediaSellerProfilFoto{},
+		&sot_models.MediaSellerBannerFoto{},
+		&sot_models.MediaSellerTokoFisikFoto{},
+		&sot_models.MediaKurirProfilFoto{},
+		&sot_models.MediaEtalaseFoto{},
+		&sot_models.MediaBarangIndukFoto{},
+		&sot_models.MediaBarangIndukVideo{},
+		&sot_models.MediaKategoriBarangFoto{},
+		&sot_models.MediaDistributorDataDokumen{},
+		&sot_models.MediaDistributorDataNPWPFoto{},
+		&sot_models.MediaDistributorDataNIBFoto{},
+		&sot_models.MediaDistributorDataSuratKerjasamaDokumen{},
+		&sot_models.MediaBrandDataPerwakilanDokumen{},
+		&sot_models.MediaBrandDataSertifikatFoto{},
+		&sot_models.MediaBrandDataNIBFoto{},
+		&sot_models.MediaBrandDataNPWPFoto{},
+		&sot_models.MediaBrandDataLogoFoto{},
+		&sot_models.MediaBrandDataSuratKerjasamaDokumen{},
+		&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{},
+		&sot_models.MediaInformasiKendaraanKurirBPKBFoto{},
+		&sot_models.MediaInformasiKendaraanKurirSTNKFoto{},
+		&sot_models.MediaInformasiKurirKTPFoto{},
+		&sot_models.MediaReviewFoto{},
+		&sot_models.MediaReviewVideo{},
+		&sot_models.MediaTransaksiApprovedFoto{},
+		&sot_models.MediaTransaksiApprovedVideo{},
+		&sot_models.MediaPengirimanPickedUpFoto{},
+		&sot_models.MediaPengirimanSampaiFoto{},
+		&sot_models.MediaPengirimanEkspedisiPickedUpFoto{},
+		&sot_models.MediaPengirimanEkspedisiSampaiAgentFoto{},
 	}
 
-	wg.Add(len(modelsToMigrate))
+	wg.Add(len(sot_modelsToMigrate))
 
-	for _, m := range modelsToMigrate {
+	for _, m := range sot_modelsToMigrate {
 		go func(model interface{}) {
 			defer wg.Done()
 			if db.Migrator().HasTable(model) {
-				log.Printf("Table %T sudah ada, skipping migration ⚠️", model)
+				log.Printf("Table %T sudah ada, skipping migration Ã¢Å¡Â Ã¯Â¸Â", model)
 				return
 			}
 
@@ -348,7 +348,7 @@ func UpMediaData(db *gorm.DB) {
 				errCh <- err
 				return
 			}
-			log.Printf("Migration success: %T ✅", model)
+			log.Printf("Migration success: %T Ã¢Å“â€¦", model)
 		}(m)
 	}
 
@@ -361,5 +361,5 @@ func UpMediaData(db *gorm.DB) {
 		}
 	}
 
-	log.Println("All migrations Media Data completed successfully 🚀")
+	log.Println("All migrations Media Data completed successfully Ã°Å¸Å¡â‚¬")
 }

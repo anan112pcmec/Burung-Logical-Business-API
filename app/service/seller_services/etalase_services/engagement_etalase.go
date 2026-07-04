@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_etalase "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/etalase"
@@ -36,7 +36,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 	}
 
 	var id_data_etalase int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Etalase{}).Select("id").Where(&models.Etalase{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Etalase{}).Select("id").Where(&sot_models.Etalase{
 		SellerID: int64(data.IdentitasSeller.IdSeller),
 		Nama:     data.NamaEtalase,
 	}).Limit(1).Scan(&id_data_etalase).Error; err != nil {
@@ -59,7 +59,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		}
 	}
 
-	newEtalase := models.Etalase{
+	newEtalase := sot_models.Etalase{
 		SellerID:     int64(data.IdentitasSeller.IdSeller),
 		Nama:         data.NamaEtalase,
 		Deskripsi:    data.Deskripsi,
@@ -76,7 +76,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		}
 	}
 
-	go func(Es models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Es sot_models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -126,7 +126,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 	}
 
 	var id_data_etalase int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Etalase{}).Select("id").Where(&models.Etalase{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Etalase{}).Select("id").Where(&sot_models.Etalase{
 		ID:       data.IdEtalase,
 		SellerID: int64(data.IdentitasSeller.IdSeller),
 	}).Limit(1).Scan(&id_data_etalase).Error; err != nil {
@@ -149,9 +149,9 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.Etalase{}).Where(&models.Etalase{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Etalase{}).Where(&sot_models.Etalase{
 		ID: data.IdEtalase,
-	}).Updates(&models.Etalase{
+	}).Updates(&sot_models.Etalase{
 		Nama:      data.NamaEtalase,
 		Deskripsi: data.Deskripsi,
 	}).Error; err != nil {
@@ -169,8 +169,8 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataUpdatedEtalase models.Etalase
-		if err := Read.WithContext(konteks).Model(&models.Etalase{}).Where(&models.Etalase{
+		var dataUpdatedEtalase sot_models.Etalase
+		if err := Read.WithContext(konteks).Model(&sot_models.Etalase{}).Where(&sot_models.Etalase{
 			ID: IdE,
 		}).Limit(1).Take(&dataUpdatedEtalase).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data etalase updated")
@@ -204,8 +204,8 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 		}
 	}
 
-	var data_etalase models.Etalase
-	if err := db.Read.WithContext(ctx).Model(&models.Etalase{}).Where(&models.Etalase{
+	var data_etalase sot_models.Etalase
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Etalase{}).Where(&sot_models.Etalase{
 		ID:       data.IdEtalase,
 		SellerID: int64(data.IdentitasSeller.IdSeller),
 	}).Limit(1).Scan(&data_etalase).Error; err != nil {
@@ -229,14 +229,14 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.BarangKeEtalase{}).Where(&models.BarangKeEtalase{
+		if err := tx.Model(&sot_models.BarangKeEtalase{}).Where(&sot_models.BarangKeEtalase{
 			IdEtalase: data.IdEtalase,
-		}).Delete(&models.BarangKeEtalase{}).Error; err != nil {
+		}).Delete(&sot_models.BarangKeEtalase{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&models.Etalase{}).Where(&models.Etalase{
+		if err := tx.Model(&sot_models.Etalase{}).Where(&sot_models.Etalase{
 			ID: data.IdEtalase,
-		}).Delete(&models.Etalase{}).Error; err != nil {
+		}).Delete(&sot_models.Etalase{}).Error; err != nil {
 			return err
 		}
 		return nil
@@ -250,7 +250,7 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 		}
 	}
 
-	go func(De models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(De sot_models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -298,7 +298,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 	}
 
 	var id_barang_ke_etalase int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.BarangKeEtalase{}).Select("id").Where(&models.BarangKeEtalase{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangKeEtalase{}).Select("id").Where(&sot_models.BarangKeEtalase{
 		IdEtalase:     data.IdEtalase,
 		IdBarangInduk: data.IdBarangInduk,
 	}).Limit(1).Scan(&id_barang_ke_etalase).Error; err != nil {
@@ -321,7 +321,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		}
 	}
 
-	newBarangKeEtalase := models.BarangKeEtalase{
+	newBarangKeEtalase := sot_models.BarangKeEtalase{
 		IdBarangInduk: data.IdBarangInduk,
 		IdEtalase:     data.IdEtalase,
 	}
@@ -336,7 +336,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		}
 	}
 
-	go func(Bke models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Bke sot_models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -386,8 +386,8 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		}
 	}
 
-	var barang_ke_etalase models.BarangKeEtalase
-	if err := db.Read.WithContext(ctx).Model(&models.BarangKeEtalase{}).Where(&models.BarangKeEtalase{
+	var barang_ke_etalase sot_models.BarangKeEtalase
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangKeEtalase{}).Where(&sot_models.BarangKeEtalase{
 		ID:            data.IdBarangKeEtalase,
 		IdEtalase:     data.IdEtalase,
 		IdBarangInduk: data.IdBarangInduk,
@@ -411,9 +411,9 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.BarangKeEtalase{}).Where(&models.BarangKeEtalase{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.BarangKeEtalase{}).Where(&sot_models.BarangKeEtalase{
 		ID: data.IdBarangKeEtalase,
-	}).Delete(&models.BarangKeEtalase{}).Error; err != nil {
+	}).Delete(&sot_models.BarangKeEtalase{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -423,7 +423,7 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		}
 	}
 
-	go func(Bke models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Bke sot_models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()

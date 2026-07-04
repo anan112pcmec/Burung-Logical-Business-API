@@ -11,7 +11,7 @@ import (
 
 type PayloadEngageTautkanSocialMedia struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
-	Data              models.EntitySocialMedia           `json:"data_social_media"`
+	Data              sot_models.EntitySocialMedia       `json:"data_social_media"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////

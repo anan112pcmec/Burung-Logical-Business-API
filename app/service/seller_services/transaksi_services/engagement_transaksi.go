@@ -12,7 +12,7 @@ import (
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_alamat_ekspedisi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_ekspedisi"
 	stsk_alamat_gudang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_gudang"
@@ -39,7 +39,7 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 	}
 
 	var id_data_transaksi int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Transaksi{}).Select("id").Where(&models.Transaksi{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Transaksi{}).Select("id").Where(&sot_models.Transaksi{
 		ID:       data.IdTransaksi,
 		IdSeller: data.IdentitasSeller.IdSeller,
 	}).Limit(1).Scan(&id_data_transaksi).Error; err != nil {
@@ -91,9 +91,9 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.Transaksi{}).Where(&models.Transaksi{
+		if err := tx.Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 			ID: data.IdTransaksi,
-		}).Updates(&models.Transaksi{
+		}).Updates(&sot_models.Transaksi{
 			Status: transaksi_enums.Diproses,
 		}).Error; err != nil {
 			fmt.Println("gagal di updates", err)
@@ -170,8 +170,8 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataTransaksiUpdated models.Transaksi
-		if err := Trh.WithContext(konteks).Model(&models.Transaksi{}).Where(&models.Transaksi{
+		var dataTransaksiUpdated sot_models.Transaksi
+		if err := Trh.WithContext(konteks).Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 			ID: It,
 		}).Limit(1).Take(&dataTransaksiUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data transaksi")
@@ -203,8 +203,8 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 		}
 	}
 
-	var data_transaksi models.Transaksi = models.Transaksi{ID: 0}
-	if err := db.Read.WithContext(ctx).Model(&models.Transaksi{}).Where(&models.Transaksi{
+	var data_transaksi sot_models.Transaksi = sot_models.Transaksi{ID: 0}
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 		ID:       data.IdTransaksi,
 		IdSeller: data.IdentitasSeller.IdSeller,
 		Status:   transaksi_enums.Diproses,
@@ -224,10 +224,10 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 		}
 	}
 
-	var pengiriman_biasa models.Pengiriman
-	var pengiriman_ekspedisi models.PengirimanEkspedisi
+	var pengiriman_biasa sot_models.Pengiriman
+	var pengiriman_ekspedisi sot_models.PengirimanEkspedisi
 
-	pengiriman_biasa = models.Pengiriman{
+	pengiriman_biasa = sot_models.Pengiriman{
 		IdTransaksi:       data_transaksi.ID,
 		IdSeller:          int64(data.IdentitasSeller.IdSeller),
 		IdAlamatGudang:    data_transaksi.IdAlamatGudang,
@@ -241,7 +241,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 		Status:            pengiriman_enums.Waiting,
 	}
 
-	pengiriman_ekspedisi = models.PengirimanEkspedisi{
+	pengiriman_ekspedisi = sot_models.PengirimanEkspedisi{
 		IdTransaksi:       data_transaksi.ID,
 		IdSeller:          int64(data.IdentitasSeller.IdSeller),
 		IdAlamatGudang:    data_transaksi.IdAlamatGudang,
@@ -276,7 +276,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 	}
 
 	if err := db.Write.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.Transaksi{}).Where(&models.Transaksi{
+		if err := tx.Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 			ID: data_transaksi.ID,
 		}).Update("status", transaksi_enums.Waiting).Error; err != nil {
 			return err
@@ -296,7 +296,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 				return err
 			}
 
-			go func(Pe models.PengirimanEkspedisi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			go func(Pe sot_models.PengirimanEkspedisi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 				ctx_t := context.Background()
 				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
@@ -351,7 +351,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 				return err
 			}
 
-			go func(P models.Pengiriman, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			go func(P sot_models.Pengiriman, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 				ctx_t := context.Background()
 				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 				defer cancel()
@@ -431,7 +431,7 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 	}
 
 	var id_data_transaksi int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Transaksi{}).Select("id").Where(&models.Transaksi{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Transaksi{}).Select("id").Where(&sot_models.Transaksi{
 		ID:       data.IdTransaksi,
 		IdSeller: data.IdentitasSeller.IdSeller,
 		Status:   transaksi_enums.Dibayar,
@@ -451,9 +451,9 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.Transaksi{}).Where(&models.Transaksi{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 		ID: data.IdTransaksi,
-	}).Updates(&models.Transaksi{
+	}).Updates(&sot_models.Transaksi{
 		Status:         transaksi_enums.Dibatalkan,
 		DibatalkanOleh: &entity_enums.Seller,
 		Catatan:        data.Catatan,
@@ -470,8 +470,8 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataTransaksiUpdated models.Transaksi
-		if err := Trh.WithContext(konteks).Model(&models.Transaksi{}).Where(&models.Transaksi{
+		var dataTransaksiUpdated sot_models.Transaksi
+		if err := Trh.WithContext(konteks).Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 			ID: It,
 		}).Limit(1).Take(&dataTransaksiUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data transaksi")

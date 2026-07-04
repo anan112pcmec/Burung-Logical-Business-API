@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
@@ -57,21 +57,21 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 		hasil_update_gmail = seller_particular_profiling.UbahEmailSeller(ctx, data.IdentitasSeller.IdSeller, data.Email, db)
 	}
 
-	go func(BSeller models.Seller, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
+	go func(BSeller sot_models.Seller, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*models.Seller](&BSeller)
-		var uptodateSellerData models.Seller
-		if err := Read.WithContext(konteks).Model(&models.Seller{}).Where(&models.Seller{
+		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Seller](&BSeller)
+		var uptodateSellerData sot_models.Seller
+		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: BSeller.ID,
 		}).Limit(1).Take(&uptodateSellerData); err != nil {
 			fmt.Println("Gagal mengambil data seller terbaru")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionKey[*models.Seller](konteks, &uptodateSellerData, KeyLama, rds_sesi); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionKey[*sot_models.Seller](konteks, &uptodateSellerData, KeyLama, rds_sesi); err != nil {
 			fmt.Println("Gagal update cache key dan data")
 			return
 		}
@@ -141,15 +141,15 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 
-		var dataUpdatedSeller models.Seller
-		if err := Read.WithContext(konteks).Model(&models.Seller{}).Where(&models.Seller{
+		var dataUpdatedSeller sot_models.Seller
+		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: IdS,
 		}).Limit(1).Take(&dataUpdatedSeller).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*models.Seller](konteks, &dataUpdatedSeller, rds_sesi); err != nil {
+		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Seller](konteks, &dataUpdatedSeller, rds_sesi); err != nil {
 			fmt.Println("Gagal memperbarui session seller data")
 		}
 

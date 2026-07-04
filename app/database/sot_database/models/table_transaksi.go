@@ -1,10 +1,9 @@
-package models
+package sot_models
 
 import (
 	"time"
 
 	"gorm.io/gorm"
-
 )
 
 type Pembayaran struct {

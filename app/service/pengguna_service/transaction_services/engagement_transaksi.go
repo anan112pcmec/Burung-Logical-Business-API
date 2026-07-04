@@ -28,7 +28,7 @@ import (
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/jenis_kendaraan_kurir"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_alamat_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_pengguna"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
@@ -65,7 +65,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	// AMAN: jangan set lebih besar dari len(data.DataCheckout) supaya loop tidak OOB
 	dataLen := len(data.DataCheckout)
 	idKeranjang := make([]int64, 0, dataLen)
-	KeranjangData := make([]models.Keranjang, 0, dataLen)
+	KeranjangData := make([]sot_models.Keranjang, 0, dataLen)
 
 	// Loop menggunakan dataLen agar aman, tidak baca len() berulang
 	for i := 0; i < dataLen; i++ {
@@ -85,15 +85,15 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		idKeranjang = append(idKeranjang, item.ID)
 	}
 
-	if err := db.Read.WithContext(ctx).Model(&models.Keranjang{}).Where("id IN ?", idKeranjang).Limit(dataLen).Take(&KeranjangData).Error; err != nil {
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Where("id IN ?", idKeranjang).Limit(dataLen).Take(&KeranjangData).Error; err != nil {
 		fmt.Println("Gagal mendapatkan data seluruh keranjang")
 	}
 
 	responseData := make([]response_transaction_pengguna.CheckoutData, 0, dataLen)
 	varianUpdates := make([]int64, 0, totalDipesan)
 	kategoriUpdates := make(map[int32]int32, dataLen)
-	BarangInduk := make(map[int64]models.BarangInduk, dataLen)
-	KategoriBarang := make(map[int64]models.KategoriBarang, dataLen)
+	BarangInduk := make(map[int64]sot_models.BarangInduk, dataLen)
+	KategoriBarang := make(map[int64]sot_models.KategoriBarang, dataLen)
 	NamaSeller := make(map[int64]string, dataLen)
 
 	for i := 0; i < len(data.DataCheckout); i++ {
@@ -103,7 +103,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		jumlahNeeded := int(data.DataCheckout[i].Jumlah)
 		var idsVarianStok []int64 = make([]int64, 0, jumlahNeeded)
-		if err := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").Where(&models.VarianBarang{
+		if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").Where(&sot_models.VarianBarang{
 			IdBarangInduk: data.DataCheckout[i].IdBarangInduk,
 			IdKategori:    data.DataCheckout[i].IdKategori,
 			Status:        barang_enums.Ready,
@@ -126,9 +126,9 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		varianUpdates = append(varianUpdates, idsVarianStok...)
 
 		if BarangInduk[int64(data.DataCheckout[i].IdBarangInduk)].NamaBarang == "" {
-			barang := models.BarangInduk{}
+			barang := sot_models.BarangInduk{}
 
-			if err := db.Read.WithContext(ctx).Model(&models.BarangInduk{}).Select("nama_barang", "id_seller", "jenis_barang").Where(&models.BarangInduk{
+			if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("nama_barang", "id_seller", "jenis_barang").Where(&sot_models.BarangInduk{
 				ID: int32(data.DataCheckout[i].IdBarangInduk),
 			}).Limit(1).Scan(&barang).Error; err != nil {
 				return &response.ResponseForm{
@@ -142,9 +142,9 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		}
 
 		if KategoriBarang[data.DataCheckout[i].IdKategori].Nama == "" {
-			var kategori models.KategoriBarang = models.KategoriBarang{Nama: ""}
-			if err := db.Read.Model(&models.KategoriBarang{}).Select("nama", "harga", "stok", "id_barang_induk", "id_alamat_gudang", "berat_gram").
-				Where(&models.KategoriBarang{ID: data.DataCheckout[i].IdKategori}).Limit(1).Scan(&kategori).Error; err != nil {
+			var kategori sot_models.KategoriBarang = sot_models.KategoriBarang{Nama: ""}
+			if err := db.Read.Model(&sot_models.KategoriBarang{}).Select("nama", "harga", "stok", "id_barang_induk", "id_alamat_gudang", "berat_gram").
+				Where(&sot_models.KategoriBarang{ID: data.DataCheckout[i].IdKategori}).Limit(1).Scan(&kategori).Error; err != nil {
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
@@ -167,8 +167,8 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		if NamaSeller[int64(data.DataCheckout[i].IdSeller)] == "" {
 			var namaSeller string = ""
-			if err := db.Read.Model(&models.Seller{}).Select("nama").
-				Where(&models.Seller{ID: data.DataCheckout[i].IdSeller}).
+			if err := db.Read.Model(&sot_models.Seller{}).Select("nama").
+				Where(&sot_models.Seller{ID: data.DataCheckout[i].IdSeller}).
 				Limit(1).Scan(&namaSeller).Error; err != nil {
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
@@ -189,7 +189,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		}
 
 		var IdDiskon int64 = 0
-		if err := db.Read.WithContext(ctx).Model(&models.BarangDiDiskon{}).Select("id_diskon").Where(&models.BarangDiDiskon{
+		if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDiDiskon{}).Select("id_diskon").Where(&sot_models.BarangDiDiskon{
 			SellerId:         data.DataCheckout[i].IdSeller,
 			IdBarangInduk:    data.DataCheckout[i].IdBarangInduk,
 			IdKategoriBarang: data.DataCheckout[i].IdKategori,
@@ -223,9 +223,9 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		// Update status varian sekaligus
 		if len(varianUpdates) > 0 {
-			if err := tx.Model(&models.VarianBarang{}).
+			if err := tx.Model(&sot_models.VarianBarang{}).
 				Where("id IN ?", varianUpdates).
-				Updates(&models.VarianBarang{
+				Updates(&sot_models.VarianBarang{
 					Status:       barang_enums.Dipesan,
 					HoldBy:       data.IdentitasPengguna.ID,
 					HolderEntity: entity_enums.Pengguna,
@@ -236,7 +236,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		// Update stok kategori secara atomic
 		for kategoriID, totalDipesan := range kategoriUpdates {
-			if err := tx.Model(&models.KategoriBarang{}).
+			if err := tx.Model(&sot_models.KategoriBarang{}).
 				Where("id = ? AND stok >= ?", kategoriID, totalDipesan).
 				UpdateColumn("stok", gorm.Expr("stok - ?", totalDipesan)).Error; err != nil {
 				return err
@@ -245,7 +245,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		// Hapus keranjang menggunakan tx agar konsisten dengan transaksi
 		if len(idKeranjang) > 0 {
-			if err := tx.WithContext(ctx).Model(&models.Keranjang{}).Where("id IN ?", idKeranjang).Delete(&models.Keranjang{}).Error; err != nil {
+			if err := tx.WithContext(ctx).Model(&sot_models.Keranjang{}).Where("id IN ?", idKeranjang).Delete(&sot_models.Keranjang{}).Error; err != nil {
 				return err
 			}
 		}
@@ -253,14 +253,14 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		return nil
 	})
 
-	go func(Dk []models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dk []sot_models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		var wg sync.WaitGroup
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
 		for _, k := range Dk {
 			wg.Add(1)
-			go func(datakeranjang models.Keranjang, t *gorm.DB, p *mb_cud_publisher.Publisher) {
+			go func(datakeranjang sot_models.Keranjang, t *gorm.DB, p *mb_cud_publisher.Publisher) {
 				defer wg.Done()
 				thresholdPengguna := sot_threshold.PenggunaThreshold{
 					IdPengguna: datakeranjang.IdPengguna,
@@ -331,8 +331,8 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 
 	for _, keranjang := range data.DataResponse {
 		var varian_id []int64
-		if err := db.Read.Model(&models.VarianBarang{}).
-			Where(models.VarianBarang{
+		if err := db.Read.Model(&sot_models.VarianBarang{}).
+			Where(sot_models.VarianBarang{
 				IdBarangInduk: keranjang.IdBarangInduk,
 				IdKategori:    keranjang.IdKategoriBarang,
 				Status:        barang_enums.Dipesan,
@@ -353,7 +353,7 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 	err := db.Write.Transaction(func(tx *gorm.DB) error {
 		// Update status semua varian sekaligus
 		if len(varianIDs) > 0 {
-			if err := tx.Model(&models.VarianBarang{}).
+			if err := tx.Model(&sot_models.VarianBarang{}).
 				Where("id IN ?", varianIDs).
 				Updates(map[string]interface{}{
 					"status":        barang_enums.Ready,
@@ -366,7 +366,7 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 
 		// Update stok kategori secara atomic
 		for kategoriID, totalDikembalikan := range kategoriUpdates {
-			if err := tx.Model(&models.KategoriBarang{}).
+			if err := tx.Model(&sot_models.KategoriBarang{}).
 				Where("id = ?", kategoriID).
 				UpdateColumn("stok", gorm.Expr("stok + ?", totalDikembalikan)).Error; err != nil {
 				return err
@@ -420,7 +420,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 	}
 
-	var sellerTransaction map[int32]models.Seller = make(map[int32]models.Seller, lenData)
+	var sellerTransaction map[int32]sot_models.Seller = make(map[int32]sot_models.Seller, lenData)
 
 	for i := 0; i < lenData; i++ {
 		var errcheck bool = false
@@ -444,8 +444,8 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 		// Defensive: Check if seller exists in map
 		if _, exists := sellerTransaction[data.DataCheckout.DataResponse[i].IDSeller]; !exists {
-			var seller models.Seller
-			if err := db.Read.WithContext(ctx).Model(&models.Seller{}).Where(&models.Seller{
+			var seller sot_models.Seller
+			if err := db.Read.WithContext(ctx).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 				ID: data.DataCheckout.DataResponse[i].IDSeller,
 			}).Limit(1).First(&seller).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -462,7 +462,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 
 		var varianIds []int64 = make([]int64, 0, int(data.DataCheckout.DataResponse[i].Dipesan))
-		if err := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").Where(&models.VarianBarang{
+		if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").Where(&sot_models.VarianBarang{
 			IdBarangInduk: data.DataCheckout.DataResponse[i].IdBarangInduk,
 			IdKategori:    data.DataCheckout.DataResponse[i].IdKategoriBarang,
 			Status:        barang_enums.Dipesan,
@@ -566,8 +566,8 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	var hasil []midtrans.ItemDetails = make([]midtrans.ItemDetails, 0, lenData)
 
-	var KebijakanSistem models.KebijakanSistem
-	if err := db.Read.WithContext(ctx).Model(&models.KebijakanSistem{}).Where(&models.KebijakanSistem{
+	var KebijakanSistem sot_models.KebijakanSistem
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KebijakanSistem{}).Where(&sot_models.KebijakanSistem{
 		StatusActive: true,
 	}).Limit(1).Take(&KebijakanSistem).Error; err != nil {
 		return &response.ResponseForm{
@@ -577,7 +577,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 	}
 
-	var AlamatGudang map[int64]models.AlamatGudang = make(map[int64]models.AlamatGudang, lenData)
+	var AlamatGudang map[int64]sot_models.AlamatGudang = make(map[int64]sot_models.AlamatGudang, lenData)
 	var dataTransaksi []response_transaction_pengguna.DataTransaksi = make([]response_transaction_pengguna.DataTransaksi, 0, lenData)
 	var fee_platform int64 = 0
 
@@ -616,8 +616,8 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 		// Defensive: Check if warehouse address exists
 		if _, exists := AlamatGudang[data.DataCheckout.DataResponse[i].IdAlamatGudang]; !exists {
-			var alamat models.AlamatGudang
-			if err := db.Read.WithContext(ctx).Model(&models.AlamatGudang{}).Where(&models.AlamatGudang{
+			var alamat sot_models.AlamatGudang
+			if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 				ID: data.DataCheckout.DataResponse[i].IdAlamatGudang,
 			}).Limit(1).Take(&alamat).Error; err != nil {
 				_ = BatalCheckoutUser(data.DataCheckout, db)
@@ -652,7 +652,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		var IdAlamatEkspedisi int64 = 0
 		if isEkspedisi {
 			var id_alamat_eks int64 = 0
-			if err := db.Read.WithContext(ctx).Model(&models.AlamatEkspedisi{}).Select("id").Where(&models.AlamatEkspedisi{
+			if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatEkspedisi{}).Select("id").Where(&sot_models.AlamatEkspedisi{
 				Kota: AlamatGudang[data.DataCheckout.DataResponse[i].IdAlamatGudang].Kota,
 			}).Order("id DESC").Limit(1).Scan(&id_alamat_eks).Error; err != nil {
 				_ = BatalCheckoutUser(data.DataCheckout, db)
@@ -819,7 +819,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		if data.DataCheckout.DataResponse[i].IdDiskon != 0 {
 
 			var diskonPersen float32
-			if err := db.Read.WithContext(ctx).Model(&models.DiskonProduk{}).Select("diskon_persen").Where(&models.DiskonProduk{
+			if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Select("diskon_persen").Where(&sot_models.DiskonProduk{
 				ID: data.DataCheckout.DataResponse[i].IdDiskon}).Limit(1).Take(&diskonPersen).Error; err != nil {
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
@@ -978,7 +978,7 @@ func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.Snap
 
 	for i := 0; i < len(data.DataCheckout); i++ {
 		idkategori[data.DataCheckout[i].IdKategoriBarang] = int64(data.DataCheckout[i].Dipesan)
-		if err := db.Read.WithContext(ctx).Model(&models.VarianBarang{}).Select("id").Where(&models.VarianBarang{
+		if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").Where(&sot_models.VarianBarang{
 			IdBarangInduk: data.DataCheckout[i].IdBarangInduk,
 			IdKategori:    data.DataCheckout[i].IdKategoriBarang,
 			Status:        barang_enums.Dipesan,
@@ -993,7 +993,7 @@ func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.Snap
 	}
 
 	err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.VarianBarang{}).
+		if err := tx.Model(&sot_models.VarianBarang{}).
 			Where("id IN ?", varianIds).
 			Updates(map[string]interface{}{
 				"status":        barang_enums.Ready,
@@ -1004,7 +1004,7 @@ func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.Snap
 		}
 
 		for ind, jumlah := range idkategori {
-			if err := tx.Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			if err := tx.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 				ID: ind,
 			}).Update("stok", gorm.Expr("stok + ?", jumlah)).Error; err != nil {
 				return err
@@ -1139,7 +1139,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 	}
 
 	pembayaran.IdPengguna = data.DataHold[0].IDUser
-	var transaksi_save []models.Transaksi = make([]models.Transaksi, 0, len(data.DataHold))
+	var transaksi_save []sot_models.Transaksi = make([]sot_models.Transaksi, 0, len(data.DataHold))
 
 	if err := db.Write.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&pembayaran).Error; err != nil {
@@ -1147,8 +1147,8 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 		}
 
 		for i := 0; i < len(data.DataHold); i++ {
-			var kategori models.KategoriBarang
-			if err := db.Read.Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			var kategori sot_models.KategoriBarang
+			if err := db.Read.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 				ID: data.DataHold[i].IdKategoriBarang,
 			}).Limit(1).Take(&kategori).Error; err != nil {
 				return err
@@ -1172,7 +1172,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 				kendaraan = jenis_kendaraan_kurir.Pickup
 			}
 
-			transaksi_save = append(transaksi_save, models.Transaksi{
+			transaksi_save = append(transaksi_save, sot_models.Transaksi{
 				IdPengguna:          data.DataHold[i].IDUser,
 				IdSeller:            data.DataHold[i].IDSeller,
 				IdBarangInduk:       int64(data.DataHold[i].IdBarangInduk),
@@ -1204,13 +1204,13 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 		}
 
 		for i := 0; i < len(data.DataHold); i++ {
-			if err := tx.Model(&models.VarianBarang{}).Where(&models.VarianBarang{
+			if err := tx.Model(&sot_models.VarianBarang{}).Where(&sot_models.VarianBarang{
 				IdBarangInduk: data.DataHold[i].IdBarangInduk,
 				IdKategori:    data.DataHold[i].IdKategoriBarang,
 				HoldBy:        data.DataHold[i].IDUser,
 				HolderEntity:  entity_enums.Pengguna,
 				Status:        "Dipesan",
-			}).Updates(&models.VarianBarang{
+			}).Updates(&sot_models.VarianBarang{
 				Status:      "Terjual",
 				IdTransaksi: transaksi_save[i].ID,
 			}).Error; err != nil {
@@ -1230,7 +1230,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 		}
 	}
 
-	go func(Dt []models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dt []sot_models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -1427,7 +1427,7 @@ func PaidFailedTransaksiVa(data PayloadPaidFailedTransaksiVa, db *environment.In
 		}
 
 		for i := range data.DataHold {
-			tf := models.TransaksiFailed{
+			tf := sot_models.TransaksiFailed{
 				IdPembayaran:     standard_response.ID,
 				IdPengguna:       data.DataHold[i].IDUser,
 				IdSeller:         data.DataHold[i].IDSeller,
@@ -1499,7 +1499,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 	}
 
 	pembayaran.IdPengguna = data.DataHold[0].IDUser
-	var transaksi_save []models.Transaksi = make([]models.Transaksi, 0, len(data.DataHold))
+	var transaksi_save []sot_models.Transaksi = make([]sot_models.Transaksi, 0, len(data.DataHold))
 
 	if err := db.Write.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&pembayaran).Error; err != nil {
@@ -1507,8 +1507,8 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 		}
 
 		for i := 0; i < len(data.DataHold); i++ {
-			var kategori models.KategoriBarang
-			if err := db.Read.Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			var kategori sot_models.KategoriBarang
+			if err := db.Read.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 				ID: data.DataHold[i].IdKategoriBarang,
 			}).Limit(1).Take(&kategori).Error; err != nil {
 				return err
@@ -1533,7 +1533,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 				kendaraan = jenis_kendaraan_kurir.Pickup
 			}
 
-			transaksi_save = append(transaksi_save, models.Transaksi{
+			transaksi_save = append(transaksi_save, sot_models.Transaksi{
 				IdPengguna:          data.DataHold[i].IDUser,
 				IdSeller:            data.DataHold[i].IDSeller,
 				IdBarangInduk:       int64(data.DataHold[i].IdBarangInduk),
@@ -1565,13 +1565,13 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 		}
 
 		for i := 0; i < len(data.DataHold); i++ {
-			if err := tx.Model(&models.VarianBarang{}).Where(&models.VarianBarang{
+			if err := tx.Model(&sot_models.VarianBarang{}).Where(&sot_models.VarianBarang{
 				IdBarangInduk: data.DataHold[i].IdBarangInduk,
 				IdKategori:    data.DataHold[i].IdKategoriBarang,
 				HoldBy:        data.DataHold[i].IDUser,
 				HolderEntity:  entity_enums.Pengguna,
 				Status:        "Dipesan",
-			}).Updates(&models.VarianBarang{
+			}).Updates(&sot_models.VarianBarang{
 				Status:      "Terjual",
 				IdTransaksi: transaksi_save[i].ID,
 			}).Error; err != nil {
@@ -1589,7 +1589,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 		}
 	}
 
-	go func(Dt []models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dt []sot_models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -1685,7 +1685,7 @@ func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *enviro
 	standard_response, _ := resp.Pembayaran()
 
 	standard_response.IdPengguna = data.DataHold[0].IDUser
-	var TransaksiGagalBatch []models.TransaksiFailed = make([]models.TransaksiFailed, 0, len(data.DataHold))
+	var TransaksiGagalBatch []sot_models.TransaksiFailed = make([]sot_models.TransaksiFailed, 0, len(data.DataHold))
 	// --- Jalankan transaksi database ---
 	err := db.Write.Transaction(func(tx *gorm.DB) error {
 		// Simpan ke PaidFailed
@@ -1699,7 +1699,7 @@ func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *enviro
 
 		// Simpan TransaksiFailed per item
 		for i := range data.DataHold {
-			TransaksiGagalBatch = append(TransaksiGagalBatch, models.TransaksiFailed{
+			TransaksiGagalBatch = append(TransaksiGagalBatch, sot_models.TransaksiFailed{
 				IdPembayaran:     standard_response.ID,
 				IdPengguna:       data.DataHold[i].IDUser,
 				IdSeller:         data.DataHold[i].IDSeller,
@@ -1778,7 +1778,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 	// Sanitasi Id Pengguna
 	//
 	pembayaran.IdPengguna = data.DataHold[0].IDUser
-	var transaksi_save []models.Transaksi = make([]models.Transaksi, 0, len(data.DataHold))
+	var transaksi_save []sot_models.Transaksi = make([]sot_models.Transaksi, 0, len(data.DataHold))
 
 	if err := db.Write.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&pembayaran).Error; err != nil {
@@ -1786,8 +1786,8 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 		}
 
 		for i := 0; i < len(data.DataHold); i++ {
-			var kategori models.KategoriBarang
-			if err := db.Read.Model(&models.KategoriBarang{}).Where(&models.KategoriBarang{
+			var kategori sot_models.KategoriBarang
+			if err := db.Read.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 				ID: data.DataHold[i].IdKategoriBarang,
 			}).Limit(1).Take(&kategori).Error; err != nil {
 				return err
@@ -1812,7 +1812,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 				kendaraan = jenis_kendaraan_kurir.Pickup
 			}
 
-			transaksi_save = append(transaksi_save, models.Transaksi{
+			transaksi_save = append(transaksi_save, sot_models.Transaksi{
 				IdPengguna:          data.DataHold[i].IDUser,
 				IdSeller:            data.DataHold[i].IDSeller,
 				IdBarangInduk:       int64(data.DataHold[i].IdBarangInduk),
@@ -1844,13 +1844,13 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 		}
 
 		for i := 0; i < len(data.DataHold); i++ {
-			if err := tx.Model(&models.VarianBarang{}).Where(&models.VarianBarang{
+			if err := tx.Model(&sot_models.VarianBarang{}).Where(&sot_models.VarianBarang{
 				IdBarangInduk: data.DataHold[i].IdBarangInduk,
 				IdKategori:    data.DataHold[i].IdKategoriBarang,
 				HoldBy:        data.DataHold[i].IDUser,
 				HolderEntity:  entity_enums.Pengguna,
 				Status:        "Dipesan",
-			}).Updates(&models.VarianBarang{
+			}).Updates(&sot_models.VarianBarang{
 				Status:      "Terjual",
 				IdTransaksi: transaksi_save[i].ID,
 			}).Error; err != nil {
@@ -1868,7 +1868,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 		}
 	}
 
-	go func(Dt []models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(Dt []sot_models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		ctx_t := context.Background()
 		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
 		defer cancel()
@@ -1978,7 +1978,7 @@ func PaidFailedTransaksiGerai(data PayloadPaidFailedTransaksiGerai, db *environm
 
 		// Simpan TransaksiFailed per item
 		for i := range data.DataHold {
-			tf := models.TransaksiFailed{
+			tf := sot_models.TransaksiFailed{
 				IdPembayaran:     standard_response.ID,
 				IdPengguna:       data.DataHold[i].IDUser,
 				IdSeller:         data.DataHold[i].IDSeller,

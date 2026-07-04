@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 func (i *IdentitasKurir) GetSessionKey() string {
@@ -27,10 +27,10 @@ type IdentitasKurir struct {
 	EmailKurir    string `json:"email_kurir"`
 }
 
-func (i *IdentitasKurir) FallbackDB(ctx context.Context, db *gorm.DB) (model models.Kurir, status bool) {
-	var kurir models.Kurir
+func (i *IdentitasKurir) FallbackDB(ctx context.Context, db *gorm.DB) (model sot_models.Kurir, status bool) {
+	var kurir sot_models.Kurir
 
-	_ = db.WithContext(ctx).Model(models.Kurir{}).Where(models.Kurir{
+	_ = db.WithContext(ctx).Model(sot_models.Kurir{}).Where(sot_models.Kurir{
 		ID:          i.IdKurir,
 		Username:    i.UsernameKurir,
 		Email:       i.EmailKurir,
@@ -44,8 +44,8 @@ func (i *IdentitasKurir) FallbackDB(ctx context.Context, db *gorm.DB) (model mod
 	return kurir, true
 }
 
-func (i *IdentitasKurir) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model models.Kurir, status bool) {
-	var kurir models.Kurir
+func (i *IdentitasKurir) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model sot_models.Kurir, status bool) {
+	var kurir sot_models.Kurir
 	if i.IdKurir == 0 {
 		return kurir, false
 	}
@@ -77,7 +77,7 @@ func (i *IdentitasKurir) Validating(ctx context.Context, db *gorm.DB, rds *redis
 
 	Rating := float32(rawRating)
 
-	kurir = models.Kurir{
+	kurir = sot_models.Kurir{
 		ID:            int64(id_kurir),
 		Nama:          cacheSession["nama"],
 		Username:      cacheSession["session"],

@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
@@ -32,7 +32,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 	}
 
 	var id_data_wishlist = 0
-	if err := db.Read.WithContext(ctx).Model(&models.Wishlist{}).Select("id").Where(&models.Wishlist{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Select("id").Where(&sot_models.Wishlist{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IdBarangInduk,
 	}).Limit(1).Scan(&id_data_wishlist).Error; err != nil {
@@ -51,7 +51,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 		}
 	}
 
-	newWishlist := models.Wishlist{
+	newWishlist := sot_models.Wishlist{
 		IdPengguna:    data.IdentitasPengguna.ID,
 		IdBarangInduk: data.IdBarangInduk,
 	}
@@ -64,7 +64,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 		}
 	}
 
-	go func(W models.Wishlist, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(W sot_models.Wishlist, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		penggunaThreshold := sot_threshold.PenggunaThreshold{
 			IdPengguna: W.IdPengguna,
 		}
@@ -109,8 +109,8 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 		}
 	}
 
-	var dataWishlist models.Wishlist
-	if err := db.Read.WithContext(ctx).Model(&models.Wishlist{}).Where(&models.Wishlist{
+	var dataWishlist sot_models.Wishlist
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
 		ID:         data.IdWishlist,
 		IdPengguna: data.IdentitasPengguna.ID,
 	}).Limit(1).Scan(&dataWishlist).Error; err != nil {
@@ -129,9 +129,9 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&models.Wishlist{}).Where(&models.Wishlist{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
 		ID: data.IdWishlist,
-	}).Delete(&models.Wishlist{}).Error; err != nil {
+	}).Delete(&sot_models.Wishlist{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -139,7 +139,7 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 		}
 	}
 
-	go func(W models.Wishlist, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(W sot_models.Wishlist, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		penggunaThreshold := sot_threshold.PenggunaThreshold{
 			IdPengguna: W.IdPengguna,
 		}
