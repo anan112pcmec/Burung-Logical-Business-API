@@ -60,6 +60,15 @@ func (e *Environment) RunConnectionEnvironment() (
 	log.Println("🔍 Mencoba koneksi ke PostgreSQL...")
 	log.Println("🔗 DSN:", dsn_master)
 
+	// ===== LOGGING TAMBAHAN UNTUK DEBUG =====
+	log.Printf("🧩 DB_MASTER_HOST   = %q", e.DB_MASTER_HOST)
+	log.Printf("🧩 DB_MASTER_USER   = %q", e.DB_MASTER_USER)
+	log.Printf("🧩 DB_MASTER_PASS   = %q (len=%d)", e.DB_MASTER_PASS, len(e.DB_MASTER_PASS))
+	log.Printf("🧩 DB_MASTER_NAME   = %q", e.DB_MASTER_NAME)
+	log.Printf("🧩 DB_MASTER_PORT   = %q", e.DB_MASTER_PORT)
+	log.Printf("🧩 DB_MASTER_PASS bytes = %v", []byte(e.DB_MASTER_PASS))
+	// ==========================================
+
 	var err error
 	db_master, err := gorm.Open(postgres.Open(dsn_master), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Warn), // pakai level Warn agar log tidak terlalu ramai

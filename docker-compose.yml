@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: burung_secure_pass
       POSTGRES_DB: burung_sot_db
     ports:
-      - "5432:5432"
+      - "5432:5432"   # Port Database PostgreSQL
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
     image: redis:latest
     container_name: redis_burung_cache
     ports:
-      - "6379:6379"
+      - "6379:6379"   # Port Redis Cache
     restart: unless-stopped
     networks:
       - logical_net
@@ -30,8 +30,8 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq_burung_message_broker
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672"   # Port AMQP Broker
+      - "15672:15672" # Port Management Web UI
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: burung_user
@@ -39,6 +39,7 @@ services:
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./definitions_vhost_rmq.json:/etc/rabbitmq/definitions_vhost_rmq.json:ro
+      - rabbitmq_data:/var/lib/rabbitmq # <-- Penambahan Volume untuk Persistensi Data RMQ
     networks:
       - logical_net
 
@@ -50,8 +51,8 @@ services:
       MINIO_ROOT_USER: burung_app
       MINIO_ROOT_PASSWORD: burung_app123
     ports:
-      - "9000:9000"   # API S3
-      - "9001:9001"   # Console UI
+      - "9000:9000"   # API Object Storage (S3)
+      - "9001:9001"   # Console Web UI
     volumes:
       - minio_data:/data
     restart: unless-stopped
@@ -61,6 +62,7 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  rabbitmq_data:     # <-- Deklarasi named volume untuk RabbitMQ
 
 networks:
   logical_net:

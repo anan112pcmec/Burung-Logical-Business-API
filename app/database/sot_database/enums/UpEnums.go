@@ -18,6 +18,7 @@ func UpEnumsEntity(db *gorm.DB) error {
 		"jenis_seller": {"Brands", "Distributors", "Personal"},
 		/* Udh bikin enum */ "seller_dedication": {"Pakaian & Fashion", "Kosmetik & Kecantikan", "Elektronik & Gadget", "Buku & Media", "Makanan & Minuman", "Ibu & Bayi", "Mainan", "Olahraga & Outdoor", "Otomotif & Sparepart", "Rumah Tangga", "Alat Tulis", "Perhiasan & Aksesoris", "Produk Digital", "Bangunan & Perkakas", "Musik & Instrumen", "Film & Broadcasting", "Semua Barang"},
 
+		"status_pengiriman_ekspedisi": {"Picked Up", "Waiting", "Dikirim", "Sampai Agent", "Masuk Gateaway", "Sampai Agent Tujuan", "Dikirim Agent", "Sampai"},
 		/*Udh bikin enum*/ "jenis_layanan_kurir": {"Reguler", "Fast", "Instant"},
 		"status_keranjang":                       {"Ready", "UnReady"},
 		"status_perizinan":                       {"Pending", "Diizinkan", "Dilarang"},
@@ -221,8 +222,6 @@ func UpEnumsTransaksi(db *gorm.DB) error {
 		// Status "Sampai" akan dikonfirmasi oleh kurir saat barang tiba di tujuan.
 		// Segala hal tak terduga seperti barang tidak sesuai, masalah di jalan, atau kerusakan barang
 		// akan masuk ke status "Trouble". Namun untuk saat ini, kita berasumsi semua berjalan lancar.
-
-		"status_pengiriman_ekspedisi": {"Waiting", "Dikirim", "Sampai Agent", "Masuk Gateaway", "Sampai Agent Tujuan", "Dikirim Agent", "Sampai"},
 
 		"status_paid_failed": {"Ditinjau", "Pending", "Batal", "Lanjut"},
 		// "Ditinjau" berarti sistem sedang melakukan pemeriksaan terhadap transaksi gagal.
