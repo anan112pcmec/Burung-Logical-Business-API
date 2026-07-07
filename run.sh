@@ -20,6 +20,29 @@ COMPOSE_FILE="docker-compose.yml"
 HEALTH_CHECK_INTERVAL=2
 
 # ====================================================
+# FUNCTION: Cleanup - matikan semua container saat exit
+# ====================================================
+CLEANUP_DONE=0
+cleanup() {
+    if [ "$CLEANUP_DONE" -eq 1 ]; then
+        return
+    fi
+    CLEANUP_DONE=1
+
+    echo ""
+    print_warning "Menerima sinyal berhenti, mematikan semua container..."
+    docker compose down
+    if [ $? -eq 0 ]; then
+        print_success "Semua container berhasil dimatikan"
+    else
+        print_error "Gagal mematikan sebagian/semua container"
+    fi
+}
+
+trap cleanup EXIT
+trap cleanup INT TERM
+
+# ====================================================
 # FUNCTION: Print colored messages
 # ====================================================
 print_error() {
@@ -388,15 +411,12 @@ go run main.go
 EXIT_CODE=$?
 
 # 14. Exit message
+# 14. Exit message
 echo ""
 if [ $EXIT_CODE -eq 0 ]; then
     print_success "Backend berhenti dengan normal"
 else
     print_error "Backend berhenti dengan exit code: $EXIT_CODE"
 fi
-
-print_info "Docker containers masih berjalan"
-print_info "Gunakan 'docker compose down' untuk menghentikan containers"
-print_info "Gunakan 'docker compose logs' untuk melihat logs"
 
 exit $EXIT_CODE

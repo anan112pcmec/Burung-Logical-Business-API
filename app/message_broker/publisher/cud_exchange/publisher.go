@@ -27,7 +27,7 @@ func CreatePublish[
 	switch v := any(Payload).(type) {
 
 	case *mb_serializer.PublishPayloadJson:
-		b, err := json.Marshal(v.Payload)
+		b, err := json.Marshal(v)
 		if err != nil {
 			return fmt.Errorf("json marshal failed: %w", err)
 		}
@@ -86,7 +86,7 @@ func UpdatePublish[
 	switch v := any(Payload).(type) {
 
 	case *mb_serializer.PublishPayloadJson:
-		b, err := json.Marshal(v.Payload)
+		b, err := json.Marshal(v)
 		if err != nil {
 			return fmt.Errorf("json marshal failed: %w", err)
 		}
@@ -146,7 +146,7 @@ func DeletePublish[
 	switch v := any(Payload).(type) {
 
 	case *mb_serializer.PublishPayloadJson:
-		b, err := json.Marshal(v.Payload)
+		b, err := json.Marshal(v)
 		if err != nil {
 			return fmt.Errorf("json marshal failed: %w", err)
 		}

@@ -5,21 +5,40 @@
   ],
   "users": [
     {
-      "name": "burung_user",
+      "name": "burung_user_publisher",
       "password": "burung_pass",
       "tags": "administrator"
+    },
+    {
+      "name": "burung_user_consumer",
+      "password": "burung_consumer_pass",
+      "tags": "management"
     }
   ],
   "permissions": [
     {
-      "user": "burung_user",
+      "user": "burung_user_publisher",
       "vhost": "notificationing_burung",
       "configure": ".*",
       "write": ".*",
       "read": ".*"
     },
     {
-      "user": "burung_user",
+      "user": "burung_user_publisher",
+      "vhost": "internal_system_burung",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "burung_user_consumer",
+      "vhost": "notificationing_burung",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "burung_user_consumer",
       "vhost": "internal_system_burung",
       "configure": ".*",
       "write": ".*",

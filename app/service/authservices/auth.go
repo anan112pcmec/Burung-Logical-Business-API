@@ -727,14 +727,14 @@ func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey
 		}
 	}
 
-	seller := sot_models.Kurir{
+	kurir := sot_models.Kurir{
 		Nama:         userData["nama"],
 		Email:        userData["email"],
 		Username:     userData["username"],
 		PasswordHash: string(hashedPassword),
 	}
 
-	if err := db.Write.Create(&seller).Error; err != nil {
+	if err := db.Write.Create(&kurir).Error; err != nil {
 		fmt.Println("[ValidateUserRegistration] ERROR saving to DB:", err)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -758,7 +758,7 @@ func ValidateKurirRegistration(db *environment.InternalDBReadWriteSystem, OTPkey
 			if err := rds_con.Del(konteks, key_rds).Err(); err != nil {
 				fmt.Println("[ValidateUserRegistration] WARNING deleting Redis key:", err)
 			}
-		}(seller, key, rds, cud_publisher)
+		}(kurir, key, rds, cud_publisher)
 	}
 
 	return &response.ResponseForm{

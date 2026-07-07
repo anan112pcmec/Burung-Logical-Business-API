@@ -80,7 +80,7 @@ func Run() {
 	// ==========================================
 
 	Router := mux.NewRouter()
-	Router.Use(enableCORS)
+	// Router.Use(enableCORS)
 	// Router.Use(rateLimitMiddleware)
 	// Router.Use(blockBadRequestsMiddleware)
 
