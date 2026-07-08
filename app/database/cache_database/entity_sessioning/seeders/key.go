@@ -4,12 +4,20 @@ import (
 	"fmt"
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+
 )
 
 func SetSessionKey[T *sot_models.Pengguna | *sot_models.Seller | *sot_models.Kurir](i T) string {
 	switch v := any(i).(type) {
 
 	case *sot_models.Pengguna:
+
+		fmt.Println(fmt.Sprintf(
+			"session_user_%d_%s_%s",
+			v.ID,
+			v.Username,
+			v.Email,
+		))
 		return fmt.Sprintf(
 			"session_user_%d_%s_%s",
 			v.ID,

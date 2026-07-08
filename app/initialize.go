@@ -28,8 +28,8 @@ func Run() {
 		log.Fatalf("Error loading .env file")
 	}
 
-	rdsauth, _ := strconv.Atoi(Getenvi("RDSENTITY", "0"))
-	rdssession, _ := strconv.Atoi(Getenvi("RDSAUTH", "0"))
+	rdsauth, _ := strconv.Atoi(Getenvi("RDSAUTH", "0"))
+	rdssession, _ := strconv.Atoi(Getenvi("RDSESSION", "1"))
 	minioSSl, _ := strconv.ParseBool(Getenvi("MINIO_USE_SSL", "NIL"))
 
 	env := environment.Environment{

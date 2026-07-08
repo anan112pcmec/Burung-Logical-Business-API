@@ -17,8 +17,9 @@ import (
 	"strings"
 	"time"
 
-	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"gorm.io/gorm"
+
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
 func DecodeJSONBody(r *http.Request, dst interface{}) error {
@@ -58,7 +59,7 @@ func StructToJSONMap(v interface{}) map[string]interface{} {
 
 		// buang opsi omitempty, dll
 		jsonKey := strings.Split(jsonTag, ",")[0]
-		if jsonKey == "" {
+		if jsonKey == "" || jsonKey == "deleted_at" {
 			continue
 		}
 

@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
+	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
@@ -65,8 +66,11 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 	} else {
 		go func(u sot_models.Pengguna, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			if u.StatusPengguna == "Offline" {
-				if err1 := Write.Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{ID: u.ID}).Update("status", "Online").Error; err1 != nil {
+				if err1 := Write.Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{ID: u.ID}).Update("status", entity_enums.Online).Error; err1 != nil {
 					fmt.Println("Gagal Ubah Status")
+					return
+				} else {
+					u.StatusPengguna = entity_enums.Online
 				}
 
 				ctx_t := context.Background()
@@ -84,19 +88,22 @@ func PenggunaLogin(db *environment.InternalDBReadWriteSystem, email, password st
 		}(user, *db.Write, cud_publisher)
 	}
 
-	go func(u sot_models.Pengguna) {
+	go func(u sot_models.Pengguna, rds_pass *redis.Client) {
+
 		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
 		session := helper.StructToJSONMap(u)
-		pipe := rds.Pipeline()
+		pipe := rds_pass.Pipeline()
 		pipe.HSet(ctx, key, session)
 
 		if _, err := pipe.Exec(ctx); err != nil {
 			log.Printf("[UserLogin][Redis] %v", err)
+		} else {
+			log.Printf("[UserLogin][Redis] %v", "berhasil")
 		}
-	}(user)
+	}(user, rds)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -153,10 +160,11 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 			if u.StatusSeller == "Offline" {
 				if err := Write.Model(&sot_models.Seller{}).
 					Where(&sot_models.Seller{ID: u.ID}).
-					Update("status", "Online").Error; err != nil {
+					Update("status", entity_enums.Online).Error; err != nil {
 					fmt.Println("Gagal update status seller:", err)
+					return
 				} else {
-					fmt.Println("Seller sudah login di tempat lain")
+					u.StatusSeller = entity_enums.Online
 				}
 				ctx_t := context.Background()
 				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
@@ -173,19 +181,19 @@ func SellerLogin(db *environment.InternalDBReadWriteSystem, email, password stri
 		}(seller, *db.Write, cud_publisher)
 	}
 
-	go func(u sot_models.Seller) {
+	go func(u sot_models.Seller, rds_pass *redis.Client) {
 		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
 		session := helper.StructToJSONMap(u)
-		pipe := rds.Pipeline()
+		pipe := rds_pass.Pipeline()
 		pipe.HSet(ctx, key, session)
 
 		if _, err := pipe.Exec(ctx); err != nil {
 			log.Printf("[SellerLogin][Redis] %v", err)
 		}
-	}(seller)
+	}(seller, rds)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -242,10 +250,10 @@ func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password strin
 			if u.StatusKurir == "Offline" {
 				if err := Write.Model(&sot_models.Kurir{}).
 					Where(&sot_models.Kurir{ID: u.ID}).
-					Update("status", "Online").Error; err != nil {
+					Update("status", entity_enums.Online).Error; err != nil {
 					fmt.Println("Gagal update status kurir:", err)
 				} else {
-					fmt.Println("Seller sudah login di tempat lain")
+					u.StatusKurir = entity_enums.Online
 				}
 
 				ctx_t := context.Background()
@@ -256,23 +264,25 @@ func KurirLogin(db *environment.InternalDBReadWriteSystem, email, password strin
 				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateOnlineKurir); err != nil {
 					fmt.Println("Gagal publish user online")
 				}
+			} else {
+				fmt.Println("Kurir sudah login di tempat lain")
 			}
 		}(kurir, *db.Write, cud_publisher)
 	}
 
-	go func(u sot_models.Kurir) {
+	go func(u sot_models.Kurir, rds_pass *redis.Client) {
 		ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
 		session := helper.StructToJSONMap(u)
-		pipe := rds.Pipeline()
+		pipe := rds_pass.Pipeline()
 		pipe.HSet(ctx, key, session)
 
 		if _, err := pipe.Exec(ctx); err != nil {
 			log.Printf("[KurirLogin][Redis] %v", err)
 		}
-	}(kurir)
+	}(kurir, rds)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
