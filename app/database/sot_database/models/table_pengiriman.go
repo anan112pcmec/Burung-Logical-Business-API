@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Approved
 type Pengiriman struct {
 	ID                int64          `gorm:"primaryKey;autoIncrement" json:"id_pengiriman"`
 	IdTransaksi       int64          `gorm:"column:id_transaksi;not null" json:"id_transaksi"`
@@ -32,6 +33,7 @@ func (Pengiriman) TableName() string {
 	return "pengiriman"
 }
 
+// Approved
 type JejakPengiriman struct {
 	ID           int64          `gorm:"primaryKey;autoIncrement" db:"id" json:"id_jejak_pengiriman"`
 	IdPengiriman int64          `gorm:"column:id_pengiriman;not null" db:"id_pengiriman" json:"id_pengiriman"`
@@ -49,6 +51,7 @@ func (JejakPengiriman) TableName() string {
 	return "jejak_pengiriman"
 }
 
+// Approved
 type PengirimanEkspedisi struct {
 	ID                int64           `gorm:"primaryKey;autoIncrement" json:"id_pengiriman_ekspedisi"`
 	IdTransaksi       int64           `gorm:"column:id_transaksi;not null" json:"id_transaksi"`

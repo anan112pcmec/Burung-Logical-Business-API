@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// APPROVED
 type EntitySocialMedia struct {
 	ID         int64     `gorm:"primaryKey;autoIncrement" json:"id_social_media"`
 	EntityId   int64     `gorm:"column:entity_id;type:int8;not null" json:"entity_id_social_media"`
@@ -24,6 +25,7 @@ func (EntitySocialMedia) TableName() string {
 	return "entity_social_media"
 }
 
+// APPROVED
 type Komentar struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id_komentar"`
 	IdBarangInduk int32          `gorm:"column:id_barang_induk;not null" json:"id_barang_induk"`
@@ -45,6 +47,7 @@ func (Komentar) TableName() string {
 	return "komentar"
 }
 
+// Approved
 type KomentarChild struct {
 	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id_komentar_child"`
 	IdKomentar  int64     `gorm:"column:id_komentar;not null" json:"id_komentar"`
@@ -67,6 +70,7 @@ func (KomentarChild) TableName() string {
 // ENGAGEMENT PENGGUNA
 // ///////////////////////////////////////////////////////////////////////////////////////////
 
+// APPROVED
 type Keranjang struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_keranjang"`
 	IdPengguna     int64          `gorm:"column:id_pengguna;not null" json:"id_pengguna_keranjang"`
@@ -88,6 +92,7 @@ func (Keranjang) TableName() string {
 	return "keranjang"
 }
 
+// APPROVED
 type BarangDisukai struct {
 	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_barang_disukai"`
 	IdPengguna    int64       `gorm:"column:id_pengguna;not null" json:"id_pengguna_barang_disukai"`
@@ -103,6 +108,7 @@ func (BarangDisukai) TableName() string {
 	return "barang_disukai"
 }
 
+// Approved
 type BarangWishlist struct {
 	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_barang_wishlist"`
 	IdPengguna    int64       `gorm:"column:id_pengguna;not null" json:"id_pengguna_barang_wishlist"`
@@ -114,6 +120,7 @@ type BarangWishlist struct {
 	// 🟢 Hard delete
 }
 
+// Approved
 type AlamatPengguna struct {
 	ID              int64          `gorm:"primaryKey;autoIncrement" json:"id_alamat_user"`
 	IDPengguna      int64          `gorm:"column:id_pengguna;not null" json:"id_pengguna_alamat_user"`
@@ -137,6 +144,7 @@ func (AlamatPengguna) TableName() string {
 	return "alamat_pengguna"
 }
 
+// Approved
 type Wishlist struct {
 	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_wishlist"`
 	IdPengguna    int64       `gorm:"column:id_pengguna;not null" json:"id_pengguna_wishlist"`
@@ -152,6 +160,7 @@ func (Wishlist) TableName() string {
 	return "wishlist"
 }
 
+// Approved
 type Review struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id_review"`
 	IdPengguna    int64          `gorm:"column:id_pengguna;not null" json:"id_pengguna_review"`
@@ -169,6 +178,7 @@ func (Review) TableName() string {
 	return "review"
 }
 
+// Approved
 type ReviewLike struct {
 	ID         int64     `gorm:"primaryKey;autoIncrement" json:"id_like_review"`
 	IdPengguna int64     `gorm:"column:id_pengguna;not null" json:"id_pengguna_like_wishlist"`
@@ -184,6 +194,7 @@ func (ReviewLike) TableName() string {
 	return "review_like"
 }
 
+// Approved
 type ReviewDislike struct {
 	ID         int64     `gorm:"primaryKey;autoIncrement" json:"id_dislike_review"`
 	IdPengguna int64     `gorm:"column:id_pengguna;not null" json:"id_pengguna_dislike_wishlist"`
@@ -203,6 +214,7 @@ func (ReviewDislike) TableName() string {
 // ENGAGEMENT SELLER
 // ///////////////////////////////////////////////////////////////////////////////////////////
 
+// Approved
 type Jenis_Seller struct {
 	ID               int64          `gorm:"primaryKey;autoIncrement" json:"id_jenis_seller"`
 	IdSeller         int32          `gorm:"column:id_seller;not null" json:"id_seller_jenis_seller"`
@@ -220,6 +232,7 @@ func (Jenis_Seller) TableName() string {
 	return "jenis_seller_validation"
 }
 
+// Approved
 type BatalTransaksi struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_batal_transaksi"`
 	IdTransaksi    int64          `gorm:"column:id_transaksi;not null" json:"id_transaksi_batal_transaksi"`
@@ -235,6 +248,7 @@ func (BatalTransaksi) TableName() string {
 	return "batal_transaksi"
 }
 
+// Approved
 type Follower struct {
 	ID         int64     `gorm:"primaryKey;autoIncrement" json:"id_follow"`
 	IdFollower int64     `gorm:"column:id_follower;not null" json:"id_follower"`
@@ -250,6 +264,7 @@ func (Follower) TableName() string {
 	return "follower"
 }
 
+// Approved
 type AlamatGudang struct {
 	ID              int64          `gorm:"primaryKey;autoIncrement" json:"id_alamat_gudang"`
 	IDSeller        int32          `gorm:"column:id_seller;not null" json:"id_seller_alamat_gudang"`
@@ -273,6 +288,7 @@ func (AlamatGudang) TableName() string {
 	return "alamat_gudang"
 }
 
+// Approved
 type DistributorData struct {
 	ID                        int64          `gorm:"primaryKey;autoIncrement" json:"id_distributor_data"`
 	SellerId                  int32          `gorm:"column:seller_id;not null" json:"id_seller_distributor_data"`
@@ -292,6 +308,7 @@ func (DistributorData) TableName() string {
 	return "distributor_data"
 }
 
+// Approved
 type BrandData struct {
 	ID                    int64          `gorm:"primaryKey;autoIncrement" json:"id_brand_data"`
 	SellerId              int32          `gorm:"column:seller_id;not null" json:"id_seller_brand_data"`
@@ -315,6 +332,7 @@ func (BrandData) TableName() string {
 	return "brand_data"
 }
 
+// Approved
 type Etalase struct {
 	ID           int64          `gorm:"primaryKey;autoIncrement" json:"id_etalase"`
 	SellerID     int64          `gorm:"column:id_seller;not null" json:"id_seller_etalase"`
@@ -331,6 +349,7 @@ func (Etalase) TableName() string {
 	return "etalase"
 }
 
+// Approved
 type BarangKeEtalase struct {
 	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_barang_ke_etalase"`
 	IdEtalase     int64       `gorm:"column:id_etalase;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"id_etalase_barang_ke_etalase"`
@@ -344,6 +363,7 @@ func (BarangKeEtalase) TableName() string {
 	return "barang_ke_etalase"
 }
 
+// Approved
 type DiskonProduk struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id_diskon_produk"`
 	SellerId      int32          `gorm:"column:id_seller;not null" json:"id_seller_diskon_produk"`
@@ -363,6 +383,7 @@ func (DiskonProduk) TableName() string {
 	return "diskon_produk"
 }
 
+// Approved
 type BarangDiDiskon struct {
 	ID               int64          `gorm:"primaryKey;autoIncrement" json:"id_barang_di_diskon"`
 	SellerId         int32          `gorm:"column:id_seller;not null" json:"id_seller_barang_di_diskon"`
@@ -387,6 +408,7 @@ func (BarangDiDiskon) TableName() string {
 // ENGAGEMENT KURIR
 // ///////////////////////////////////////////////////////////////////////////////////////////
 
+// Approved
 type InformasiKurir struct {
 	ID           int64          `gorm:"primaryKey;autoIncrement" json:"id_informasi_kurir"`
 	IDkurir      int64          `gorm:"column:id_kurir;not null" json:"id_kurir_informasi_kurir"`
@@ -405,6 +427,7 @@ func (InformasiKurir) TableName() string {
 	return "informasi_kurir"
 }
 
+// Approved
 type InformasiKendaraanKurir struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_informasi_kendaraan_kurir"`
 	IDkurir        int64          `gorm:"column:id_kurir;not null" json:"id_kurir_kendaraan_kurir"`
@@ -426,6 +449,7 @@ func (InformasiKendaraanKurir) TableName() string {
 	return "informasi_kendaraan_kurir"
 }
 
+// Approved
 type AlamatKurir struct {
 	ID              int64     `gorm:"primaryKey;autoIncrement" json:"id_alamat_kurir"`
 	IdKurir         int64     `gorm:"column:id_kurir;not null" json:"id_kurir_alamat_kurir"`
@@ -449,6 +473,7 @@ func (AlamatKurir) TableName() string {
 	return "alamat_kurir"
 }
 
+// Approved
 type BidKurirData struct {
 	ID              int64          `gorm:"primaryKey;autoIncrement" json:"id_bid_kurir_data"`
 	IdKurir         int64          `gorm:"column:id_kurir;not null" json:"id_kurir_bid_kurir_data"`
@@ -476,6 +501,7 @@ func (BidKurirData) TableName() string {
 	return "bid_kurir_data"
 }
 
+// Approved
 type BidKurirNonEksScheduler struct {
 	ID           int64          `gorm:"primaryKey;autoIncrement" json:"id"`
 	IdBid        int64          `gorm:"column:id_bid;not null" json:"id_bid"`

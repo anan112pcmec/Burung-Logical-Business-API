@@ -5,6 +5,7 @@ import "time"
 // 🟢 Semua tabel media_* = Hard delete
 // Wajib hapus file storage bersamaan saat delete
 
+// Approved
 type MediaPenggunaProfilFoto struct {
 	ID         int64     `gorm:"primaryKey;autoIncrement" json:"id_media_pengguna_profil_foto"`
 	IdPengguna int64     `gorm:"column:id_pengguna;not null" json:"id_pengguna"`
@@ -23,6 +24,7 @@ func (MediaPenggunaProfilFoto) PathName() string {
 	return "/media-pengguna-profil-foto/"
 }
 
+// Approved
 type MediaSellerProfilFoto struct {
 	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id_media_seller_profil_foto"`
 	IdSeller  int64     `gorm:"column:id_seller;not null" json:"id_seller"`
@@ -41,6 +43,7 @@ func (MediaSellerProfilFoto) TableName() string {
 	return "media_seller_foto_profil"
 }
 
+// Approved
 type MediaSellerBannerFoto struct {
 	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id_media_seller_banner_foto"`
 	IdSeller  int64     `gorm:"column:id_seller;not null" json:"id_seller"`

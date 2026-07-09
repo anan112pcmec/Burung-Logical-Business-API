@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Approved
 type RekeningSeller struct {
 	ID              int64          `gorm:"primaryKey;autoIncrement" json:"id_rekening_seller"`
 	IDSeller        int32          `gorm:"column:id_seller;not null;index" json:"id_seller"`
@@ -23,6 +24,7 @@ func (RekeningSeller) TableName() string {
 	return "rekening_seller"
 }
 
+// Approved
 type RekeningKurir struct {
 	ID              int64          `gorm:"primaryKey;autoIncrement" json:"id_rekening_kurir"`
 	IdKurir         int64          `gorm:"column:id_kurir;not null" json:"id_kurir_rekening_kurir"`

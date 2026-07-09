@@ -10,6 +10,7 @@ type BarangContract interface {
 	Validating() string
 }
 
+// Approved
 type BarangInduk struct {
 	ID               int32          `gorm:"primaryKey;autoIncrement" json:"id_barang_induk"`
 	SellerID         int32          `gorm:"index;column:id_seller;not null" json:"id_seller"`
@@ -29,6 +30,7 @@ func (BarangInduk) TableName() string {
 	return "barang_induk"
 }
 
+// Approved
 type KategoriBarang struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_kategori_barang"`
 	SellerID       int32          `gorm:"column:id_seller;not null" json:"id_seller_kategori_barang"`

@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Approved
 type Pembayaran struct {
 	ID              int64          `gorm:"primaryKey;autoIncrement" json:"id_pembayaran"`
 	IdPengguna      int64          `gorm:"column:id_pengguna;not null" json:"id_pengguna"`
@@ -24,6 +25,8 @@ type Pembayaran struct {
 func (Pembayaran) TableName() string {
 	return "pembayaran"
 }
+
+// Approved
 
 type Transaksi struct {
 	ID                  int64          `gorm:"primaryKey;autoIncrement" json:"id_transaksi"`
@@ -69,6 +72,7 @@ func (Transaksi) TableName() string {
 	return "transaksi"
 }
 
+// Approved
 type TransaksiFailed struct {
 	ID                  int64          `gorm:"primaryKey;autoIncrement" json:"id_transaksi"`
 	IdPengguna          int64          `gorm:"column:id_pengguna;not null" json:"id_pengguna"`
@@ -93,6 +97,7 @@ type TransaksiFailed struct {
 	SellerPaid          int64          `gorm:"column:seller_paid;type:int8;not null" json:"seller_paid"`
 	KurirPaid           int64          `gorm:"column:kurir_paid;type:int8;not null" json:"kurir_paid"`
 	EkspedisiPaid       int64          `gorm:"column:ekspedisi_paid;type:int8;not null" json:"ekspedisi_paid"`
+	SistemPaid          int64          `gorm:"column:sistem_paid;int8;not null" json:"sistem_paid"`
 	Total               int64          `gorm:"column:total;type:int8;not null" json:"total_transaksi"`
 	Reviewed            bool           `gorm:"column:reviewed;type:bool;not null;default:false" json:"reviewed"`
 	CreatedAt           time.Time      `gorm:"autoCreateTime" json:"created_at"`

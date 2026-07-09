@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Approved
 type Pengguna struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_user"`
 	Username       string         `gorm:"column:username;type:varchar(100);not null;default:''" json:"username"`
@@ -24,6 +25,7 @@ func (Pengguna) TableName() string {
 	return "pengguna"
 }
 
+// Approved
 type Seller struct {
 	ID               int32          `gorm:"primaryKey;autoIncrement" json:"id_seller"`
 	Username         string         `gorm:"column:username;type:varchar(100);notnull;default:''" json:"username"`
@@ -60,6 +62,7 @@ func (Seller) TableName() string {
 
 type JenisLayananKurir string
 
+// Approved
 type Kurir struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id_kurir"`
 	Nama          string         `gorm:"column:nama;type:varchar(150);not null;default:''" json:"nama"`
