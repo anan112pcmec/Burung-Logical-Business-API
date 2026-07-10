@@ -93,12 +93,16 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	barang_induk := sot_models.BarangInduk{
+		ID:             data.BarangInduk.ID,
 		SellerID:       data.IdentitasSeller.IdSeller,
 		NamaBarang:     data.BarangInduk.NamaBarang,
 		JenisBarang:    data.BarangInduk.JenisBarang,
 		Deskripsi:      data.BarangInduk.Deskripsi,
 		HargaKategoris: int32(harga_original),
 	}
+
+	var banyakKategoriBarang int = len(data.KategoriBarang)
+
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
 		if err := tx.WithContext(ctx).Create(&barang_induk).Error; err != nil {
@@ -112,7 +116,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 			data.KategoriBarang[i].IDRekening = data.IdRekening
 		}
 
-		if err := tx.WithContext(ctx).CreateInBatches(&data.KategoriBarang, len(data.KategoriBarang)).Error; err != nil {
+		if err := tx.WithContext(ctx).CreateInBatches(&data.KategoriBarang, banyakKategoriBarang).Error; err != nil {
 			return err
 		}
 
@@ -133,7 +137,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 		var id_kategoris []int64
 		if err := tx.Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 			IdBarangInduk: barang_induk.ID,
-		}).Limit(len(data.KategoriBarang)).Scan(&id_kategoris).Error; err != nil {
+		}).Limit(banyakKategoriBarang).Scan(&id_kategoris).Error; err != nil {
 			return err
 		}
 
@@ -370,9 +374,11 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 	_, totalKategoriBarang := thresholdBarangInduk.GetKolomCount(ctx, db.Read, stsk_baranginduk.KategoriBarang)
 
 	var dataKategoriBarang []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategoriBarang)
-	_ = db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 		IdBarangInduk: dataBarangInduk.ID,
-	}).Limit(totalKategoriBarang).Take(&dataKategoriBarang)
+	}).Limit(totalKategoriBarang).Take(&dataKategoriBarang).Error; err != nil {
+		fmt.Println("Gagal mengambil data kategori barang", err)
+	}
 
 	// Jalankan proses penghapusan dalam goroutine (asynchronous)
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -626,7 +632,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 				fmt.Printf("Gagal mempublish create kategori barang ber id %v dan bernama %s ke message broker", kategoribarangdata.ID, kategoribarangdata.Nama)
 			}
 		}
-	}(data.KategoriBarang, db.Write, cud_publisher)
+	}(kategori_barang, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
