@@ -31,7 +31,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadMasukanBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanBarang"
+	const services string = "MasukanBarangInduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -75,16 +75,14 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	var harga_original int64 = 0
-	var success bool = false
 	for i, _ := range data.KategoriBarang {
 		if data.KategoriBarang[i].IsOriginal {
-			success = true
 			harga_original = int64(data.KategoriBarang[i].Harga)
 			break
 		}
 	}
 
-	if !success || harga_original <= 0 {
+	if harga_original <= 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
@@ -186,8 +184,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 			IdBarangInduk: int64(Bi.ID),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh.Write, stsk_seller.BarangInduk); err != nil {
@@ -232,7 +229,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 		Services: services,
 		Message:  "Barang berhasil ditambahkan.",
 	}
-}
+} // Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Barang Induk
@@ -240,7 +237,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadEditBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditBarang"
+	const services string = "EditBarangInduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -285,8 +282,7 @@ func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSys
 	}
 
 	go func(IdBarangInduk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var updatedBarangInduk sot_models.BarangInduk
@@ -318,7 +314,7 @@ func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSys
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadHapusBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusBarang"
+	const services string = "HapusBarangInduk"
 
 	// Validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -371,7 +367,15 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 	}
 
 	thresholdBarangInduk := sot_threshold.BarangIndukThreshold{ID: int64(dataBarangInduk.ID)}
-	_, totalKategoriBarang := thresholdBarangInduk.GetKolomCount(ctx, db.Read, stsk_baranginduk.KategoriBarang)
+	err_tkb, totalKategoriBarang := thresholdBarangInduk.GetKolomCount(ctx, db.Read, stsk_baranginduk.KategoriBarang)
+	if err_tkb != nil {
+		fmt.Println("gagal mengambil total kategori barang", err_tkb)
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Terjadi kesalahan pada database",
+		}
+	}
 
 	var dataKategoriBarang []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategoriBarang)
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
@@ -413,8 +417,7 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 	}
 
 	go func(DBI sot_models.BarangInduk, DBK []sot_models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := Trh.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Where(&sot_threshold.BarangIndukThreshold{
@@ -448,7 +451,7 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 		Services: services,
 		Message:  "Barang berhasil dihapus.",
 	}
-}
+} // Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Tambah Kategori Barang Induk
@@ -456,7 +459,7 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadTambahKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahKategoriBarang"
+	const services string = "TambahKategoriBarang"
 
 	// Validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -573,7 +576,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 			IsOriginal:     false,
 		})
 	}
-	// Jalankan async tapi dengan salinan data yang aman
+
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
 		if err := tx.CreateInBatches(&kategori_barang, len(kategori_barang)).Error; err != nil {
@@ -614,8 +617,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 		data.IdBarangInduk, data.IdentitasSeller.IdSeller)
 
 	go func(Kb []sot_models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		for _, kategoribarangdata := range Kb {
@@ -637,9 +639,9 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Message:  "Kategori barang berhasil ditambahkan (async-safe).",
+		Message:  "Kategori barang berhasil ditambahkan",
 	}
-}
+} // Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Kategori Barang
@@ -647,7 +649,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadEditKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditKategoriBarang"
+	const services string = "EditKategoriBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -685,6 +687,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 			Nama:           data.Nama,
 			Deskripsi:      data.Deskripsi,
 			Warna:          data.Warna,
+			BeratGram:      int16(data.BeratGram),
 			DimensiPanjang: data.DimensiPanjang,
 			DimensiLebar:   data.DimensiLebar,
 			Sku:            data.Sku,
@@ -712,8 +715,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
@@ -735,7 +737,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		Services: services,
 		Message:  "Kategori barang berhasil diubah.",
 	}
-}
+} // Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Hapus Kategori Barang Induk
@@ -743,7 +745,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadHapusKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusKategoriBarang"
+	const services string = "HapusKategoriBarang"
 
 	// Validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -817,8 +819,8 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 		data.IdBarangInduk, data.IdentitasSeller.IdSeller)
 
 	go func(Kb sot_models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
@@ -839,12 +841,11 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 		Services: services,
 		Message:  "Kategori barang berhasil dihapus (soft delete manual).",
 	}
-}
+} // Tuned
 
 func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUbahHargaKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UbahHargaKategoriBarang"
+	const services string = "UbahHargaKategoriBarang"
 
-	// 1. Validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -853,13 +854,12 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 		}
 	}
 
-	// 2. Ambil data kategori untuk mengecek kepemilikan dan status keaktifannya
-	var data_kategori sot_models.KategoriBarang
-	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
+	var id_data_kategori int64
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 		ID:            data.IdKategoriBarang,
 		IdBarangInduk: data.IdBarangInduk,
 		SellerID:      data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&data_kategori).Error; err != nil {
+	}).Limit(1).Scan(&id_data_kategori).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -867,7 +867,7 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 		}
 	}
 
-	if data_kategori.ID == 0 {
+	if id_data_kategori == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -875,11 +875,6 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 		}
 	}
 
-	// =========================================================================
-	// [VALIDASI CRITICAL]: Harga hanya boleh diubah jika kategori sudah "Down"
-	// =========================================================================
-	// Catatan: Ganti `IsActive` atau kondisinya sesuai dengan nama field status di struct Anda
-	// (misal: data_kategori.Status == "Active")
 	var exist_varian_transaksi int64 = 0
 	if errStock := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").
 		Where("id_barang_induk = ? AND id_kategori = ? AND status IN ?", data.IdBarangInduk, data.IdKategoriBarang, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
@@ -894,7 +889,6 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 		}
 	}
 
-	// 3. Eksekusi update harga di dalam database transaction
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: data.IdKategoriBarang,
@@ -912,11 +906,8 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
-
-	// 4. Jalankan broadcast update ke Message Broker secara asynchronous
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
@@ -940,14 +931,14 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 		Services: services,
 		Message:  "Harga kategori barang berhasil diubah.",
 	}
-}
+} // Tuned
 
 // ////////////////////////////////////////////////////////////////////////////////
 // STOK BARANG
 // ////////////////////////////////////////////////////////////////////////////////
 
 func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadEditStokKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditStokBarang"
+	const services string = "EditStokBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -997,14 +988,12 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 	var id_varians []int64
 	if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").
 		Where(&sot_models.VarianBarang{
-			IdBarangInduk: data.IdBarangInduk,
-			IdKategori:    data.IdKategoriBarang,
-			Status:        barang_enums.Ready,
+			IdKategori: data.IdKategoriBarang,
+			Status:     barang_enums.Ready,
 		}).
 		Or(&sot_models.VarianBarang{
-			IdBarangInduk: data.IdBarangInduk,
-			IdKategori:    data.IdKategoriBarang,
-			Status:        barang_enums.Pending,
+			IdKategori: data.IdKategoriBarang,
+			Status:     barang_enums.Pending,
 		}).Limit(limit).Scan(&id_varians).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -1091,8 +1080,7 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 	}
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangupdated sot_models.KategoriBarang
@@ -1114,10 +1102,10 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 		Services: services,
 		Message:  "Proses update stok sedang berjalan",
 	}
-}
+} // Tuned
 
 func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadDownBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "DownStokBarangInduk"
+	const services string = "DownStokBarangInduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1148,8 +1136,8 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&sot_models.VarianBarang{}).Where("id_barang_induk = ? AND status IN ?", data.IdBarangInduk, [3]string{"Pending", "Ready", "Terjual"}).Updates(&sot_models.VarianBarang{
-			Status: "Down",
+		if err := tx.Model(&sot_models.VarianBarang{}).Where("id_barang_induk = ? AND status IN ?", data.IdBarangInduk, [3]string{barang_enums.Pending, barang_enums.Ready, barang_enums.Terjual}).Updates(&sot_models.VarianBarang{
+			Status: barang_enums.Down,
 		}).Error; err != nil {
 			return err
 		}
@@ -1172,15 +1160,18 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 	}
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: IdBi,
 		}
 
-		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+		err_tk, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+		if err_tk != nil {
+			fmt.Println("gagal mengambil total kategori barang")
+		}
 
 		var updatesDownKategori []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategori)
 		if err := Read.WithContext(konteks).Where(&sot_models.KategoriBarang{
@@ -1203,10 +1194,10 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadDownKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "DownKategoriBarang"
+	const services string = "DownKategoriBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1238,7 +1229,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&sot_models.VarianBarang{}).Where("id_kategori = ? AND status IN ?", data.IdKategoriBarang, [3]string{"Pending", "Ready", "Terjual"}).Updates(&sot_models.VarianBarang{Status: "Down"}).Error; err != nil {
+		if err := tx.Model(&sot_models.VarianBarang{}).Where("id_kategori = ? AND status IN ?", data.IdKategoriBarang, [3]string{barang_enums.Pending, barang_enums.Ready, barang_enums.Terjual}).Updates(&sot_models.VarianBarang{Status: barang_enums.Down}).Error; err != nil {
 			return err
 		}
 
@@ -1257,8 +1248,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
@@ -1280,10 +1270,10 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // tuned
 
 func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditRekeningBarangInduk"
+	const services string = "EditRekeningBarangInduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1345,8 +1335,8 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 	}
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1375,10 +1365,10 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahAlamatGudangBarangInduk"
+	const services string = "TambahAlamatGudangBarangInduk"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
@@ -1446,15 +1436,17 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 	}
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: IdBi,
 		}
 
-		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+		err_tk, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+		if err_tk != nil {
+			fmt.Println("Gagal mengambil total kategori")
+		}
 
 		var updatesDownKategori []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategori)
 		if err := Read.WithContext(konteks).Where(&sot_models.KategoriBarang{
@@ -1476,10 +1468,10 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		Services: services,
 		Message:  "Alamat gudang berhasil diubah.",
 	}
-}
+} // Tuned
 
 func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatBarangKategori, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahAlamatGudangBarangKategori"
+	const services string = "TambahAlamatGudangBarangKategori"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
@@ -1547,8 +1539,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 	}
 
 	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
@@ -1569,10 +1560,10 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		Services: services,
 		Message:  "Alamat gudang berhasil diubah.",
 	}
-}
+} // Tuned
 
 func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahKomentarBarang"
+	const services string = "TambahKomentarBarang"
 	is_seller := false
 	var id_seller_take int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("id_seller").Where(&sot_models.BarangInduk{
@@ -1613,8 +1604,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 			IdKomentar: K.ID,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Inisialisasi(konteks, Trh); err != nil {
@@ -1637,10 +1627,10 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditKomentarBarang"
+	const services string = "EditKomentarBarang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
@@ -1684,8 +1674,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 			return
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName()).SetRole(mb_cud_seeders.Seller)
@@ -1700,10 +1689,10 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} //Tuned
 
 func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusKomentarBarang"
+	const services string = "HapusKomentarBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1751,8 +1740,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 			ID: int64(K.IdBarangInduk),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
@@ -1774,7 +1762,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 }
 
 func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanChildKomentar"
+	const services string = "MasukanChildKomentar"
 	is_seller := false
 
 	var id_seller_take int64 = 0
@@ -1812,8 +1800,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 			IdKomentar: Kc.IdKomentar,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -1831,10 +1818,10 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MentionChildKomentar"
+	const services string = "MentionChildKomentar"
 
 	is_seller := false
 
@@ -1875,8 +1862,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 			IdKomentar: Kc.IdKomentar,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -1894,10 +1880,10 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditChildKomentar"
+	const services string = "EditChildKomentar"
 
 	var id_edit_child_komentar int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KomentarChild{}).Select("id").Where(&sot_models.KomentarChild{
@@ -1933,8 +1919,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 	}
 
 	go func(IdKc int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKomentarChild sot_models.KomentarChild
@@ -1955,10 +1940,10 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusChildKomentar"
+	const services string = "HapusChildKomentar"
 
 	var childKomentar sot_models.KomentarChild
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
@@ -1998,8 +1983,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 			ID: Kc.IdKomentar,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -2017,4 +2001,4 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} //Tuned

@@ -75,7 +75,7 @@ func PatchSellerHandler(db *environment.InternalDBReadWriteSystem, w http.Respon
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_credential_services.ValidateUbahPasswordSeller(data, db, rds_auth, rds_session, mb_cud_publisher)
+		hasil = seller_credential_services.ValidateUbahPasswordSeller(r.Context(), data, db, rds_auth, rds_session, mb_cud_publisher)
 
 	case "/seller/alamat/edit-alamat-gudang":
 		var data seller_alamat_services.PayloadEditAlamatGudang

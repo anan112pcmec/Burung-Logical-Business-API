@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -15,8 +18,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_social_media_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/social_media_services/response_social_media_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,7 +25,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EngagementSocialMediaSeller"
+	const services string = "EngagementSocialMediaSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)
@@ -67,9 +68,8 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 				},
 			}
 		} else {
-			go func(IdEsm int64, Read gorm.DB, publisher *mb_cud_publisher.Publisher) {
-				ctx := context.Background()
-				konteks, cancel := context.WithCancel(ctx)
+			go func(IdEsm int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
 				var Udesm sot_models.EntitySocialMedia
@@ -85,7 +85,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 					fmt.Println("Gagal publish update data seller ke message broker")
 				}
 
-			}(id_sosmed_table, *db.Read, cud_publisher)
+			}(id_sosmed_table, db.Read, cud_publisher)
 		}
 
 		log.Printf("[INFO] Data social media berhasil ditambahkan untuk seller ID %d", data.IdentitasSeller.IdSeller)
@@ -116,8 +116,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 		}
 	} else {
 		go func(IdEsm int64, Read gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx := context.Background()
-			konteks, cancel := context.WithTimeout(ctx, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var Udesm sot_models.EntitySocialMedia

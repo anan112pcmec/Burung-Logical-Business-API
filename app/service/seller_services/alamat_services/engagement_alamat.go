@@ -11,6 +11,7 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
+	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
@@ -21,6 +22,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +32,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahAlamatGudang"
+	const services string = "TambahAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
@@ -112,8 +114,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 			IdAlamatGudang: A.ID,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.AlamatGudang); err != nil {
@@ -129,12 +130,13 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 			fmt.Print("Gagal publish create alamat gudang new ke message broker")
 		}
 	}(newAlamatGudang, db.Write, cud_publisher)
+
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
 		Message:  "Alamat gudang berhasil ditambahkan.",
 	}
-}
+} //Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Alamat Gudang
@@ -142,7 +144,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditAlamatGudang"
+	const services string = "EditAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
@@ -196,7 +198,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.Transaksi{}).
 		Select("id").
-		Where("id_alamat_gudang = ? AND status != ?", data.IdAlamatGudang, "Selesai").
+		Where("id_alamat_gudang = ? AND status != ?", data.IdAlamatGudang, transaksi_enums.Selesai).
 		Limit(1).
 		Scan(&idDataTransaksi).Error; err != nil {
 
@@ -263,7 +265,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 		Services: services,
 		Message:  "Alamat gudang berhasil diubah.",
 	}
-}
+} // Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Hapus Alamat Gudang Seller
@@ -271,7 +273,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusAlamatGudang"
+	const services string = "HapusAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 
@@ -329,7 +331,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.Transaksi{}).
 		Select("id").
-		Where("id_alamat_gudang = ? AND status != ?", data.IdGudang, "Selesai").
+		Where("id_alamat_gudang = ? AND status != ?", data.IdGudang, transaksi_enums.Selesai).
 		Limit(1).
 		Scan(&idDataTransaksi).Error; err != nil {
 
@@ -350,8 +352,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	}
 
 	if err_hapus := db.Write.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(sot_models.AlamatGudang{
-		ID:       data.IdGudang,
-		IDSeller: data.IdentitasSeller.IdSeller,
+		ID: data.IdGudang,
 	}).Delete(&sot_models.AlamatGudang{}).Error; err_hapus != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -364,8 +365,8 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(A.IDSeller),
 		}
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.AlamatGudang); err != nil {
@@ -389,4 +390,4 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		Services: services,
 		Message:  "Alamat gudang berhasil dihapus.",
 	}
-}
+} // Tuned

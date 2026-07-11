@@ -23,7 +23,7 @@ import (
 )
 
 func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahEtalaseSeller"
+	const services string = "TambahEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -77,8 +77,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 	}
 
 	go func(Es sot_models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -110,10 +109,10 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned
 
 func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditEtalaseSeller"
+	const services string = "EditEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -165,8 +164,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 	}
 
 	go func(IdE int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedEtalase sot_models.Etalase
@@ -189,10 +187,10 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned
 
 func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusEtalaseSeller"
+	const services string = "HapusEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -282,10 +280,10 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned
 
 func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKeEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahkanBarangKeEtalase"
+	const services string = "TambahkanBarangKeEtalase"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -337,8 +335,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 	}
 
 	go func(Bke sot_models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
@@ -371,10 +368,10 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned
 
 func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusBarangDariEtalase"
+	const services string = "HapusBarangDariEtalase"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -424,8 +421,7 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 	}
 
 	go func(Bke sot_models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
@@ -458,4 +454,4 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned

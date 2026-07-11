@@ -61,6 +61,7 @@ type PayloadEditKategori struct {
 	Nama             string                         `json:"nama"`
 	Deskripsi        string                         `json:"deskripsi"`
 	Warna            string                         `json:"warna"`
+	BeratGram        int                            `json:"berat_gram"`
 	DimensiPanjang   int16                          `json:"dimensi_panjang"`
 	DimensiLebar     int16                          `json:"dimensi_lebar"`
 	Sku              string                         `json:"sku"`

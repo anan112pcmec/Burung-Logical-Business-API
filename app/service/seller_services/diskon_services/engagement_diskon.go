@@ -25,7 +25,7 @@ import (
 )
 
 func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahDiskonProduk"
+	const services string = "TambahDiskonProduk"
 
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
@@ -128,8 +128,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 	}
 
 	go func(Dp sot_models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -165,7 +164,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 }
 
 func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditDiskonProduk"
+	const services string = "EditDiskonProduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -249,7 +248,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 }
 
 func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusDiskonProduk"
+	const services string = "HapusDiskonProduk"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -309,8 +308,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 	}
 
 	go func(Dp sot_models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -341,10 +339,10 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned
 
 func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPadaBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TetapkanDiskonPadaBarang"
+	const services string = "TetapkanDiskonPadaBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -425,8 +423,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 	}
 
 	go func(Bdd sot_models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -478,7 +475,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 }
 
 func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusDiskonPadaBarang"
+	const services string = "HapusDiskonPadaBarang"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -527,8 +524,7 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 	}
 
 	go func(Bdd sot_models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{

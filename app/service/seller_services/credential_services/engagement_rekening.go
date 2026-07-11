@@ -27,7 +27,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahRekeningSeller"
+	const services string = "TambahRekeningSeller"
 
 	// validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -119,8 +119,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 	}
 
 	go func(Dr sot_models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -150,7 +149,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Rekening Seller
@@ -158,7 +157,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditRekeningSeller"
+	const services string = "EditRekeningSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -211,8 +210,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 	}
 
 	go func(Ir int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var updatedRekeningSeller sot_models.RekeningSeller
@@ -242,7 +240,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekeningSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "SetDefaultRekeningSeller"
+	const services string = "SetDefaultRekeningSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -297,8 +295,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 	}
 
 	go func(Ir int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var updatedRekeningSeller sot_models.RekeningSeller
@@ -328,7 +325,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusRekeningSeller"
+	const services string = "HapusRekeningSeller"
 
 	// Validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -380,8 +377,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 	}
 
 	go func(Dr sot_models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{

@@ -28,7 +28,7 @@ import (
 )
 
 func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaksi, db *environment.InternalDBReadWriteSystem, rds, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "ApproveOrderTransaksi"
+	const services string = "ApproveOrderTransaksi"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -193,7 +193,7 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 }
 
 func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "KirimOrderTransaksi"
+	const services string = "KirimOrderTransaksi"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -297,8 +297,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 			}
 
 			go func(Pe sot_models.PengirimanEkspedisi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
 				thresholdSeller := sot_threshold.SellerThreshold{
@@ -352,8 +351,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 			}
 
 			go func(P sot_models.Pengiriman, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
 				thresholdSeller := sot_threshold.SellerThreshold{
@@ -417,10 +415,10 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned
 
 func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTransaksi, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UnApproveOrderTransaksi"
+	const services string = "UnApproveOrderTransaksi"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -466,8 +464,7 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 	}
 
 	go func(It int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataTransaksiUpdated sot_models.Transaksi

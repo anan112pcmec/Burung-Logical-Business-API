@@ -28,7 +28,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.PreUserRegistration(db, data.Username, data.Nama, data.Email, data.PasswordHash, rds_auth)
+			hasil := authservices.PreUserRegistration(r.Context(), db, data.Username, data.Nama, data.Email, data.PasswordHash, rds_auth)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -40,7 +40,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.PenggunaLogin(db, data.Email, data.PasswordHash, rds_session, cud_publisher)
+			hasil := authservices.PenggunaLogin(r.Context(), db, data.Email, data.PasswordHash, rds_session, cud_publisher)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -52,7 +52,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.ValidateUserRegistration(db, data.Value, rds_auth, cud_publisher)
+			hasil := authservices.ValidateUserRegistration(r.Context(), db, data.Value, rds_auth, cud_publisher)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -64,7 +64,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.PreSellerRegistration(db, data.Username, data.Nama, data.Email, data.Jenis, data.SellerDedication, data.Password, rds_auth)
+			hasil := authservices.PreSellerRegistration(r.Context(), db, data.Username, data.Nama, data.Email, data.Jenis, data.SellerDedication, data.Password, rds_auth)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -76,7 +76,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.SellerLogin(db, data.Email, data.Password, rds_session, cud_publisher)
+			hasil := authservices.SellerLogin(r.Context(), db, data.Email, data.Password, rds_session, cud_publisher)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -88,7 +88,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.ValidateSellerRegistration(db, data.Value, rds_auth, cud_publisher)
+			hasil := authservices.ValidateSellerRegistration(r.Context(), db, data.Value, rds_auth, cud_publisher)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -100,7 +100,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.PreKurirRegistration(db, data.Nama, data.Email, data.PasswordHash, data.Username, rds_auth)
+			hasil := authservices.PreKurirRegistration(r.Context(), db, data.Nama, data.Email, data.PasswordHash, data.Username, rds_auth)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -112,7 +112,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.KurirLogin(db, data.Email, data.PasswordHash, rds_session, cud_publisher)
+			hasil := authservices.KurirLogin(r.Context(), db, data.Email, data.PasswordHash, rds_session, cud_publisher)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}
@@ -124,7 +124,7 @@ func HandleAuth(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter
 				http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			hasil := authservices.ValidateKurirRegistration(db, data.Value, rds_auth, cud_publisher)
+			hasil := authservices.ValidateKurirRegistration(r.Context(), db, data.Value, rds_auth, cud_publisher)
 			json.NewEncoder(w).Encode(hasil)
 			return
 		}

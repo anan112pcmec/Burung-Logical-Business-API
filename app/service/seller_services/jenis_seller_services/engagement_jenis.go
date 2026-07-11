@@ -21,7 +21,7 @@ import (
 )
 
 func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanDataDistributor"
+	const services string = "MasukanDataDistributor"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -77,8 +77,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 	}
 
 	go func(Ddata sot_models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -114,7 +113,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 }
 
 func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditDataDistributor"
+	const services string = "EditDataDistributor"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -170,8 +169,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 	}
 
 	go func(IdD int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var distributorDataUpdated sot_models.DistributorData
@@ -198,7 +196,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 }
 
 func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusDataDistributor"
+	const services string = "HapusDataDistributor"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -248,8 +246,7 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 	}
 
 	go func(Ddata sot_models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -280,10 +277,10 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned
 
 func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanDataBrand"
+	const services string = "MasukanDataBrand"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -343,8 +340,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 	}
 
 	go func(Db sot_models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{
@@ -379,7 +375,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 }
 
 func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditDataBrand"
+	const services string = "EditDataBrand"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -439,8 +435,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 	}
 
 	go func(IdB int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var brandDataUpdated sot_models.BrandData
@@ -467,7 +462,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 }
 
 func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusDataBrand"
+	const services string = "HapusDataBrand"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -517,8 +512,7 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 	}
 
 	go func(Db sot_models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		sellerThreshold := sot_threshold.SellerThreshold{

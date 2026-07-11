@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -57,12 +56,10 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 		hasil_update_gmail = seller_particular_profiling.UbahEmailSeller(ctx, data.IdentitasSeller.IdSeller, data.Email, db)
 	}
 
-	go func(BSeller sot_models.Seller, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+	go func(BSeller sot_models.Seller, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Seller](&BSeller)
 		var uptodateSellerData sot_models.Seller
 		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: BSeller.ID,
@@ -71,16 +68,11 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionKey[*sot_models.Seller](konteks, &uptodateSellerData, KeyLama, rds_sesi); err != nil {
-			fmt.Println("Gagal update cache key dan data")
-			return
-		}
-
 		updatedSellerDataPublish := mb_cud_serializer.NewJsonPayload().SetPayload(uptodateSellerData).SetTableName("UpdatePersonalSeller").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedSellerDataPublish); err != nil {
 			fmt.Println("Gagal publish update data seller ke message broker")
 		}
-	}(seller, db.Read, rds_session, cud_publisher)
+	}(seller, db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -91,14 +83,14 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 			UpdateGmail:    hasil_update_gmail,
 		},
 	}
-}
+} //  Tuned
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Update Info General Public
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUpdateInfoGeneralSeller, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UpdatePersonalSeller"
+	const services string = "UpdatePersonalSeller"
 	var hasil_update_punchline seller_particular_profiling.ResponseUbahPunchline
 	var hasil_update_deskripsi seller_particular_profiling.ResponseUbahDeskripsi
 	var hasil_update_jam_operasional seller_particular_profiling.ResponseUbahJamOperasional
@@ -136,9 +128,8 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 		log.Println("[INFO] Dedication seller kosong atau tidak berubah, tidak diupdate.")
 	}
 
-	go func(IdS int32, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+	go func(IdS int32, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedSeller sot_models.Seller
@@ -149,15 +140,11 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Seller](konteks, &dataUpdatedSeller, rds_sesi); err != nil {
-			fmt.Println("Gagal memperbarui session seller data")
-		}
-
 		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataUpdatedSeller).SetTableName("UpdateInfoGeneralPublic").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, sellerUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update data seller ke message broker")
 		}
-	}(seller.ID, db.Read, rds_session, cud_publisher)
+	}(seller.ID, db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,

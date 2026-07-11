@@ -11,7 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
@@ -21,7 +20,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	settings "github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +28,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSeller, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "PreUbahPasswordSeller"
+	const services string = "PreUbahPasswordSeller"
 
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
@@ -38,6 +36,14 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal Kredensial Seller Tidak Valid",
+		}
+	}
+
+	if seller.Email == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data tidak valid coba hubungi cs",
 		}
 	}
 
@@ -62,14 +68,6 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 
 	otp := helper.GenerateOTP()
 	key := fmt.Sprintf("seller_ubah_password_by_otp:%s", otp)
-
-	if seller.Email == "" {
-		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
-			Services: services,
-			Message:  "Gagal data tidak valid coba hubungi cs",
-		}
-	}
 
 	to := []string{seller.Email}
 	subject := "Kode Mengubah Password Burung"
@@ -108,10 +106,10 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		Services: services,
 		Message:  "Kode OTP telah dikirim ke email Anda. Silakan cek email untuk melanjutkan proses ubah password.",
 	}
-}
+} // Tuned
 
-func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "ValidateUbahPasswordSeller"
+func ValidateUbahPasswordSeller(ctx context.Context, data PayloadValidateUbahPasswordSellerOTP, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "ValidateUbahPasswordSeller"
 
 	if data.OtpKeyValidateSeller == "" {
 		log.Println("[WARN] OTP tidak ditemukan pada permintaan validasi OTP.")
@@ -122,7 +120,6 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *e
 		}
 	}
 
-	ctx := context.Background()
 	key := fmt.Sprintf("seller_ubah_password_by_otp:%s", data.OtpKeyValidateSeller)
 
 	result, err_rds := rds.HGetAll(ctx, key).Result()
@@ -153,9 +150,8 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *e
 		}
 	}
 
-	go func(IdSeller int32, Read *gorm.DB, RdsSession *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+	go func(IdSeller int32, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataSellerUpdated sot_models.Seller
@@ -166,15 +162,11 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *e
 			return
 		}
 
-		if err := cache_db_entity_sessioning_seeders.UpdateCacheSessionData[*sot_models.Seller](konteks, &dataSellerUpdated, RdsSession); err != nil {
-			fmt.Println("Gagal update data cache session")
-		}
-
 		sellerUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataSellerUpdated).SetTableName("ValidateUbahPasswordSeller").SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, sellerUpdatedPublish); err != nil {
 			fmt.Println("Gagal publish update seller ke message broker")
 		}
-	}(data.IdentitasSeller.IdSeller, db.Read, rds_session, cud_publisher)
+	}(data.IdentitasSeller.IdSeller, db.Read, cud_publisher)
 
 	log.Printf("[INFO] Password seller ID %d berhasil diubah via OTP.", data.IdentitasSeller.IdSeller)
 	return &response.ResponseForm{
@@ -182,4 +174,4 @@ func ValidateUbahPasswordSeller(data PayloadValidateUbahPasswordSellerOTP, db *e
 		Services: services,
 		Message:  "Password berhasil diubah.",
 	}
-}
+} // Tuned
