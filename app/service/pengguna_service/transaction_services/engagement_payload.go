@@ -6,6 +6,7 @@ import (
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/identity_pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
+
 )
 
 type PendingTransactionModel struct {
@@ -114,5 +115,10 @@ type PayloadPaidFailedTransaksiGerai struct {
 	JenisLayananKurir string                                        `json:"jenis_layanan_kurir_keranjang"`
 }
 
-type PayloadMemberikanUlasan struct {
+type PayloadRatingPengirimanKurir struct {
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	IdPengiriman      int64                              `json:"id_pengiriman"`
+	IdKurir int64 `json:"id_kurir"`
+	Ulasan            string                             `json:"ulasan"`
+	Rating            int8                               `json:"rating"`
 }

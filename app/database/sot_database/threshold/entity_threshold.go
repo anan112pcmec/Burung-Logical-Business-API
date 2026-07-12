@@ -243,6 +243,7 @@ type KurirThreshold struct {
 	InformasiKurir          int32 `gorm:"column:informasi_kurir;type:int4;default:0" json:"informasi_kurir"`
 	MediaKurirProfilFoto    int32 `gorm:"column:media_kurir_profil_foto;type:int4;default:0" json:"media_kurir_profil_foto"`
 	PayoutKurir             int32 `gorm:"column:payout_kurir;type:int4;default:0" json:"payout_kurir"`
+	ReviewPengirimanKurir   int32 `gorm:"column:review_pengiriman_kurir;type:int4;default:0" json:"review_kurir"`
 	RekeningKurir           int32 `gorm:"column:rekening_kurir;type:int4;default:0" json:"rekening_kurir"`
 }
 

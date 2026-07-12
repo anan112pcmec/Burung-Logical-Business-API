@@ -539,3 +539,21 @@ type BidKurirEksScheduler struct {
 func (BidKurirEksScheduler) TableName() string {
 	return "bid_kurir_eks_scheduler"
 }
+
+type ReviewPengirimanKurir struct {
+	ID              int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	IdPengiriman    int64     `gorm:"column:id_pengiriman;not null" json:"id_pengiriman"`
+	JenisPengiriman string    `gorm:"column:jenis_pengiriman;type:varchar(100);not null" json:"jenis_pengiriman"`
+	IdKurir         int64     `gorm:"column:id_kurir;not null" json:"id_kurir"`
+	Kurir           Kurir     `gorm:"foreignKey:IdKurir;references:ID" json:"-"`
+	IdRater         int64     `gorm:"column:id_rater;type:int;not null" json:"id_rater"`
+	RaterEntityType string    `gorm:"column:jenis_entity_rater;type:varchar(100);not null" json:"jenis_entity_rater"`
+	Ulasan          string    `gorm:"column:ulasan;type:text;not null" json:"ulasan"`
+	Rating          int8      `gorm:"column:rating;type:smallint;not null;default:1" json:"rating"`
+	CreatedAt       time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
+	UpdatedAt       time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
+}
+
+func (ReviewPengirimanKurir) TableName() string {
+	return "review_pengiriman_kurir"
+}

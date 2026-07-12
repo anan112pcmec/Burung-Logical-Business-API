@@ -10,4 +10,5 @@ const (
 	MediaKurirProfilFoto    string = "media_kurir_profil_foto"
 	PayoutKurir             string = "payout_kurir"
 	RekeningKurir           string = "rekening_kurir"
+	ReviewPengirimanKurir   string = "review_pengiriman_kurir"
 )

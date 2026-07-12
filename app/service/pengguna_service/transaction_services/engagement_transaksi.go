@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
@@ -33,7 +34,9 @@ import (
 	stsk_alamat_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/alamat_pengguna"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
+	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
+	stsk_pengiriman "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengiriman"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
@@ -43,7 +46,6 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -2008,5 +2010,100 @@ func PaidFailedTransaksiGerai(data PayloadPaidFailedTransaksiGerai, db *environm
 		Payload: response_transaction_pengguna.ResponsePaidFailedTransaksi{
 			Message: "Berhasil",
 		},
+	}
+}
+
+func RatingPengirimanKurir(ctx context.Context, data PayloadRatingPengirimanKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "RatingPengirimanKurir"
+	if _, valid := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !valid {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal data pengguna tidak valid",
+		}
+	}
+
+	var data_rating int = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.ReviewPengirimanKurir{}).Select("id").Where(&sot_models.ReviewPengirimanKurir{
+		IdPengiriman: data.IdPengiriman,
+		IdKurir:      data.IdKurir,
+	}).Limit(1).Take(&data_rating).Error; err != nil {
+		fmt.Println("Gagal mengambil data rating kurir")
+	}
+
+	if data_rating != 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal kamu sudah memberikan rating",
+		}
+	}
+
+	var jenis_pengiriman string = ""
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengiriman{}).Select("jenis_pengiriman").Where(&sot_models.Pengiriman{
+		ID:      data.IdPengiriman,
+		IdKurir: &data.IdKurir,
+	}).Limit(1).Take(&data_rating).Error; err != nil {
+		fmt.Println("Gagal mengambil data id pengiriman")
+	}
+
+	if jenis_pengiriman == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal data tidak valid",
+		}
+	}
+
+	createReviewPengirimanKurir := sot_models.ReviewPengirimanKurir{
+		IdPengiriman:    data.IdPengiriman,
+		JenisPengiriman: fmt.Sprintf("non ekspedisi - %s", jenis_pengiriman),
+		IdRater:         data.IdentitasPengguna.ID,
+		RaterEntityType: entity_enums.Pengguna,
+		IdKurir:         data.IdKurir,
+		Ulasan:          data.Ulasan,
+		Rating:          data.Rating,
+		CreatedAt:       time.Now(),
+	}
+
+	if err := db.Write.WithContext(ctx).Create(&createReviewPengirimanKurir).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal memasukan data review coba lagi beberapa saat",
+		}
+	}
+
+	go func(RPK sot_models.ReviewPengirimanKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		ThresholdKurir := sot_threshold.KurirThreshold{
+			ID: RPK.IdKurir,
+		}
+
+		ThresholdPengiriman := sot_threshold.PengirimanNonEkspedisiThreshold{
+			ID: RPK.IdPengiriman,
+		}
+
+		konteks, batal := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer batal()
+
+		if err := ThresholdKurir.Increment(konteks, Trh, stsk_kurir.ReviewPengirimanKurir); err != nil {
+			fmt.Println("Gagal increment threshold Kurir")
+		}
+
+		if err := ThresholdPengiriman.Increment(konteks, Trh, stsk_pengiriman.PengirimanRated); err != nil {
+			fmt.Println("Gagal increment threshold pengiriman")
+		}
+
+		createRatingPengirimanKurirPublish := mb_cud_serializer.NewJsonPayload().SetPayload(RPK).SetTableName(RPK.TableName()).SetRole(mb_cud_seeders.Pengguna)
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createRatingPengirimanKurirPublish); err != nil {
+			fmt.Println("Gagal publish create rating pengiriman kurir")
+		}
+
+	}(createReviewPengirimanKurir, db.Write, cud_publisher)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil menambahkan rating pengiriman kurir",
 	}
 }

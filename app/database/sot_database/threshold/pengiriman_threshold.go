@@ -18,6 +18,7 @@ type PengirimanEkspedisiThreshold struct {
 	BidKurirEksScheduler                    int32 `gorm:"column:bid_kurir_eks_scheduler;type:int4;default:0" json:"bid_kurir_eks_scheduler"`
 	MediaPengirimanEkspedisiPickedUpFoto    int32 `gorm:"column:media_pengiriman_ekspedisi_picked_up_foto;type:int4;default:0" json:"media_pengiriman_ekspedisi_picked_up_foto"`
 	MediaPengirimanEkspedisiSampaiAgentFoto int32 `gorm:"column:media_pengiriman_ekspedisi_sampai_agent_foto;type:int4;default:0" json:"media_pengiriman_ekspedisi_sampai_agent_foto"`
+	PengirimanRated                         int32 `gorm:"column:pengiriman_rated;type:int4;default:0" json:"pengiriman_rated"`
 }
 
 func (PengirimanEkspedisiThreshold) TableName() string {
@@ -114,6 +115,7 @@ type PengirimanNonEkspedisiThreshold struct {
 	BidKurirNonEksScheduler     int32 `gorm:"column:bid_kurir_non_eks_scheduler;type:int4;default:0" json:"bid_kurir_non_eks_scheduler"`
 	MediaPengirimanPickedUpFoto int32 `gorm:"column:media_pengiriman_picked_up_foto;type:int4;default:0" json:"media_pengiriman_picked_up_foto"`
 	MediaPengirimanSampaiFoto   int32 `gorm:"column:media_pengiriman_sampai_foto;type:int4;default:0" json:"media_pengiriman_sampai_foto"`
+	PengirimanRated             int32 `gorm:"column:pengiriman_rated;type:int4;default:0" json:"pengiriman_rated"`
 }
 
 func (PengirimanNonEkspedisiThreshold) TableName() string {
