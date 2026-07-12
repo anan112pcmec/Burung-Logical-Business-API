@@ -34,7 +34,7 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client) *response.ResponseForm {
-	services := "PreUbahPasswordPengguna"
+	const services string = "PreUbahPasswordPengguna"
 
 	if data.FaktorKedua != "OTP" && data.FaktorKedua != "PIN" {
 		log.Printf("[WARN] Faktor kedua tidak valid: %s", data.FaktorKedua)
@@ -153,7 +153,7 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 }
 
 func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidateOTPPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "ValidateUbahPasswordPenggunaViaOtp"
+	const services string = "ValidateUbahPasswordPenggunaViaOtp"
 
 	var id_user int64
 	if check_user := db.Read.Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).First(&id_user).Error; check_user != nil {
@@ -192,8 +192,8 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 	}
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna sot_models.Pengguna
@@ -225,7 +225,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 }
 
 func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "ValidateUbahPasswordPenggunaViaPin"
+	const services string = "ValidateUbahPasswordPenggunaViaPin"
 
 	var pin_user string
 	if check_pin := db.Read.WithContext(ctx).Model(sot_models.Pengguna{}).Select("pin_hash").Where(sot_models.Pengguna{ID: data.IDPengguna}).Limit(1).Scan(&pin_user).Error; check_pin != nil {
@@ -271,8 +271,8 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 	}
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna sot_models.Pengguna
@@ -303,7 +303,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 }
 
 func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MembuatSecretPinPengguna"
+	const services string = "MembuatSecretPinPengguna"
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 
@@ -346,8 +346,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 	}
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna sot_models.Pengguna
@@ -378,7 +377,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 }
 
 func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UpdateSecretPinPengguna"
+	const services string = "UpdateSecretPinPengguna"
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 
@@ -421,8 +420,7 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 	}
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataPengguna sot_models.Pengguna

@@ -24,10 +24,11 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahFotoProfilPengguna"
+	const services string = "UbahFotoProfilPengguna"
 
 	// Validasi identitas pengguna
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -95,8 +96,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 				IdPengguna: Mppf.IdPengguna,
 			}
 
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.MediaPenggunaProfilFoto); err != nil {
@@ -148,8 +148,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 		}
 
 		go func(idMppf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataPhotoProfil sot_models.MediaPenggunaProfilFoto
@@ -176,7 +175,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 }
 
 func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusFotoProfilPengguna"
+	const services string = "HapusFotoProfilPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -241,7 +240,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 }
 
 func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaReviewFoto"
+	const services string = "TambahMediaReviewFoto"
 	const LimitPhoto = 5
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -251,7 +250,9 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		}
 	}
 
-	if len(data.Ekstensi) > LimitPhoto {
+	totalData := len(data.Ekstensi)
+
+	if totalData > LimitPhoto {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -293,7 +294,6 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		}
 	}
 
-	totalData := len(data.Ekstensi)
 	var simpanDataFotoReview []sot_models.MediaReviewFoto = make([]sot_models.MediaReviewFoto, 0, totalData)
 	var keyzAndUrl []response.UrlAndKey = make([]response.UrlAndKey, 0, totalData)
 
@@ -338,8 +338,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 			IdReview: mediaPhotos[0].IdReview,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		customIncr := sot_threshold.CustomCounter{
@@ -374,7 +373,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 }
 
 func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaReviewVideo"
+	const services string = "TambahMediaReviewVideo"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -453,8 +452,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 			IdReview: Vr.IdReview,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.MediaReviewVideo); err != nil {

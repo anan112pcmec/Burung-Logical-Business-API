@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
-	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+
+	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+
 )
 
 func (i *IdentityPengguna) GetSessionKey() string {
@@ -42,15 +44,7 @@ func (i *IdentityPengguna) FallbackDB(ctx context.Context, db *gorm.DB) (model s
 func (i *IdentityPengguna) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model sot_models.Pengguna, status bool) {
 	var user sot_models.Pengguna
 
-	if i.ID == 0 {
-		return user, false
-	}
-
-	if i.Username == "" {
-		return user, false
-	}
-
-	if i.Email == "" {
+	if i.ID == 0 || i.Username == "" || i.Email == "" {
 		return user, false
 	}
 

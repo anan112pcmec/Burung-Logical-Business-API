@@ -18,10 +18,11 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahBarangKeWishlist"
+	const services string = "TambahBarangKeWishlist"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -73,8 +74,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 			IdBarangInduk: int64(W.IdBarangInduk),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Increment(konteks, Trh, stsk_pengguna.Wishlist); err != nil {
@@ -99,7 +99,7 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 }
 
 func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusBarangDariWishlist"
+	const services string = "HapusBarangDariWishlist"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -148,8 +148,7 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 			IdBarangInduk: int64(W.IdBarangInduk),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Decrement(konteks, Trh, stsk_pengguna.Wishlist); err != nil {

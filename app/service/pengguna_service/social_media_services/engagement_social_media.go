@@ -20,6 +20,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,7 +29,7 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTautkanSocialMedia, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahkanSocialMediaPenguna"
+	const services string = "TambahkanSocialMediaPenguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial pengguna tidak valid untuk ID %d", data.IdentitasPengguna.ID)
@@ -66,8 +67,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		}
 
 		go func(Esm sot_models.EntitySocialMedia, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			newTautkanSocialMediaPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Esm).SetTableName(Esm.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -139,8 +139,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 		}
 
 		go func(idEntitySosmed int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var Esm sot_models.EntitySocialMedia
@@ -172,7 +171,7 @@ func EngageTautkanSocialMediaPengguna(ctx context.Context, data PayloadEngageTau
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMedia, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EngageHapusSocialMedia"
+	const services string = "EngageHapusSocialMedia"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial pengguna tidak valid untuk ID %d", data.IdentitasPengguna.ID)
@@ -214,8 +213,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 	}
 
 	go func(idEntitySosmed int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var Esm sot_models.EntitySocialMedia
@@ -246,7 +244,7 @@ func EngageHapusSocialMedia(ctx context.Context, data PayloadEngageHapusSocialMe
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "FollowSeller"
+	const services string = "FollowSeller"
 
 	_, status := data.IdentitasUser.Validating(ctx, db.Read, rds_session)
 	if !status {
@@ -291,8 +289,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *e
 				IdSeller: Nf.IdFollowed,
 			}
 
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.Following); err != nil {
@@ -331,7 +328,7 @@ func FollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *e
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func UnfollowSeller(ctx context.Context, data PayloadFollowOrUnfollowSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UnfollowSeller"
+	const services string = "UnfollowSeller"
 
 	_, status := data.IdentitasUser.Validating(ctx, db.Read, rds_session)
 	if !status {

@@ -184,7 +184,7 @@ func ViewBarang(ctx context.Context, b *BatchViewUpdate, data PayloadViewBarang)
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "LikesBarang"
+	const services string = "LikesBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -237,8 +237,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 			IdBarangInduk: int64(Lb.IdBarangInduk),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.BarangDisukai); err != nil {
@@ -264,7 +263,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 }
 
 func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UnlikeBarang"
+	const services string = "UnlikeBarang"
 
 	var barang_disukai sot_models.BarangDisukai
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDisukai{}).Where(&sot_models.BarangDisukai{
@@ -306,8 +305,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 			IdBarangInduk: int64(Bs.IdBarangInduk),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Decrement(konteks, Trh, stsk_pengguna.BarangDisukai); err != nil {
@@ -337,7 +335,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahKomentarBarang"
+	const services string = "TambahKomentarBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -372,8 +370,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 			IdKomentar: K.ID,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Inisialisasi(konteks, Trh); err != nil {
@@ -399,7 +396,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 }
 
 func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditKomentarBarang"
+	const services string = "EditKomentarBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -448,8 +445,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 			return
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -467,7 +463,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 }
 
 func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusKomentarBarang"
+	const services string = "HapusKomentarBarang"
 
 	var Komentar sot_models.Komentar
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
@@ -505,8 +501,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 			ID: int64(K.IdBarangInduk),
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
@@ -528,7 +523,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 }
 
 func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanChildKomentar"
+	const services string = "MasukanChildKomentar"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -559,8 +554,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 			IdKomentar: Kc.IdKomentar,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -581,7 +575,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 }
 
 func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MentionChildKomentar"
+	const services string = "MentionChildKomentar"
 
 	newKomentar := sot_models.KomentarChild{
 		IdKomentar:  data.IdKomentar,
@@ -604,8 +598,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 			IdKomentar: Kc.IdKomentar,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdKomentar.Increment(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -626,7 +619,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 }
 
 func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditChildKomentar"
+	const services string = "EditChildKomentar"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -668,8 +661,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 	}
 
 	go func(IdKc int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKomentarChild sot_models.KomentarChild
@@ -693,7 +685,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 }
 
 func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusChildKomentar"
+	const services string = "HapusChildKomentar"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -738,8 +730,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 			ID: Kc.IdKomentar,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
@@ -764,7 +755,7 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "TambahKeranjangBarang"
+	const services string = "TambahKeranjangBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -774,18 +765,14 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		}
 	}
 
-	var id_total []int64
-	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Select("id").Where(sot_models.Keranjang{
-		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(LIMITKERANJANG).Scan(&id_total).Error; err != nil {
-		return &response.ResponseForm{
-			Status:   http.StatusInternalServerError,
-			Services: services,
-			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
-		}
+	var total_keranjang int
+	if err := db.Read.WithContext(ctx).Model(&sot_threshold.PenggunaThreshold{}).Select("keranjang").Where(&sot_threshold.PenggunaThreshold{
+		ID: data.IdentitasPengguna.ID,
+	}).Limit(1).Take(&total_keranjang).Error; err != nil {
+		fmt.Println("Gagal mengambil data total keranjang")
 	}
 
-	if len(id_total) >= LIMITKERANJANG {
+	if total_keranjang >= LIMITKERANJANG {
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
@@ -845,8 +832,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 			IdKategoriBarang: K.IdKategori,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := thresholdPengguna.Increment(konteks, Trh, stsk_pengguna.Keranjang); err != nil {
@@ -880,7 +866,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditKeranjangBarang"
+	const services string = "EditKeranjangBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -945,8 +931,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 	}
 
 	go func(IdKeranjang int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKeranjang sot_models.Keranjang
@@ -975,7 +960,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusKeranjangBarang"
+	const services string = "HapusKeranjangBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1029,8 +1014,7 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 			IdKategoriBarang: Dk.IdKategori,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Decrement(konteks, Trh, stsk_pengguna.Keranjang); err != nil {
@@ -1059,7 +1043,7 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 }
 
 func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "BerikanReviewBarang"
+	const services string = "BerikanReviewBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1133,8 +1117,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 			IdReview: R.ID,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := penggunaThreshold.Increment(konteks, Trh, stsk_pengguna.Review); err != nil {
@@ -1176,7 +1159,7 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 }
 
 func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "LikeReviewBarang"
+	const services string = "LikeReviewBarang"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1227,8 +1210,7 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 			IdReview: IdReview,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.ReviewLike); err != nil {
@@ -1243,7 +1225,7 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 		}
 
 		CreateLikeReviewBarang := mb_cud_serializer.NewJsonPayload().SetPayload(R).SetTableName(R.TableName()).SetRole(mb_cud_seeders.Pengguna)
-		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](ctx_t, publisher, CreateLikeReviewBarang); err != nil {
+		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, CreateLikeReviewBarang); err != nil {
 			fmt.Println("Gagal publish create review ke message broker")
 		}
 	}(id_review_like, db.Write, cud_publisher)
@@ -1305,8 +1287,7 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 			IdReview: IdReview,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := reviewThreshold.Increment(konteks, Trh, stsk_review.ReviewDislike); err != nil {
@@ -1321,7 +1302,7 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 		}
 
 		DeleteUnLikeReviewBarang := mb_cud_serializer.NewJsonPayload().SetPayload(R).SetTableName(R.TableName()).SetRole(mb_cud_seeders.Pengguna)
-		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](ctx_t, publisher, DeleteUnLikeReviewBarang); err != nil {
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, DeleteUnLikeReviewBarang); err != nil {
 			fmt.Println("Gagal publish create review ke message broker")
 		}
 	}(id_review_like, db.Write, cud_publisher)
@@ -1331,4 +1312,4 @@ func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db 
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned

@@ -43,10 +43,11 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "CheckoutBarangUser"
+	const services string = "CheckoutBarangUser"
 	log.Printf("[%s] Memulai proses checkout untuk user ID: %v", services, data.IdentitasPengguna.ID)
 
 	// Validasi pengguna
@@ -60,9 +61,6 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	}
 
 	totalDipesan := 0
-
-	// Preallocate ukuran slice idKeranjang sesuai jumlah data checkout
-	// AMAN: jangan set lebih besar dari len(data.DataCheckout) supaya loop tidak OOB
 	dataLen := len(data.DataCheckout)
 	idKeranjang := make([]int64, 0, dataLen)
 	KeranjangData := make([]sot_models.Keranjang, 0, dataLen)
@@ -70,7 +68,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	// Loop menggunakan dataLen agar aman, tidak baca len() berulang
 	for i := 0; i < dataLen; i++ {
 		// tambahan defensive: pastikan index valid sebelum akses
-		if i < 0 || i >= len(data.DataCheckout) {
+		if i < 0 || i >= dataLen {
 			continue
 		}
 		item := data.DataCheckout[i]
@@ -96,18 +94,17 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	KategoriBarang := make(map[int64]sot_models.KategoriBarang, dataLen)
 	NamaSeller := make(map[int64]string, dataLen)
 
-	for i := 0; i < len(data.DataCheckout); i++ {
-		if i < 0 || i >= len(data.DataCheckout) {
+	for i := 0; i < dataLen; i++ {
+		if i < 0 || i >= dataLen {
 			continue
 		}
 
-		jumlahNeeded := int(data.DataCheckout[i].Jumlah)
-		var idsVarianStok []int64 = make([]int64, 0, jumlahNeeded)
+		var idsVarianStok []int64 = make([]int64, 0, data.DataCheckout[i].Jumlah)
 		if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").Where(&sot_models.VarianBarang{
 			IdBarangInduk: data.DataCheckout[i].IdBarangInduk,
 			IdKategori:    data.DataCheckout[i].IdKategori,
 			Status:        barang_enums.Ready,
-		}).Limit(jumlahNeeded).Scan(&idsVarianStok).Error; err != nil {
+		}).Limit(int(data.DataCheckout[i].Jumlah)).Scan(&idsVarianStok).Error; err != nil {
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -115,7 +112,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 			}
 		}
 
-		if len(idsVarianStok) < jumlahNeeded {
+		if len(idsVarianStok) < int(data.DataCheckout[i].Jumlah) {
 			return &response.ResponseForm{
 				Status:   http.StatusUnauthorized,
 				Services: services,
@@ -255,8 +252,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 	go func(Dk []sot_models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		var wg sync.WaitGroup
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		for _, k := range Dk {
 			wg.Add(1)
@@ -324,10 +320,10 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 // ////////////////////////////////////////////////////////////////////////////////////
 
 func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
-	services := "BatalCheckoutKeranjang"
+	const services string = "BatalCheckoutKeranjang"
 
 	var varianIDs []int64
-	kategoriUpdates := make(map[int32]int32) // kategoriID => total jumlah dikembalikan
+	kategoriUpdates := make(map[int32]int32)
 
 	for _, keranjang := range data.DataResponse {
 		var varian_id []int64
@@ -398,7 +394,7 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 // ////////////////////////////////////////////////////////////////////////////////////
 
 func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
-	services := "SnapTransaksiUser"
+	const services string = "SnapTransaksiUser"
 	fmt.Println("[TRACE] Start SnapTransaksi")
 
 	model, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
@@ -966,7 +962,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 }
 
 func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.SnapTransaksi, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
-	services := "BatalTransaksi"
+	const services string = "BatalTransaksi"
 
 	var total_varian int64 = 0
 	for i := 0; i < len(data.DataCheckout); i++ {
@@ -1040,7 +1036,7 @@ func BatalTransaksi(ctx context.Context, data response_transaction_pengguna.Snap
 // ////////////////////////////////////////////////////////////////////////////////////
 
 func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "LockTransaksiVa"
+	const services string = "LockTransaksiVa"
 
 	for i := 0; i < len(data.DataHold); i++ {
 		if data.DataHold[i].IDSeller == 0 || data.DataHold[i].IDUser == 0 || data.DataHold[i].IdBarangInduk == 0 {
@@ -1231,8 +1227,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 	}
 
 	go func(Dt []sot_models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		for _, t := range Dt {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
@@ -1320,7 +1315,7 @@ func LockTransaksiVa(data PayloadLockTransaksiVa, db *environment.InternalDBRead
 }
 
 func PaidFailedTransaksiVa(data PayloadPaidFailedTransaksiVa, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
-	services := "PaidFailedTransaksiVa"
+	const services string = "PaidFailedTransaksiVa"
 
 	bank, err_p := payment_gateaway.ParseVirtualAccount(data.PaymentResult)
 	if err_p != nil {
@@ -1475,7 +1470,7 @@ func PaidFailedTransaksiVa(data PayloadPaidFailedTransaksiVa, db *environment.In
 // ////////////////////////////////////////////////////////////////////////////////////
 
 func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "LockTransaksiWallet"
+	const services string = "LockTransaksiWallet"
 
 	for _, keranjang := range data.DataHold {
 		if keranjang.IDSeller == 0 && keranjang.IDUser == 0 && keranjang.IdBarangInduk == 0 {
@@ -1590,8 +1585,8 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 	}
 
 	go func(Dt []sot_models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		for _, t := range Dt {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
@@ -1679,7 +1674,7 @@ func LockTransaksiWallet(data PayloadLockTransaksiWallet, db *environment.Intern
 }
 
 func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
-	services := "PaidFailedTransaksiWallet"
+	const services string = "PaidFailedTransaksiWallet"
 
 	var resp payment_in_wallet.Response = &data.PaymentResult
 	standard_response, _ := resp.Pembayaran()
@@ -1746,7 +1741,7 @@ func PaidFailedTransaksiWallet(data PayloadPaidFailedTransaksiWallet, db *enviro
 // ////////////////////////////////////////////////////////////////////////////////////
 
 func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "LockTransaksiGerai"
+	const services string = "LockTransaksiGerai"
 
 	for _, keranjang := range data.DataHold {
 		if keranjang.IDSeller == 0 && keranjang.IDUser == 0 && keranjang.IdBarangInduk == 0 {
@@ -1869,8 +1864,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 	}
 
 	go func(Dt []sot_models.Transaksi, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		for _, t := range Dt {
 			thresholdPengguna := sot_threshold.PenggunaThreshold{
@@ -1958,7 +1952,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 }
 
 func PaidFailedTransaksiGerai(data PayloadPaidFailedTransaksiGerai, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
-	services := "PaidFailedTransaksiGerai"
+	const services string = "PaidFailedTransaksiGerai"
 
 	var resp payment_in_gerai.Response = &data.PaymentResult
 	standard_response, _ := resp.Pembayaran()

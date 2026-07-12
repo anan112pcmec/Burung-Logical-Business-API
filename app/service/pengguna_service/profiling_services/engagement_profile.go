@@ -19,6 +19,7 @@ import (
 	particular_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/particular_profiling"
 	response_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/response_profiling"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,7 +29,7 @@ import (
 func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProfilingPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	var wg sync.WaitGroup
 
-	services := "UbahPersonalProfilingPengguna"
+	const services string = "UbahPersonalProfilingPengguna"
 	var hasil_update_gmail particular_profiling_pengguna.ResponseUbahEmail
 	var hasil_update_username particular_profiling_pengguna.ResponseUbahUsername
 	var hasil_update_nama particular_profiling_pengguna.ResponseUbahNama
@@ -68,8 +69,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 	wg.Wait()
 
 	go func(Bpengguna sot_models.Pengguna, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Pengguna](&Bpengguna)
