@@ -1,4 +1,4 @@
-package pengguna_service
+package pengguna_barang_services
 
 import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/identity_pengguna"

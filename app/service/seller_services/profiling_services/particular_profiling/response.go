@@ -16,6 +16,9 @@ type ResponseUbahUsername struct {
 type ResponseUbahNama struct {
 	Message string `json:"pesan_ubah_nama"`
 }
+type ResponseUbahSellerDedication struct {
+	Message string `json:"pesan"`
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Response Struct Ubah Email

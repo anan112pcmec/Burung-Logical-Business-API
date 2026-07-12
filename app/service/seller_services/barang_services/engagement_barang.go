@@ -11,7 +11,7 @@ import (
 
 	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
+	seller_dedication_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
@@ -41,7 +41,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 		}
 	}
 
-	if _, ok := seller_dedication.CategoryMap[data.BarangInduk.JenisBarang]; !ok {
+	if !seller_dedication_enums.CategoryMap[data.BarangInduk.JenisBarang] {
 		return &response.ResponseForm{
 			Status:   http.StatusNotAcceptable,
 			Services: services,
@@ -220,6 +220,15 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, createNewKategoriBarangPublish); err != nil {
 				fmt.Println("Gagal publish create new kategori ke message broker")
 			}
+		}
+
+		if err := thresholdBarangInduk.CustomIncrement(konteks, Trh.Write, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_baranginduk.KategoriBarang,
+				Count:     len(Kb),
+			},
+		}); err != nil {
+			fmt.Println("Gagal increment threshold barang induk")
 		}
 
 	}(barang_induk, data.KategoriBarang, db, cud_publisher)
@@ -620,6 +629,19 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
+		var thresholdBarangInduk sot_threshold.BarangIndukThreshold = sot_threshold.BarangIndukThreshold{
+			ID: int64(Kb[0].IdBarangInduk),
+		}
+
+		if err := thresholdBarangInduk.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_baranginduk.KategoriBarang,
+				Count:     len(Kb),
+			},
+		}); err != nil {
+			fmt.Println("gagal count up threshold barang induk untuk kategori barang", err)
+		}
+
 		for _, kategoribarangdata := range Kb {
 			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
 				IdKategoriBarang: kategoribarangdata.ID,
@@ -822,6 +844,14 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
+
+		var thresholdBarangInduk sot_threshold.BarangIndukThreshold = sot_threshold.BarangIndukThreshold{
+			ID: int64(Kb.IdBarangInduk),
+		}
+
+		if err := thresholdBarangInduk.Decrement(konteks, Trh, stsk_baranginduk.KategoriBarang); err != nil {
+			fmt.Println("Gagal decrement kategori barang dalam ts baranginduk")
+		}
 
 		if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: Kb.ID,
@@ -1745,6 +1775,10 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
 			fmt.Println("Gagal decr komentar barang induk ke threshold barang induk")
+		}
+
+		if err := Trh.WithContext(konteks).Model(&sot_threshold.KomentarThreshold{}).Where(&sot_threshold.KomentarThreshold{ID: K.ID}).Delete(&sot_threshold.KomentarThreshold{}).Error; err != nil {
+			fmt.Println("Gagal menghapus threshold komentar")
 		}
 
 		newDeleteKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName()).SetRole(mb_cud_seeders.Seller)

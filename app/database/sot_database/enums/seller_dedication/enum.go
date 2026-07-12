@@ -1,4 +1,4 @@
-package seller_dedication
+package seller_dedication_enums
 
 const (
 	PakaianFashion     = "Pakaian & Fashion"
@@ -20,22 +20,22 @@ const (
 	SemuaBarang        = "Semua Barang"
 )
 
-var CategoryMap = map[string]string{
-	PakaianFashion:     PakaianFashion,
-	KosmetikKecantikan: KosmetikKecantikan,
-	ElektronikGadget:   ElektronikGadget,
-	BukuMedia:          BukuMedia,
-	MakananMinuman:     MakananMinuman,
-	IbuBayi:            IbuBayi,
-	Mainan:             Mainan,
-	OlahragaOutdoor:    OlahragaOutdoor,
-	OtomotifSparepart:  OtomotifSparepart,
-	RumahTangga:        RumahTangga,
-	AlatTulis:          AlatTulis,
-	PerhiasanAksesoris: PerhiasanAksesoris,
-	ProdukDigital:      ProdukDigital,
-	BangunanPerkakas:   BangunanPerkakas,
-	MusikInstrumen:     MusikInstrumen,
-	FilmBroadcasting:   FilmBroadcasting,
-	SemuaBarang:        SemuaBarang,
+var CategoryMap = map[string]bool{
+	PakaianFashion:     true,
+	KosmetikKecantikan: true,
+	ElektronikGadget:   true,
+	BukuMedia:          true,
+	MakananMinuman:     true,
+	IbuBayi:            true,
+	Mainan:             true,
+	OlahragaOutdoor:    true,
+	OtomotifSparepart:  true,
+	RumahTangga:        true,
+	AlatTulis:          true,
+	PerhiasanAksesoris: true,
+	ProdukDigital:      true,
+	BangunanPerkakas:   true,
+	MusikInstrumen:     true,
+	FilmBroadcasting:   true,
+	SemuaBarang:        true,
 }

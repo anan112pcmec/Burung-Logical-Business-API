@@ -1,9 +1,11 @@
-﻿package pengguna_service
+﻿package pengguna_barang_services
 
 import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -33,23 +35,146 @@ const LIMITKERANJANG = 30
 // Engagement Barang Level Uncritical
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+type BatchViewUpdate struct {
+	UpdateTarget    map[int64]int64
+	UpdateExecution chan map[int64]int64
+	mutex           sync.RWMutex
+	ticker          *time.Ticker
+	duration        time.Duration
+	Limit           int64
+}
+
+func NewBatchViewUpdate(interval int64) *BatchViewUpdate {
+	dur := time.Duration(interval) * time.Second
+	if dur == 0 {
+		dur = 10 * time.Second
+	}
+	return &BatchViewUpdate{
+		UpdateTarget:    make(map[int64]int64),
+		UpdateExecution: make(chan map[int64]int64, 100),
+		duration:        dur,
+		ticker:          time.NewTicker(dur),
+	}
+}
+
+// 1. Eksekusi update ke database secara asinkronus
+func (b *BatchViewUpdate) UpdateToDB(db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) {
+	konteks, batal := context.WithTimeout(context.Background(), settings.TimeoutDatabaseQuery)
+	defer batal()
+	for dataToUpdate := range b.UpdateExecution {
+		if len(dataToUpdate) == 0 {
+			continue
+		}
+
+		fmt.Printf("[DB] Mengupdate %d data ke database...\n", len(dataToUpdate))
+		for id, views := range dataToUpdate {
+			if err := db.Write.WithContext(konteks).Model(&sot_models.BarangInduk{}).
+				Where("id = ?", id).
+				UpdateColumn("viewed", gorm.Expr(fmt.Sprintf("viewed + %v", views))).Error; err != nil {
+				fmt.Printf("Gagal memperbarui vies barang ber id %v sebanyak %v view baru", id, views)
+
+				go func(id_barang_induk int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+					konteks, batal := context.WithTimeout(context.Background(), settings.TimeoutContext)
+					defer batal()
+					var updatedBarangInduk sot_models.BarangInduk = sot_models.BarangInduk{
+						ID: 0,
+					}
+
+					if err := read.WithContext(konteks).Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
+						ID: int32(id_barang_induk),
+					}).Limit(1).Take(&updatedBarangInduk).Error; err != nil {
+						fmt.Println("Gagal mengambil data barang induk baru ", err)
+					}
+
+					updatedViewBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(updatedBarangInduk).SetTableName("UpdateViewBarangInduk").SetRole(mb_cud_seeders.Seller)
+					if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedViewBarangIndukPublish); err != nil {
+						fmt.Println("Gagal publish update view barang induk")
+					}
+				}(id, db.Read, cud_publisher)
+			}
+
+		}
+	}
+}
+
+func (b *BatchViewUpdate) ResetInterval() {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	if b.ticker != nil {
+		b.ticker.Reset(b.duration)
+	}
+}
+
+func (b *BatchViewUpdate) WatchInterval() {
+	for {
+		// Mengambil channel ticker dengan aman
+		b.mutex.RLock()
+		ch := b.ticker.C
+		b.mutex.RUnlock()
+
+		select {
+		case <-ch:
+			b.mutex.Lock()
+			if len(b.UpdateTarget) == 0 {
+				b.mutex.Unlock()
+				continue
+			}
+
+			oldTarget := b.UpdateTarget
+			b.UpdateTarget = make(map[int64]int64)
+			b.mutex.Unlock()
+
+			// Kirim data ke channel execution
+			b.UpdateExecution <- oldTarget
+		}
+	}
+}
+
+// 4. Increment view
+func (b *BatchViewUpdate) IncrUpdateViewColumn(id_column int64) {
+	b.mutex.Lock()
+	if b.UpdateTarget == nil {
+		b.UpdateTarget = make(map[int64]int64)
+	}
+
+	b.UpdateTarget[id_column]++
+	b.Limit++
+
+	// JIKA LIMIT TERCAPAI, LANGSUNG FLUSH KE DB
+	if b.Limit >= 2000 {
+		oldTarget := b.UpdateTarget
+		b.UpdateTarget = make(map[int64]int64) // Kosongkan map untuk batch berikutnya
+		b.Limit = 0                            // Reset limit ke 0
+
+		b.mutex.Unlock()
+
+		// Kirim data ke worker DB secara non-blocking
+		b.UpdateExecution <- oldTarget
+		b.ResetInterval() // Reset ticker juga agar waktu 10 detiknya mulai dari 0 lagi
+		return
+	}
+
+	// Jangan lupa unlock untuk kondisi normal (limit belum 2000)
+	b.mutex.Unlock()
+
+	// Reset waktu tunggu jika limit belum tercapai
+	b.ResetInterval()
+}
+
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur View Barang
 // Berfungsi Untuk Menambah View Barang Setiap kali di klik akan menjalankan fungsi ini
 // Hanya bersifat menaikan view (increment)
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func ViewBarang(data PayloadViewBarang, rds *redis.Client, db *gorm.DB) {
-	ctx := context.Background()
-	key := fmt.Sprintf("barang:%d", data.ID)
+func ViewBarang(ctx context.Context, b *BatchViewUpdate, data PayloadViewBarang) *response.ResponseForm {
+	const services string = "ViewBarang"
+	b.IncrUpdateViewColumn(int64(data.ID))
 
-	// Jika gagal increment di Redis -> fallback update ke DB (asynchronous)
-	if err := rds.HIncrBy(ctx, key, fieldBarangViewed, 1).Err(); err != nil {
-		go func() {
-			_ = db.Model(&sot_models.BarangInduk{}).
-				Where("id = ?", data.ID).
-				UpdateColumn("viewed", gorm.Expr("viewed + 1")).Error //ini jadi masalah karna kalo begini semua barang di cache dong?
-		}()
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
 	}
 }
 

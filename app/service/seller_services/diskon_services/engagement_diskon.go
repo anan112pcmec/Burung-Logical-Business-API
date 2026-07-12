@@ -573,4 +573,4 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 			Message: "Berhasil",
 		},
 	}
-}
+} // Tuned

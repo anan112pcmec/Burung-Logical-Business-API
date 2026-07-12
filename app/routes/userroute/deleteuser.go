@@ -12,7 +12,7 @@ import (
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	pengguna_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/alamat_services"
-	pengguna_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
+	pengguna_barang_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
 	pengguna_media_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/media_services"
 	pengguna_social_media_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/social_media_services"
 	pengguna_transaction_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services"
@@ -26,26 +26,26 @@ func DeleteUserHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 
 	switch r.URL.Path {
 	case "/user/barang/komentar-barang/hapus":
-		var data pengguna_service.PayloadHapusKomentarBarangInduk
+		var data pengguna_barang_services.PayloadHapusKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.HapusKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.HapusKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/hapus":
-		var data pengguna_service.PayloadHapusChildKomentar
+		var data pengguna_barang_services.PayloadHapusChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.HapusChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.HapusChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/hapus":
-		var data pengguna_service.PayloadHapusDataKeranjangBarang
+		var data pengguna_barang_services.PayloadHapusDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.HapusKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.HapusKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/hapus-alamat":
 		var data pengguna_alamat_services.PayloadHapusAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

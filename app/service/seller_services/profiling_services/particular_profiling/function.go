@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	seller_dedication_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
-	"gorm.io/gorm"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,10 +150,6 @@ func UbahEmailSeller(ctx context.Context, id_seller int32, email string, db *env
 // Fungsi Prosedur Particular Ubah Dedication Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func UbahSellerDedicationSeller(id_seller int32, seller_dedication string, db *gorm.DB) {
-
-}
-
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Particular Ubah Jam Operasional Seller
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,6 +265,12 @@ func UbahSellerDedication(ctx context.Context, id_seller int32, dedication strin
 	if id_seller == 0 {
 		return ResponseUbahDedication{
 			Message: "Gagal id tidak valid",
+		}
+	}
+
+	if !seller_dedication_enums.CategoryMap[dedication] {
+		return ResponseUbahDedication{
+			Message: "Gagal input tidak valid",
 		}
 	}
 

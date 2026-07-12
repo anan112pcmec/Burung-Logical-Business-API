@@ -13,6 +13,7 @@ import (
 	routes "github.com/anan112pcmec/Burung-backend-1/app/Routes"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/previsioning"
+	pengguna_barang_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
 )
 
 func Getenvi(key, fallback string) string {
@@ -79,6 +80,8 @@ func Run() {
 	// PHASE: ROUTER & HTTP SERVER HTTP
 	// ==========================================
 
+	var UpdateBatchPerIntervalViewBarang *pengguna_barang_services.BatchViewUpdate = pengguna_barang_services.NewBatchViewUpdate(10)
+	go UpdateBatchPerIntervalViewBarang.WatchInterval()
 	Router := mux.NewRouter()
 	// Router.Use(enableCORS)
 	// Router.Use(rateLimitMiddleware)
@@ -98,7 +101,7 @@ func Run() {
 	)).Methods("PUT")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(
-		routes.PatchHandler(db_system, redis_auth, redis_session, cud_publisher),
+		routes.PatchHandler(db_system, redis_auth, redis_session, cud_publisher, UpdateBatchPerIntervalViewBarang),
 	)).Methods("PATCH")
 
 	Router.PathPrefix("/").Handler(http.HandlerFunc(

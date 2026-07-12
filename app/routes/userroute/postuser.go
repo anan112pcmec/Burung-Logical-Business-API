@@ -11,7 +11,7 @@ import (
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	pengguna_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/alamat_services"
-	pengguna_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
+	pengguna_barang_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
 	pengguna_credential_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/credential_services"
 	pengguna_social_media_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/social_media_services"
 	pengguna_transaction_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services"
@@ -24,34 +24,34 @@ func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseW
 
 	switch r.URL.Path {
 	case "/user/barang/komentar-barang/tambah":
-		var data pengguna_service.PayloadMasukanKomentarBarangInduk
+		var data pengguna_barang_services.PayloadMasukanKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.MasukanKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.MasukanKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/tambah":
-		var data pengguna_service.PayloadMasukanChildKomentar
+		var data pengguna_barang_services.PayloadMasukanChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.MasukanChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.MasukanChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 
 	case "/user/barang/komentar-child-mention/tambah":
-		var data pengguna_service.PayloadMentionChildKomentar
+		var data pengguna_barang_services.PayloadMentionChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.MentionChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.MentionChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/tambah":
-		var data pengguna_service.PayloadTambahDataKeranjangBarang
+		var data pengguna_barang_services.PayloadTambahDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.TambahKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.TambahKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/credential/membuat-pin":
 		var data pengguna_credential_services.PayloadMembuatPinPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

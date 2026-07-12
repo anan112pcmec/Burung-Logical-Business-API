@@ -69,15 +69,7 @@ func (i *IdentitySeller) FallbackDB(ctx context.Context, db *gorm.DB) (model sot
 
 func (i *IdentitySeller) Validating(ctx context.Context, db *gorm.DB, rds *redis.Client) (model sot_models.Seller, status bool) {
 	var seller sot_models.Seller
-	if i.IdSeller == 0 {
-		return seller, false
-	}
-
-	if i.Username == "" {
-		return seller, false
-	}
-
-	if i.EmailSeller == "" {
+	if i.IdSeller == 0 || i.Username == "" || i.EmailSeller == "" {
 		return seller, false
 	}
 

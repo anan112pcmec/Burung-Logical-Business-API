@@ -10,6 +10,7 @@ import (
 
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
+	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
@@ -27,7 +28,7 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanAlamatPengguna"
+	const services string = "MasukanAlamatPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -121,8 +122,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 			IdPengguna: Ap.IDPengguna,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := threshold_pengguna.Increment(konteks, Trh, stsk_pengguna.AlamatPengguna); err != nil {
@@ -151,7 +151,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 }
 
 func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditAlamatPengguna"
+	const services string = "EditAlamatPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -202,7 +202,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.Transaksi{}).
 		Select("id").
-		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, "Selesai").
+		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, transaksi_enums.Selesai).
 		Limit(1).
 		Scan(&idDataTransaksi).Error; err != nil {
 
@@ -246,8 +246,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 	}
 
 	go func(idAlamat int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		ap := sot_models.AlamatPengguna{}
@@ -277,7 +276,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusAlamatPengguna"
+	const services string = "HapusAlamatPengguna"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -312,7 +311,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.Transaksi{}).
 		Select("id").
-		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, "Selesai").
+		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, transaksi_enums.Selesai).
 		Limit(1).
 		Scan(&idDataTransaksi).Error; err != nil {
 
@@ -347,8 +346,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 			IdPengguna: Ap.IDPengguna,
 		}
 
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := threshold_pengguna.Decrement(konteks, Trh, stsk_pengguna.AlamatPengguna); err != nil {
@@ -374,4 +372,4 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Tuned

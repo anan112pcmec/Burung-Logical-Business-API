@@ -21,6 +21,7 @@ import (
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
 	stsk_brand_data "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/brand_data"
 	stsk_distributor_data "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/distributor_data"
+	stsk_etalase "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/etalase"
 	stsk_kategori_barang "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kategori_barang"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	stsk_transaksi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/transaksi"
@@ -34,7 +35,7 @@ import (
 )
 
 func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahFotoProfilSeller"
+	const services string = "UbahFotoProfilSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -88,8 +89,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 		}
 
 		go func(Pp sot_models.MediaSellerProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdSeller := sot_threshold.SellerThreshold{
@@ -123,8 +123,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 		}
 
 		go func(IdPp int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataPhotoProfilUpdated sot_models.MediaSellerProfilFoto
@@ -150,7 +149,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 }
 
 func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusFotoProfilSeller"
+	const services string = "HapusFotoProfilSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -191,8 +190,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 	}
 
 	go func(Dmfps sot_models.MediaSellerProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -216,7 +214,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 }
 
 func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahFotoBannerSeller"
+	const services string = "UbahFotoBannerSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -276,8 +274,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 		}
 
 		go func(Bf sot_models.MediaSellerBannerFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdSeller := sot_threshold.SellerThreshold{
@@ -307,8 +304,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 		}
 
 		go func(IdBf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBannerFotoUpdated sot_models.MediaSellerBannerFoto
@@ -334,7 +330,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 }
 
 func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusFotoBannerSeller"
+	const services string = "HapusFotoBannerSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -376,8 +372,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 	}
 
 	go func(Dmbfs sot_models.MediaSellerBannerFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdSeller := sot_threshold.SellerThreshold{
@@ -402,7 +397,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 }
 
 func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFotoTokoFisikSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahkanFotoTokoFisikSeller"
+	const services string = "TambahkanFotoTokoFisikSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -464,8 +459,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 	}
 
 	go func(Tffs []sot_models.MediaSellerTokoFisikFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if len(Tffs) > 0 {
@@ -494,7 +488,7 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 }
 
 func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisikSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusFotoTokoFisikSeller"
+	const services string = "HapusFotoTokoFisikSeller"
 	var wg sync.WaitGroup
 	var mu sync.RWMutex
 
@@ -520,12 +514,12 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 				ID:  data.DataMediaFotoTokoFisik[angka].IdMedia,
 				Key: data.DataMediaFotoTokoFisik[angka].KeyMedia,
 			}).Limit(1).Scan(&data_media_foto_toko_fisik).Error; err != nil {
-				errChan <- fmt.Errorf("gagal")
+				errChan <- fmt.Errorf("gagal mendapatkan id media dan key media ")
 				return
 			}
 
 			if data_media_foto_toko_fisik.ID == 0 {
-				errChan <- fmt.Errorf("gagal")
+				errChan <- fmt.Errorf("gagal mendapatkan id media")
 				return
 			}
 
@@ -568,8 +562,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 	}
 
 	go func(Dtfh []sot_models.MediaSellerTokoFisikFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if len(Dtfh) > 0 {
@@ -598,7 +591,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 }
 
 func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahFotoEtalaseSeller"
+	const services string = "UbahFotoEtalaseSeller"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -660,16 +653,15 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 			}
 		}
 
-		go func(Ef sot_models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		go func(Ef sot_models.MediaEtalaseFoto, publisher *mb_cud_publisher.Publisher) {
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			etalaseFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ef).SetTableName(Ef.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish etalase foto create ke message broker")
 			}
-		}(newEtalaseFoto, db.Write, cud_publisher)
+		}(newEtalaseFoto, cud_publisher)
 	} else {
 		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaEtalaseFoto{}).Where(&sot_models.MediaEtalaseFoto{
 			ID: id_data_media_etalase_foto,
@@ -683,9 +675,8 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 			}
 		}
 
-		go func(IdEf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		go func(IdEf int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataEtalaseFotoUpdated sot_models.MediaEtalaseFoto
@@ -695,11 +686,19 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 				fmt.Println("Gagal mengambil data etalase foto")
 			}
 
+			var ThresEtalase sot_threshold.EtalaseThreshold = sot_threshold.EtalaseThreshold{
+				ID: dataEtalaseFotoUpdated.IdEtalase,
+			}
+
+			if err := ThresEtalase.Increment(konteks, Trh, stsk_etalase.MediaEtalaseFoto); err != nil {
+				fmt.Println("gagal increment data threshold etalase seller", err)
+			}
+
 			etalaseFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataEtalaseFotoUpdated).SetTableName(dataEtalaseFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update etalase foto ke message broker")
 			}
-		}(id_data_media_etalase_foto, db.Read, cud_publisher)
+		}(id_data_media_etalase_foto, db.Write, db.Read, cud_publisher)
 	}
 
 	return &response.ResponseMediaUpload{
@@ -752,9 +751,16 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 	}
 
 	go func(Dmef sot_models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
+
+		var ThresEtalase sot_threshold.EtalaseThreshold = sot_threshold.EtalaseThreshold{
+			ID: Dmef.IdEtalase,
+		}
+
+		if err := ThresEtalase.Decrement(konteks, Trh, stsk_etalase.MediaEtalaseFoto); err != nil {
+			fmt.Println("gagall decrement threshold etalase", err)
+		}
 
 		etalaseFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmef).SetTableName(Dmef.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoDeletePublish); err != nil {
@@ -770,7 +776,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 }
 
 func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarangIndukFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahkanMediaBarangIndukFoto"
+	const services string = "TambahkanMediaBarangIndukFoto"
 	const Limit uint8 = 10
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
@@ -872,8 +878,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 	}
 
 	go func(Mbif []sot_models.MediaBarangIndukFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -903,7 +908,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 }
 
 func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangIndukFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaBarangIndukFoto"
+	const services string = "HapusMediaBarangIndukFoto"
 	var wg sync.WaitGroup
 	var mu sync.RWMutex
 
@@ -942,7 +947,9 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 
 	wg.Wait()
 
-	if len(dataMediaBarangIndukFotoHapus) == 0 {
+	var LengthBarangIndukFotoDihapus = len(dataMediaBarangIndukFotoHapus)
+
+	if LengthBarangIndukFotoDihapus == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -950,7 +957,7 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 		}
 	}
 
-	var idsHapus []int64 = make([]int64, 0, len(dataMediaBarangIndukFotoHapus))
+	var idsHapus []int64 = make([]int64, 0, LengthBarangIndukFotoDihapus)
 	for _, foto := range dataMediaBarangIndukFotoHapus {
 		idsHapus = append(idsHapus, foto.ID)
 	}
@@ -964,8 +971,7 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 	}
 
 	go func(Dmbifh []sot_models.MediaBarangIndukFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
@@ -974,6 +980,7 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 
 		if err := barangIndukThreshold.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{sot_threshold.CustomCounter{
 			FieldName: stsk_baranginduk.MediaBarangIndukFoto,
+			Count:     len(Dmbifh),
 		}}); err != nil {
 			fmt.Println("Gagal decr count media barang induk foto threshold Barang induk")
 		}
@@ -991,10 +998,10 @@ func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangInduk
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} //  Tuned
 
 func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahBarangIndukVideo"
+	const services string = "UbahBarangIndukVideo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1063,8 +1070,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 		}
 
 		go func(Biv sot_models.MediaBarangIndukVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1094,8 +1100,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 		}
 
 		go func(IdBiv int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBarangIndukVideoUpdated sot_models.MediaBarangIndukVideo
@@ -1121,7 +1126,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 }
 
 func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangInduk, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusBarangIndukVideo"
+	const services string = "HapusBarangIndukVideo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1162,8 +1167,7 @@ func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangIndu
 	}
 
 	go func(Dmbiv sot_models.MediaBarangIndukVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -1188,7 +1192,7 @@ func HapusBarangIndukVideo(ctx context.Context, data PayloadHapusVideoBarangIndu
 }
 
 func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahKategoriBarangFoto"
+	const services string = "UbahKategoriBarangFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1279,8 +1283,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 		}
 
 		go func(Mkbf sot_models.MediaKategoriBarangFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
@@ -1310,8 +1313,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 		}
 
 		go func(IdMkbf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataKategoriBarangFotoUpdated sot_models.MediaKategoriBarangFoto
@@ -1337,7 +1339,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 }
 
 func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBarangFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusKategoriBarangFoto"
+	const services string = "HapusKategoriBarangFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1378,8 +1380,7 @@ func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBaran
 	}
 
 	go func(Dmkbf sot_models.MediaKategoriBarangFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
@@ -1404,7 +1405,7 @@ func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBaran
 }
 
 func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistributorDataDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahDistributorDataDokumen"
+	const services string = "TambahDistributorDataDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1472,8 +1473,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 		}
 
 		go func(Mddd sot_models.MediaDistributorDataDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1503,8 +1503,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 		}
 
 		go func(IdMddd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataDokumenUpdated sot_models.MediaDistributorDataDokumen
@@ -1530,7 +1529,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 }
 
 func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMediaDistributorDataDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaDistributorDataDokumen"
+	const services string = "HapusMediaDistributorDataDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1599,8 +1598,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 	}
 
 	go func(Dmddd sot_models.MediaDistributorDataDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1625,7 +1623,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 }
 
 func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahMediaDistributorDataNPWPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaDistributorDataNPWPFoto"
+	const services string = "TambahMediaDistributorDataNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1686,8 +1684,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 		}
 
 		go func(Mddnf sot_models.MediaDistributorDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1717,8 +1714,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 		}
 
 		go func(IdMddnf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataNPWPFotoUpdated sot_models.MediaDistributorDataNPWPFoto
@@ -1744,7 +1740,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 }
 
 func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMediaDistributorDataNPWPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaDistributorDataNPWPFoto"
+	const services string = "HapusMediaDistributorDataNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1813,8 +1809,7 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 	}
 
 	go func(Dmdnf sot_models.MediaDistributorDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1839,7 +1834,7 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 }
 
 func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistributorDataNIBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahDistributorDataNIBFoto"
+	const services string = "TambahDistributorDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1901,8 +1896,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 		}
 
 		go func(Mddnibf sot_models.MediaDistributorDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -1932,8 +1926,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 		}
 
 		go func(IdMddnibf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataNIBFotoUpdated sot_models.MediaDistributorDataNIBFoto
@@ -1942,7 +1935,6 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 			}).Limit(1).Take(&dataDistributorDataNIBFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data distributor data nib foto")
 			}
-
 			distributorDataNIBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataNIBFotoUpdated).SetTableName(dataDistributorDataNIBFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, distributorDataNIBFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update distributor data nib foto ke message broker")
@@ -2029,8 +2021,7 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 	}
 
 	go func(Dmdnibf sot_models.MediaDistributorDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -2055,7 +2046,7 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 }
 
 func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahDistributorDataSuratKerjasamaDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahDistributorDataSuratKerjasamaDokumen"
+	const services string = "TambahDistributorDataSuratKerjasamaDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -2116,8 +2107,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 		}
 
 		go func(Mddskd sot_models.MediaDistributorDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -2147,8 +2137,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 		}
 
 		go func(IdMddskd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataDistributorDataSuratKerjasamaDokumenUpdated sot_models.MediaDistributorDataSuratKerjasamaDokumen
@@ -2174,7 +2163,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 }
 
 func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data PayloadHapusDistributorDataSuratKerjasamaDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusDistributorDataSuratKerjasamaDataDokumen"
+	const services string = "HapusDistributorDataSuratKerjasamaDataDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2243,8 +2232,7 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 	}
 
 	go func(Dmdskd sot_models.MediaDistributorDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdDistributorData := sot_threshold.DistributorDataThreshold{
@@ -2269,7 +2257,7 @@ func HapusDistributorDataSuratKerjasamaDataDokumen(ctx context.Context, data Pay
 }
 
 func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBrandDataPerwakilanDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahBrandDataPerwakilanDokumen"
+	const services string = "TambahBrandDataPerwakilanDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -2339,8 +2327,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 		}
 
 		go func(Mbdpd sot_models.MediaBrandDataPerwakilanDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2370,8 +2357,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 		}
 
 		go func(IdMbdpd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataPerwakilanDokumenUpdated sot_models.MediaBrandDataPerwakilanDokumen
@@ -2397,7 +2383,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 }
 
 func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapusBrandDataPerwakilanDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaBrandDataPerwakilanDokumen"
+	const services string = "HapusMediaBrandDataPerwakilanDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2466,8 +2452,7 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 	}
 
 	go func(Dmbdpd sot_models.MediaBrandDataPerwakilanDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2492,7 +2477,7 @@ func HapusMediaBrandDataPerwakilanDokumen(ctx context.Context, data PayloadHapus
 }
 
 func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahBrandDataSertifikatFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaBrandDataSertifikatFoto"
+	const services string = "TambahMediaBrandDataSertifikatFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -2562,8 +2547,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 		}
 
 		go func(Mbdsf sot_models.MediaBrandDataSertifikatFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2593,8 +2577,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 		}
 
 		go func(IdMbdsf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataSertifikatFotoUpdated sot_models.MediaBrandDataSertifikatFoto
@@ -2620,7 +2603,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 }
 
 func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBrandDataSertifikatFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaBrandDataSertifikatFoto"
+	const services string = "HapusMediaBrandDataSertifikatFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2689,8 +2672,7 @@ func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBra
 	}
 
 	go func(Dmbdsf sot_models.MediaBrandDataSertifikatFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2715,7 +2697,7 @@ func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBra
 }
 
 func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBrandDataNIBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaBrandDataNIBFoto"
+	const services string = "TambahMediaBrandDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -2785,8 +2767,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 		}
 
 		go func(Mbdnibf sot_models.MediaBrandDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2816,8 +2797,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 		}
 
 		go func(IdMbdnibf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataNIBFotoUpdated sot_models.MediaBrandDataNIBFoto
@@ -2843,7 +2823,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 }
 
 func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrandDataNIBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaBrandDataNIBFoto"
+	const services string = "HapusMediaBrandDataNIBFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2913,8 +2893,7 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 	}
 
 	go func(Dmbdnibf sot_models.MediaBrandDataNIBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -2939,7 +2918,7 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 }
 
 func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandDataNPWPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaBrandNPWPFoto"
+	const services string = "TambahMediaBrandNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -3009,8 +2988,8 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 		}
 
 		go func(Mbdnf sot_models.MediaBrandDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3040,8 +3019,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 		}
 
 		go func(IdMbdnf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataNPWPFotoUpdated sot_models.MediaBrandDataNPWPFoto
@@ -3067,7 +3045,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 }
 
 func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDataNPWPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaBrandNPWPFoto"
+	const services string = "HapusMediaBrandNPWPFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -3136,8 +3114,7 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 	}
 
 	go func(Dmbdnf sot_models.MediaBrandDataNPWPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3162,7 +3139,7 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 }
 
 func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBrandDataLogoFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaBrandDataLogoBrandFoto"
+	const services string = "TambahMediaBrandDataLogoBrandFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -3232,8 +3209,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 		}
 
 		go func(Mbdlf sot_models.MediaBrandDataLogoFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3263,8 +3239,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 		}
 
 		go func(IdMbdlf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataLogoFotoUpdated sot_models.MediaBrandDataLogoFoto
@@ -3290,7 +3265,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 }
 
 func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDataLogoFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaBrandDataLogo"
+	const services string = "HapusMediaBrandDataLogo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -3360,8 +3335,7 @@ func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDat
 	}
 
 	go func(Dmbdlf sot_models.MediaBrandDataLogoFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3386,7 +3360,7 @@ func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDat
 }
 
 func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTambahBrandDataSuratKerjasamaDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahBrandDataSuratKerjasamaDokumen"
+	const services string = "TambahBrandDataSuratKerjasamaDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -3456,8 +3430,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 		}
 
 		go func(Mbdskd sot_models.MediaBrandDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3487,8 +3460,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 		}
 
 		go func(IdMbdskd int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataBrandDataSuratKerjasamaDokumenUpdated sot_models.MediaBrandDataSuratKerjasamaDokumen
@@ -3514,7 +3486,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 }
 
 func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusBrandDataSuratKerjasamaDokumen, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusBrandDataSuratKerjasamaDokumen"
+	const services string = "HapusBrandDataSuratKerjasamaDokumen"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -3584,8 +3556,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 	}
 
 	go func(Dmbdskd sot_models.MediaBrandDataSuratKerjasamaDokumen, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdBrandData := sot_threshold.BrandDataThreshold{
@@ -3610,7 +3581,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 }
 
 func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMediaTransaksiApprovedFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaTransaksiApprovedFoto"
+	const services string = "TambahMediaTransaksiApprovedFoto"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -3679,8 +3650,7 @@ func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMed
 	}
 
 	go func(Mtaf sot_models.MediaTransaksiApprovedFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdTransaksi := sot_threshold.TransaksiThreshold{
@@ -3706,7 +3676,7 @@ func TambahMediaTransaksiApprovedFoto(ctx context.Context, data PayloadTambahMed
 }
 
 func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTransaksiApprovedVideo, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahTransaksiApprovedVideo"
+	const services string = "TambahTransaksiApprovedVideo"
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -3775,8 +3745,7 @@ func TambahTransaksiApprovedVideo(ctx context.Context, data PayloadTambahMediaTr
 	}
 
 	go func(Mtav sot_models.MediaTransaksiApprovedVideo, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		thresholdTransaksi := sot_threshold.TransaksiThreshold{

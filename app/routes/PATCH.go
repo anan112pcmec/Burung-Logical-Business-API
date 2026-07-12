@@ -12,14 +12,15 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/routes/userroute"
+	pengguna_barang_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
 )
 
-func PatchHandler(db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) http.HandlerFunc {
+func PatchHandler(db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher, b *pengguna_barang_services.BatchViewUpdate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("PatchHandler dijalankan...")
 
 		if len(r.URL.Path) >= 6 && r.URL.Path[:6] == "/user/" {
-			userroute.PatchUserHandler(db, w, r, rds_auth, rds_session, mb_cud_publisher)
+			userroute.PatchUserHandler(db, w, r, rds_auth, rds_session, mb_cud_publisher, b)
 			return
 		}
 

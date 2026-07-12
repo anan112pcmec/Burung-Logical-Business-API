@@ -408,4 +408,4 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		Services: services,
 		Message:  "Rekening berhasil dihapus.",
 	}
-}
+} // Tuned

@@ -11,53 +11,60 @@ import (
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	pengguna_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/alamat_services"
-	pengguna_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
+	pengguna_barang_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/barang_services"
 	pengguna_credential_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/credential_services"
 	pengguna_profiling_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services"
 	pengguna_social_media_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/social_media_services"
 	pengguna_transaction_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services"
 )
 
-func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
+func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher, b *pengguna_barang_services.BatchViewUpdate) {
 	var hasil *response.ResponseForm
 	ctx := r.Context()
 
 	switch r.URL.Path {
 	case "/user/barang/likes-barang":
-		var data pengguna_service.PayloadLikesBarang
+		var data pengguna_barang_services.PayloadLikesBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.LikesBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.LikesBarang(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/barang/view-barang":
+		var data pengguna_barang_services.PayloadViewBarang
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_barang_services.ViewBarang(ctx, b, data)
 	case "/user/barang/unlikes-barang":
-		var data pengguna_service.PayloadUnlikeBarang
+		var data pengguna_barang_services.PayloadUnlikeBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.UnlikeBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.UnlikeBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-barang/edit":
-		var data pengguna_service.PayloadEditKomentarBarangInduk
+		var data pengguna_barang_services.PayloadEditKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.EditKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.EditKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/edit":
-		var data pengguna_service.PayloadEditChildKomentar
+		var data pengguna_barang_services.PayloadEditChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.EditChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.EditChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/edit":
-		var data pengguna_service.PayloadEditDataKeranjangBarang
+		var data pengguna_barang_services.PayloadEditDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_service.EditKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.EditKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/profiling/personal-update":
 		var data pengguna_profiling_services.PayloadPersonalProfilingPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
