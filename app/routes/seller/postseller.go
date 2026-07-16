@@ -16,6 +16,7 @@ import (
 	seller_diskon_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services"
 	seller_etalase_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/etalase_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/jenis_seller_services"
+	seller_transaksi_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/transaksi_services"
 )
 
 func PostSellerHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
@@ -115,6 +116,13 @@ func PostSellerHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			return
 		}
 		hasil = jenis_seller_services.MasukanDataBrand(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/seller/transaction/seller-rating-pengiriman-kurir":
+		var data seller_transaksi_services.PayloadSellerRatingPengirimanKurir
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = seller_transaksi_services.SellerRatingPengirimanKurir(ctx, data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

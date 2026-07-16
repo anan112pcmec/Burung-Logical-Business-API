@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/identity_seller"
+
 )
 
 type PayloadApproveOrderTransaksi struct {
@@ -23,4 +24,12 @@ type PayloadUnApproveOrderTransaksi struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdTransaksi     int64                          `json:"id_transaksi"`
 	Catatan         string                         `json:"catatan_unapprove"`
+}
+
+type PayloadSellerRatingPengirimanKurir struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdPengiriman    int64                          `json:"id_pengiriman"`
+	IdKurir         int64                          `json:"id_kurir"`
+	Ulasan          string                         `json:"ulasan"`
+	Rating          int8                           `json:"rating"`
 }

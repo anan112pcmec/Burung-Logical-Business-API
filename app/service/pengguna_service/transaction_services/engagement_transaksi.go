@@ -2013,8 +2013,8 @@ func PaidFailedTransaksiGerai(data PayloadPaidFailedTransaksiGerai, db *environm
 	}
 }
 
-func RatingPengirimanKurir(ctx context.Context, data PayloadRatingPengirimanKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services string = "RatingPengirimanKurir"
+func PenggunaRatingPengirimanKurir(ctx context.Context, data PayloadPenggunaRatingPengirimanKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "PenggunaRatingPengirimanKurir"
 	if _, valid := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !valid {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,

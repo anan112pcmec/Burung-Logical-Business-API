@@ -87,6 +87,13 @@ func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseW
 			return
 		}
 		hasil = pengguna_wishlist_services.TambahBarangKeWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/transaksi/pengguna-rating-pengiriman-kurir":
+		var data pengguna_transaction_services.PayloadPenggunaRatingPengirimanKurir
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_transaction_services.PenggunaRatingPengirimanKurir(ctx, data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,
