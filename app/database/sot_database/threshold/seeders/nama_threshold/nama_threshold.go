@@ -21,6 +21,7 @@ const (
 	// Engagment Pengguna
 	ReviewThreshold         string = "review_threshold"
 	AlamatPenggunaThreshold string = "alamat_pengguna_threshold"
+	WishlistThreshold       string = "wishlist_threshold"
 
 	// Engagement Seller
 	BrandDataThreshold       string = "brand_data_threshold"

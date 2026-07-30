@@ -152,7 +152,7 @@ func UpTransaksi(db *gorm.DB) {
 
 func UpEngagementEntity(db *gorm.DB) {
 	var wg sync.WaitGroup
-	errCh := make(chan error, 30)
+	errCh := make(chan error, 31)
 
 	sot_modelsToMigrate := []interface{}{
 		&sot_models.Komentar{},
@@ -180,6 +180,7 @@ func UpEngagementEntity(db *gorm.DB) {
 		&sot_models.ReviewLike{},
 		&sot_models.ReviewDislike{},
 		&sot_models.Wishlist{},
+		&sot_models.WishlistProduct{},
 		&sot_models.BidKurirData{},
 		&sot_models.BidKurirNonEksScheduler{},
 		&sot_models.BidKurirEksScheduler{},

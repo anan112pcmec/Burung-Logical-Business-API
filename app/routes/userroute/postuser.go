@@ -80,7 +80,14 @@ func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseW
 			return
 		}
 		hasil = pengguna_social_media_service.FollowSeller(ctx, data, db, rds_session, mb_cud_publisher)
-	case "/user/wishlist/tambah-barang":
+	case "/user/wishlist/tambah-wishlist":
+		var data pengguna_wishlist_services.PayloadTambahWishlist
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_wishlist_services.TambahWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/wishlist/tambah-barang-ke-wishlist":
 		var data pengguna_wishlist_services.PayloadTambahBarangKeWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)

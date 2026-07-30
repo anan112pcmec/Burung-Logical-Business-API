@@ -146,18 +146,34 @@ func (AlamatPengguna) TableName() string {
 
 // Approved
 type Wishlist struct {
-	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_wishlist"`
-	IdPengguna    int64       `gorm:"column:id_pengguna;not null" json:"id_pengguna_wishlist"`
-	Pengguna      Pengguna    `gorm:"foreignKey:IdPengguna;references:ID" json:"-"`
-	IdBarangInduk int32       `gorm:"column:id_barang_induk;not null" json:"id_barang_induk_wishlist"`
+	ID         int64          `gorm:"primaryKey;autoIncrement" json:"id_wishlist"`
+	IdPengguna int64          `gorm:"column:id_pengguna;not null" json:"id_pengguna_wishlist"`
+	Pengguna   Pengguna       `gorm:"foreignKey:IdPengguna;references:ID" json:"-"`
+	Nama       string         `gorm:"column:nama;type:text;not null;default:'Wishlist'" json:"nama_wishlist"`
+	Deskripsi  string         `gorm:"column:deskripsi;type:text" json:"deskripsi_wishlist"`
+	Visibility string         `gorm:"column:visibility;type:varchar(20);not null;default:'Public'" json:"visibility_wishlist"`
+	CreatedAt  time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt  time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"` // 🔵 Wajib soft — sudah benar
+}
+
+func (Wishlist) TableName() string {
+	return "wishlist"
+}
+
+type WishlistProduct struct {
+	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_wishlist_product"`
+	IdWishlist    int64       `gorm:"column:id_wishlist;not null" json:"id_wishlist_wishlist_product"`
+	Wishlist      Wishlist    `gorm:"foreignKey:IdWishlist;references:ID" json:"-"`
+	IdBarangInduk int32       `gorm:"column:id_barang_induk;not null" json:"id_barang_induk_wishlist_product"`
 	BarangInduk   BarangInduk `gorm:"foreignKey:IdBarangInduk;references:ID" json:"-"`
 	CreatedAt     time.Time   `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt     time.Time   `gorm:"autoUpdateTime" json:"updated_at"`
 	// 🟢 Hard delete
 }
 
-func (Wishlist) TableName() string {
-	return "wishlist"
+func (WishlistProduct) TableName() string {
+	return "wishlist_product"
 }
 
 // Approved

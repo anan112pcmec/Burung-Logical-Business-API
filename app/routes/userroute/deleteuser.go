@@ -74,7 +74,14 @@ func DeleteUserHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			return
 		}
 		hasil = pengguna_social_media_service.UnfollowSeller(ctx, data, db, rds_session, mb_cud_publisher)
-	case "/user/wishlist/hapus-barang":
+	case "/user/wishlist/hapus-wishlist":
+		var data pengguna_wishlist_services.PayloadHapusWishlist
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_wishlist_services.HapusWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/wishlist/hapus-barang-dari-wishlist":
 		var data pengguna_wishlist_services.PayloadHapusBarangDariWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)

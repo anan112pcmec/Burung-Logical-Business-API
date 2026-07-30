@@ -1167,6 +1167,95 @@ func (a *AlamatPenggunaThreshold) CustomDecrement(ctx context.Context, db *gorm.
 	).Error
 }
 
+type WishlistThreshold struct {
+	ID         int64               `gorm:"primaryKey;autoIncrement" json:"id_wishlist_threshold"`
+	IdWishlist int64               `gorm:"column:id_wishlist;not null" json:"id_wishlist_wishlist_product"`
+	Wishlist   sot_models.Wishlist `gorm:"foreignKey:IdWishlist;references:ID" json:"-"`
+
+	WishlistProduct int32 `gorm:"column:wishlist_product;type:int4;default:0" json:"wishlist_product"`
+}
+
+func (WishlistThreshold) TableName() string {
+	return sot_threshold_seeders_nama.WishlistThreshold
+}
+
+func (w *WishlistThreshold) Inisialisasi(ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&WishlistThreshold{}).Select("id").Where(&WishlistThreshold{
+		IdWishlist: w.IdWishlist,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&WishlistThreshold{
+		IdWishlist: w.IdWishlist,
+	}).Error
+}
+
+func (w *WishlistThreshold) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&WishlistThreshold{}).Where(&WishlistThreshold{
+		IdWishlist: w.IdWishlist,
+	}).Updates(updates).Error
+}
+
+func (w *WishlistThreshold) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&WishlistThreshold{}).Where(&WishlistThreshold{
+		IdWishlist: w.IdWishlist,
+	}).Updates(updates).Error
+}
+
+func (w *WishlistThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&WishlistThreshold{}).Where(&WishlistThreshold{
+		IdWishlist: w.IdWishlist,
+	}).Updates(updates).Error
+}
+
+func (w WishlistThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&WishlistThreshold{}).Where(&WishlistThreshold{
+		IdWishlist: w.IdWishlist,
+	}).Updates(updates).Error
+}
+
 // 22. AlamatEkspedisiThreshold
 type AlamatEkspedisiThreshold struct {
 	ID                int64                      `gorm:"primaryKey;autoIncrement" json:"id_alamat_ekspedisi_threshold"`
