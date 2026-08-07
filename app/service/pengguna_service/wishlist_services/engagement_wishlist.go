@@ -19,7 +19,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 func TambahWishlist(ctx context.Context, data PayloadTambahWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
@@ -289,8 +288,79 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 	}
 }
 
+func EditWishlist(ctx context.Context, data PayloadEditWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "EditWishlist"
+
+	if _, err := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !err {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal kredensial tidak valid",
+		}
+	}
+
+	var IdWishlist int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Select("id").Where(&sot_models.Wishlist{
+		ID:         data.IdWishlist,
+		IdPengguna: data.IdentitasPengguna.ID,
+	}).Limit(1).Take(&IdWishlist).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if IdWishlist == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal mendapatkan data wishlist",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
+		ID: data.IdWishlist,
+	}).Updates(&sot_models.Wishlist{
+		Nama:       data.Nama,
+		Deskripsi:  data.Deskripsi,
+		Visibility: data.Visibility,
+	}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal update data server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	go func(IW int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+		var WishlistData sot_models.Wishlist
+
+		if err := Read.WithContext(konteks).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
+			ID: IW,
+		}).Limit(1).Take(&WishlistData).Error; err != nil {
+			fmt.Println("Gagal mendapatkan data wishlist sebelum publish")
+			return
+		}
+
+		updateWishlistPublish := mb_cud_serializer.NewJsonPayload().SetPayload(WishlistData).SetRole(mb_cud_seeders.Pengguna).SetTableName(WishlistData.TableName())
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateWishlistPublish).Error; err != nil {
+			fmt.Println("Gagal publish update EditWishlist ke publisher")
+		}
+
+	}(IdWishlist, db.Read, cud_publisher)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
 func HapusWishlist(ctx context.Context, data PayloadHapusWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "HapusWishlist"
+	const services string = "HapusWishlist"
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{

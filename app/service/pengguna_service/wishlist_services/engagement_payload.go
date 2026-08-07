@@ -20,6 +20,14 @@ type PayloadHapusBarangDariWishlist struct {
 	IdBarangInduk     int32                              `json:"id_barang_induk"`
 }
 
+type PayloadEditWishlist struct {
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	IdWishlist        int64                              `json:"id_wishlist"`
+	Nama              string                             `json:"nama"`
+	Deskripsi         string                             `json:"deskripsi"`
+	Visibility        string                             `json:"visibility"`
+}
+
 type PayloadHapusWishlist struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
 	IdWishlist        int64                              `json:"id_wishlist"`
