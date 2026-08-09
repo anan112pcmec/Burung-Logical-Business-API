@@ -284,8 +284,8 @@ func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *
 	}
 }
 
-func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPengirimanNonEksManualReguler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "AmbilPengirimanManualReguler"
+func AmbilPengirimanNonEks(ctx context.Context, data PayloadAmbilPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services = "AmbilPengirimanNonEks"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -375,7 +375,34 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 		}
 	}
 
-	var max_slot int8 = 8
+	var max_slot int8 = 0
+
+	var jenis string = ""
+	if data.JenisPengiriman == "reguler" {
+		jenis = "maksimal_bid_kurir_reguler"
+	} else if data.JenisPengiriman == "express" {
+		jenis = "maksimal_bid_kurir_express"
+	} else if data.JenisPengiriman == "instant" {
+		jenis = "maksimal_bid_kurir_instant"
+	} else {
+		return &response.ResponseForm{
+			Status:   http.StatusBadRequest,
+			Services: services,
+			Message:  "Gagal jenis pengiriman tidak valid",
+		}
+	}
+
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KebijakanSistem{}).Select(jenis).Where(&sot_models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&max_slot).Error; err != nil {
+		fmt.Println("pengiriman services penentuan jenis max slot kurir")
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
 	var newBidKurirNonEksScheduler sot_models.BidKurirNonEksScheduler
 	var idPengirimanUpdated int64
 	var idBidKurirDataUpdated int64
@@ -434,7 +461,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 		}
 
 		// CREATE
-		bidKurirNonEksSchedulerCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bknes).SetTableName("bidKurirNonEksSchedulerCreatePublish").SetRole(mb_cud_seeders.Kurir)
+		bidKurirNonEksSchedulerCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bknes).SetTableName(services + "Create" + Bknes.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bidKurirNonEksSchedulerCreatePublish); err != nil {
 			fmt.Println("Gagal publish bid kurir non eks scheduler create ke message broker")
 		}
@@ -446,7 +473,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 			fmt.Println("Gagal mengambil data pengiriman")
 		} else {
 			// UPDATE
-			pengirimanUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengirimanUpdated).SetTableName("pengirimanUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+			pengirimanUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengirimanUpdated).SetTableName(services + "Update" + dataPengirimanUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, pengirimanUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update pengiriman ke message broker")
 			}
@@ -459,7 +486,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 			fmt.Println("Gagal mengambil data bid kurir data")
 		} else {
 			// UPDATE
-			bidKurirDataAmbilPengirimanUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataUpdated).SetTableName("bidKurirDataAmbilPengirimanUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+			bidKurirDataAmbilPengirimanUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataUpdated).SetTableName(services + "Update" + dataBidKurirDataUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bidKurirDataAmbilPengirimanUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update bid kurir data ke message broker")
 			}
@@ -491,7 +518,7 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 			}
 
 			// UPDATE
-			bidKurirDataStatusUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataStatusUpdated).SetTableName("bidKurirDataStatusUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+			bidKurirDataStatusUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataStatusUpdated).SetTableName(services + "Update" + dataBidKurirDataStatusUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bidKurirDataStatusUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update status bid kurir data ke message broker")
 			}
@@ -504,9 +531,8 @@ func AmbilPengirimanNonEksManualReguler(ctx context.Context, data PayloadAmbilPe
 		Message:  "Berhasil",
 	}
 }
-
-func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengirimanEksManualReguler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "AmbilPengirimanEksManualReguler"
+func AmbilPengirimanEks(ctx context.Context, data PayloadAmbilPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services = "AmbilPengirimanEks"
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -547,6 +573,25 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 		}
 	}
 
+	var id_bid_scheduler int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BidKurirEksScheduler{}).Select("id").Where(&sot_models.BidKurirEksScheduler{
+		IdPengirimanEks: data.IdPengiriman,
+	}).Limit(1).Scan(&id_bid_scheduler).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_bid_scheduler != 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal kamu sudah mengambil barang itu pada bid mu",
+		}
+	}
+
 	// Memastikan data pengiriman ada
 	var jenis_kendaraan string = ""
 	if err := db.Read.WithContext(ctx).Model(&sot_models.PengirimanEkspedisi{}).Select("kendaraan_required").Where(&sot_models.PengirimanEkspedisi{
@@ -576,10 +621,27 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 		}
 	}
 
-	var id_bid_scheduler int64 = 0
-	if err := db.Read.WithContext(ctx).Model(&sot_models.BidKurirEksScheduler{}).Select("id").Where(&sot_models.BidKurirEksScheduler{
-		IdPengirimanEks: data.IdPengiriman,
-	}).Limit(1).Scan(&id_bid_scheduler).Error; err != nil {
+	var max_slot int8 = 0
+
+	var jenis string = ""
+	if data.JenisPengiriman == "reguler" {
+		jenis = "maksimal_bid_kurir_reguler"
+	} else if data.JenisPengiriman == "express" {
+		jenis = "maksimal_bid_kurir_express"
+	} else if data.JenisPengiriman == "instant" {
+		jenis = "maksimal_bid_kurir_instant"
+	} else {
+		return &response.ResponseForm{
+			Status:   http.StatusBadRequest,
+			Services: services,
+			Message:  "Gagal jenis pengiriman tidak valid",
+		}
+	}
+
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KebijakanSistem{}).Select(jenis).Where(&sot_models.KebijakanSistem{
+		StatusActive: true,
+	}).Limit(1).Take(&max_slot).Error; err != nil {
+		fmt.Println("pengiriman services penentuan jenis max slot kurir")
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -587,15 +649,6 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 		}
 	}
 
-	if id_bid_scheduler != 0 {
-		return &response.ResponseForm{
-			Status:   http.StatusUnauthorized,
-			Services: services,
-			Message:  "Gagal kamu sudah mengambil barang itu pada bid mu",
-		}
-	}
-
-	var max_slot int64 = 8
 	var newBidKurirEksScheduler sot_models.BidKurirEksScheduler
 	var idPengirimanEksUpdated int64
 	var idBidKurirDataUpdated int64
@@ -652,7 +705,7 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 		}
 
 		// CREATE
-		bidKurirEksSchedulerCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bkes).SetTableName("bidKurirEksSchedulerCreatePublish").SetRole(mb_cud_seeders.Kurir)
+		bidKurirEksSchedulerCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Bkes).SetTableName(services + "Create" + Bkes.TableName()).SetRole(mb_cud_seeders.Kurir)
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bidKurirEksSchedulerCreatePublish); err != nil {
 			fmt.Println("Gagal publish bid kurir eks scheduler create ke message broker")
 		}
@@ -664,7 +717,7 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 			fmt.Println("Gagal mengambil data pengiriman ekspedisi")
 		} else {
 			// UPDATE
-			pengirimanEksUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengirimanEksUpdated).SetTableName("pengirimanEksUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+			pengirimanEksUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataPengirimanEksUpdated).SetTableName(services + "Update" + dataPengirimanEksUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, pengirimanEksUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update pengiriman ekspedisi ke message broker")
 			}
@@ -676,9 +729,8 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 		}).Limit(1).Take(&dataBidKurirDataUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data bid kurir data")
 		} else {
-
 			// UPDATE
-			bidKurirDataAmbilPengirimanEksUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataUpdated).SetTableName("bidKurirDataAmbilPengirimanEksUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+			bidKurirDataAmbilPengirimanEksUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataUpdated).SetTableName(services + "Update" + dataBidKurirDataUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bidKurirDataAmbilPengirimanEksUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update bid kurir data ke message broker")
 			}
@@ -710,7 +762,7 @@ func AmbilPengirimanEksManualReguler(ctx context.Context, data PayloadAmbilPengi
 			}
 
 			// UPDATE
-			bidKurirDataAmbilPengirimanEksStatusUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataStatusUpdated).SetTableName("bidKurirDataAmbilPengirimanEksStatusUpdatedPublish").SetRole(mb_cud_seeders.Kurir)
+			bidKurirDataAmbilPengirimanEksStatusUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataBidKurirDataStatusUpdated).SetTableName(services + "Update" + dataBidKurirDataStatusUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, bidKurirDataAmbilPengirimanEksStatusUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update status bid kurir data ke message broker")
 			}

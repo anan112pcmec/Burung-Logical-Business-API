@@ -24,14 +24,14 @@ type PayloadUpdatePosisiBid struct {
 	Latitude       float64                       `json:"latitude"`
 }
 
-type PayloadAmbilPengirimanNonEksManualReguler struct {
+type PayloadAmbilPengirimanNonEks struct {
 	IdentitasKurir  identity_kurir.IdentitasKurir `json:"identitas_kurir"`
 	IdPengiriman    int64                         `json:"id_pengiriman"`
 	IdBid           int64                         `json:"id_bid"`
 	JenisPengiriman string                        `json:"jenis_pengiriman"`
 }
 
-type PayloadAmbilPengirimanEksManualReguler struct {
+type PayloadAmbilPengirimanEks struct {
 	IdentitasKurir  identity_kurir.IdentitasKurir `json:"identitas_kurir"`
 	IdPengiriman    int64                         `json:"id_pengiriman"`
 	IdBid           int64                         `json:"id_bid"`
