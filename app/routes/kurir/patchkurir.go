@@ -101,6 +101,20 @@ func PatchKurirHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			return
 		}
 		hasil = kurir_pengiriman_services.UpdatePosisiBidKurir(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/kurir/pengiriman/ambil-pengiriman-non-eks":
+		var data kurir_pengiriman_services.PayloadAmbilPengirimanNonEks
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = kurir_pengiriman_services.AmbilPengirimanNonEks(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/kurir/pengiriman/ambil-pengiriman-eks":
+		var data kurir_pengiriman_services.PayloadAmbilPengirimanEks
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = kurir_pengiriman_services.AmbilPengirimanEks(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/kurir/pengiriman/lock-siap-antar-bid":
 		var data kurir_pengiriman_services.PayloadLockSiapAntar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

@@ -19,7 +19,7 @@ func UpEnumsEntity(db *gorm.DB) error {
 		/* Udh bikin enum */ "seller_dedication": {"Pakaian & Fashion", "Kosmetik & Kecantikan", "Elektronik & Gadget", "Buku & Media", "Makanan & Minuman", "Ibu & Bayi", "Mainan", "Olahraga & Outdoor", "Otomotif & Sparepart", "Rumah Tangga", "Alat Tulis", "Perhiasan & Aksesoris", "Produk Digital", "Bangunan & Perkakas", "Musik & Instrumen", "Film & Broadcasting", "Semua Barang"},
 
 		"status_pengiriman_ekspedisi": {"Picked Up", "Waiting", "Dikirim", "Sampai Agent", "Masuk Gateaway", "Sampai Agent Tujuan", "Dikirim Agent", "Sampai"},
-		/*Udh bikin enum*/ "jenis_layanan_kurir": {"Reguler", "Fast", "Instant"},
+		/*Udh bikin enum*/ "jenis_layanan_kurir": {"reguler", "express", "instant"},
 		"status_keranjang":                       {"Ready", "UnReady"},
 		"status_perizinan":                       {"Pending", "Diizinkan", "Dilarang"},
 		/*Udh bikin enum*/ "jenis_kendaraan_kurir": {"Motor", "Mobil", "Truk", "Pickup", "Lainnya", "Unknown"},
