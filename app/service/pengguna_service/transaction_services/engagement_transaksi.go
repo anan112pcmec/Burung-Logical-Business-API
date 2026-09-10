@@ -1846,7 +1846,7 @@ func LockTransaksiGerai(data PayloadLockTransaksiGerai, db *environment.Internal
 				IdKategori:    data.DataHold[i].IdKategoriBarang,
 				HoldBy:        data.DataHold[i].IDUser,
 				HolderEntity:  entity_enums.Pengguna,
-				Status:        "Dipesan",
+				Status:        "Dipesan", // Jadi Dipesan
 			}).Updates(&sot_models.VarianBarang{
 				Status:      "Terjual",
 				IdTransaksi: transaksi_save[i].ID,

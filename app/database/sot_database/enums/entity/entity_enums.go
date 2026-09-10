@@ -5,13 +5,29 @@ package entity_enums
 // 2 ENUM UNTUK TABLE PENGGUNA
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var (
-	Online  = "Online"
-	Offline = "Offline"
+const (
+	Online  string = "Online"
+	Offline string = "Offline"
 )
 
-var (
-	Pengguna = "pengguna"
-	Seller   = "seller"
-	Kurir    = "kurir"
+const (
+	Pengguna string = "pengguna"
+	Seller   string = "seller"
+	Kurir    string = "kurir"
 )
+
+func NamaEntityJenisEnums() string {
+	return "jenis_entity"
+}
+
+func EntityJenisEnums() []string {
+	return []string{Pengguna, Seller, Kurir}
+}
+
+func NamaEntityStatusEnums() string {
+	return "status"
+}
+
+func EntityStatusEnums() []string {
+	return []string{Online}
+}

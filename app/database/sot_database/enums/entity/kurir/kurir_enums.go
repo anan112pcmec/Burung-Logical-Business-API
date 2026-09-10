@@ -10,59 +10,127 @@ package kurir_enums
 // 3 ENUM UNTUK TABLE KURIR
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Pending string = "Pending"
-const Diizinkan string = "Diizinkan"
-const Dilarang string = "Dilarang"
+const (
+	Pending   string = "Pending"
+	Diizinkan string = "Diizinkan"
+	Dilarang  string = "Dilarang"
+)
+
+func NamaStatusPerizinanEnums() string {
+	return "status_perizinan"
+}
+
+func StatusPerizinanEnums() []string {
+	return []string{Pending, Diizinkan, Dilarang}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // JENIS KENDARAAN KURIR ENUM
 // 6 ENUM UNTUK TABLE KURIR
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Motor string = "Motor"
-const Mobil string = "Mobil"
-const Truk string = "Truk"
-const Pickup string = "Pickup"
-const Lainnya string = "Lainnya"
-const Unknown string = "Unknown"
+const (
+	Motor   string = "Motor"
+	Mobil   string = "Mobil"
+	Truk    string = "Truk"
+	Pickup  string = "Pickup"
+	Lainnya string = "Lainnya"
+	Unknown string = "Unknown"
+)
+
+func NamaJenisKendaraanKurirEnums() string {
+	return "jenis_kendaraan_kurir"
+}
+
+func JenisKendaraanKurirEnums() []string {
+	return []string{Motor, Mobil, Truk, Pickup, Lainnya, Unknown}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // RODA KENDARAAN KURIR ENUM
 // 3 ENUM UNTUK TABLE KURIR
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const RodaDua string = "2"
-const RodaTiga string = "3"
-const RodaEmpat string = "4"
+const (
+	RodaDua   string = "2"
+	RodaTiga  string = "3"
+	RodaEmpat string = "4"
+)
+
+func NamaRodaKendaraanKurirEnums() string {
+	return "roda_kendaraan_kurir"
+}
+
+func RodaKendaraanKurirEnums() []string {
+	return []string{RodaDua, RodaTiga, RodaEmpat}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // STATUS NARIK KURIR ENUM
 // 3 ENUM UNTUK TABLE KURIR
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Idle string = "Idle"
-const Ondelivery string = "OnDelivery"
-const Off string = "Off"
+const (
+	Idle       string = "Idle"
+	Ondelivery string = "OnDelivery"
+	Off        string = "Off"
+)
+
+func NamaStatusKurirEnums() string {
+	return "status_kurir"
+}
+
+func StatusKurirEnums() []string {
+	return []string{Idle, Ondelivery, Off}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mode Bid Kurir
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const (
+	Manual string = "Manual"
+	Auto   string = "Auto"
+)
 
-const Manual string = "manual"
-const Auto string = "auto"
+func NamaModeBidKurirEnums() string {
+	return "mode_bid_kurir"
+}
+
+func ModeBidKurirEnums() []string {
+	return []string{Manual, Auto}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Status Bid Data
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const (
+	Mengumpulkan string = "Mengumpulkan"
+	SiapAntar    string = "Siap Antar"
+)
 
-const Mengumpulkan string = "Mengumpulkan"
-const SiapAntar string = "Siap Antar"
+func NamaStatusBidDataEnums() string {
+	return "status_bid_data"
+}
+
+func StatusBidDataEnums() []string {
+	return []string{Mengumpulkan, SiapAntar}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Status Bid Scheduler EKS/NON EKS
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Wait string = "Wait"
-const Ambil string = "Ambil"
-const Kirim string = "Kirim"
-const Finish string = "Finish"
+const (
+	Wait   string = "Wait"
+	Ambil  string = "Ambil"
+	Kirim  string = "Kirim"
+	Finish string = "Finish"
+)
+
+func NamaStatusBidSchedulerEnums() string {
+	return "status_bid_scheduler"
+}
+
+func StatusBidSchedulerEnums() []string {
+	return []string{Wait, Ambil, Kirim, Finish}
+}

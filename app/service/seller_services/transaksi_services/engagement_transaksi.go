@@ -112,52 +112,6 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 			return err
 		}
 
-		if data.IsAuto {
-			if caching_rds := func() error {
-				keyMembersAuto := "auto_pengiriman"
-				keyDetailAuto := fmt.Sprintf("auto_pengiriman:%d", data.IdTransaksi)
-
-				exists := false
-				members, err := rds.SMembers(ctx, keyMembersAuto).Result()
-				if err != nil {
-					return err
-				} else {
-					for _, m := range members {
-						if m == fmt.Sprintf("%d", data.IdTransaksi) {
-							exists = true
-							break
-						}
-					}
-				}
-
-				if !exists {
-					if err := rds.SAdd(ctx, keyMembersAuto, data.IdTransaksi).Err(); err != nil {
-						return err
-					}
-				}
-
-				if err := rds.HSet(ctx, keyDetailAuto, map[string]interface{}{
-					"id_transaksi": data.IdTransaksi,
-					"id_seller":    data.IdentitasSeller.IdSeller,
-					"waktu_commit": data.AutoPengiriman.Format(time.RFC3339),
-				}).Err(); err != nil {
-					return err
-				}
-
-				expiredUnix := data.AutoPengiriman.Unix()
-
-				finalExpireUnix := expiredUnix + (5 * 60)
-
-				if err := rds.ExpireAt(ctx, keyDetailAuto, time.Unix(finalExpireUnix, 0)).Err(); err != nil {
-					return err
-				}
-
-				return nil
-			}(); caching_rds != nil {
-				fmt.Println("gagal di redis", caching_rds)
-				return caching_rds
-			}
-		}
 		return nil
 	}); err != nil {
 		return &response.ResponseForm{
@@ -254,7 +208,7 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 		JenisPengiriman:   data_transaksi.JenisPengiriman,
 		JarakTempuh:       data_transaksi.JarakTempuh,
 		KurirPaid:         data_transaksi.KurirPaid,
-		Status:            pengiriman_enums.WaitingEkspedisi,
+		Status:            pengiriman_enums.Waiting,
 	}
 
 	var id_data_threshold int64 = 0
@@ -451,11 +405,13 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 		}
 	}
 
+	var dibatalkanOleh string = entity_enums.Seller
+
 	if err := db.Write.WithContext(ctx).Model(&sot_models.Transaksi{}).Where(&sot_models.Transaksi{
 		ID: data.IdTransaksi,
 	}).Updates(&sot_models.Transaksi{
 		Status:         transaksi_enums.Dibatalkan,
-		DibatalkanOleh: &entity_enums.Seller,
+		DibatalkanOleh: &dibatalkanOleh,
 		Catatan:        data.Catatan,
 	}).Error; err != nil {
 		return &response.ResponseForm{

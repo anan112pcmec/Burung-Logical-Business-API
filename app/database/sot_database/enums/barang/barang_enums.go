@@ -1,10 +1,18 @@
 package barang_enums
 
-var (
-	Pending  = "Pending"
-	Ready    = "Ready"
-	Dipesan  = "Dipesan"
-	Diproses = "Diproses"
-	Terjual  = "Terjual"
-	Down     = "Down"
+const (
+	Pending  string = "Pending"
+	Ready    string = "Ready"
+	Dipesan  string = "Dipesan"
+	Diproses string = "Diproses"
+	Terjual  string = "Terjual"
+	Down     string = "Down"
 )
+
+func NamaStatusVarianBarangEnums() string {
+	return "status_varian"
+}
+
+func StatusVarianBarangEnums() []string {
+	return []string{Pending, Ready, Dipesan, Diproses, Terjual, Down}
+}
