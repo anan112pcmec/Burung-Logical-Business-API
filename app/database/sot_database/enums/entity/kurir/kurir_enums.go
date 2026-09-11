@@ -4,6 +4,20 @@ package kurir_enums
 // JENIS LAYANAN KURIR ENUM
 // 6 ENUM UNTUK TABLE KURIR
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Enums jenis pengiriman
+const (
+	Reguler = "Reguler"
+	Express = "Express"
+	Instant = "Instant"
+)
+
+func NamaJenisLayananKurirEnums() string {
+	return "jenis_layanan_kurir"
+}
+
+func JenisLayananKurirEnums() []string {
+	return []string{Reguler, Express, Instant}
+}
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // STATUS PERIZINAN KENDARAAN ENUM

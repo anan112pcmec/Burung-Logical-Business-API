@@ -146,6 +146,9 @@ func PrevisioningEnvironment(db_system *environment.InternalDBReadWriteSystem, c
 	if err := enums.UpEnumsEntity(db_system.Write); err != nil {
 		log.Printf("ÃƒÂ¢Ã‚ÂÃ…â€™ Gagal UpEnumsEntity: %v", err)
 	}
+	if err := enums.UpEngagementEntityEnums(db_system.Write); err != nil {
+		log.Printf("ÃƒÂ¢Ã‚ÂÃ…â€™ Gagal UpEnumsEngagementEntity: %v", err)
+	}
 	if err := enums.UpBarangEnums(db_system.Write); err != nil {
 		log.Printf("ÃƒÂ¢Ã‚ÂÃ…â€™ Gagal UpBarangEnums: %v", err)
 	}

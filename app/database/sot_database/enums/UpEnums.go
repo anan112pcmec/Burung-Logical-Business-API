@@ -37,6 +37,7 @@ func UpEnumsEntity(db *gorm.DB) error {
 		kurir_enums.NamaStatusBidDataEnums():       kurir_enums.StatusBidDataEnums(),
 		kurir_enums.NamaStatusBidSchedulerEnums():  kurir_enums.StatusBidSchedulerEnums(),
 		kurir_enums.NamaModeBidKurirEnums():        kurir_enums.ModeBidKurirEnums(),
+		kurir_enums.NamaJenisLayananKurirEnums():   kurir_enums.JenisLayananKurirEnums(),
 
 		/* Udh bikin enum */ "nama_provinsi": {"banten", "jawa_barat", "jawa_tengah", "di_yogyakarta", "dki_jakarta", "jawa_timur"},
 		/* Udh bikin enum */ "nama_kota": {
@@ -214,7 +215,6 @@ func UpEngagementEntityEnums(db *gorm.DB) error {
 		pengiriman_enums.NamaStatusPengirimanNonEkspedisi(): pengiriman_enums.StatusPengirimanNonEkspedisi(),
 
 		pengiriman_enums.NamaStatusPengirimanEkspedisiEnums(): pengiriman_enums.StatusPengirimanEkspedisiEnums(),
-		pengiriman_enums.NamaJenisLayananKurirEnums():         pengiriman_enums.JenisLayananKurirEnums(),
 		keranjang_enums.NamaStatusKeranjangEnums():            keranjang_enums.StatusKeranjangEnums(),
 	}
 

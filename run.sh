@@ -407,8 +407,9 @@ echo ""
 print_info "Menjalankan backend Go application..."
 echo ""
 
-go run main.go
-EXIT_CODE=$?
+while true; do
+    sleep 1
+done
 
 # 14. Exit message
 # 14. Exit message

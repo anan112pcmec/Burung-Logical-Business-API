@@ -24,7 +24,6 @@ import (
 	response_auth "github.com/anan112pcmec/Burung-backend-1/app/service/authservices/reponse_auth"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +34,14 @@ import (
 func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "PenggunaLogin"
 	var user sot_models.Pengguna
+
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: service,
+			Message:  "Gagal, format tidak valid",
+		}
+	}
 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{Email: email}).Limit(1).Take(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -136,6 +143,14 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 	service := "SellerLogin"
 	var seller sot_models.Seller
 
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: service,
+			Message:  "Gagal, format tidak valid",
+		}
+	}
+
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Seller{}).Where(&sot_models.Seller{Email: email}).Limit(1).Take(&seller).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -235,6 +250,14 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 
 func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "KurirLogin"
+
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: service,
+			Message:  "Gagal, format tidak valid",
+		}
+	}
 
 	var kurir sot_models.Kurir
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{Email: email}).Limit(1).Take(&kurir).Error; err != nil {
@@ -342,6 +365,22 @@ func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, 
 func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, username, nama, email, password string, rds *redis.Client) *response.ResponseForm {
 	services := "PreUserRegistration"
 
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Kredensial Tidak Valid",
+		}
+	}
+
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Password harus mengandung angka/underscore dan minimal 1 huruf kapital",
+		}
+	}
+
 	var user int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Pengguna{}).Select("id").Where(&sot_models.Pengguna{Email: email}).Or(&sot_models.Pengguna{Username: username}).Limit(1).Scan(&user).Error; err != nil {
 		return &response.ResponseForm{
@@ -409,6 +448,22 @@ func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWrit
 
 func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, username, nama, email string, jenis string, SellerDedication string, password string, rds *redis.Client) *response.ResponseForm {
 	services := "PreSellerRegistration"
+
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Kredensial Tidak Valid",
+		}
+	}
+
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Password harus mengandung angka/underscore dan minimal 1 huruf kapital",
+		}
+	}
 
 	var seller int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Seller{}).Select("id").
@@ -485,6 +540,22 @@ func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWr
 func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, nama, email, password, username string, rds *redis.Client) *response.ResponseForm {
 	services := "PreKurirRegistration"
 
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Kredensial Tidak Valid",
+		}
+	}
+
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Password harus mengandung angka/underscore dan minimal 1 huruf kapital",
+		}
+	}
+
 	var kurir int64 = 0
 	if err := db.Read.Model(&sot_models.Kurir{}).WithContext(ctx).Select("id").Where(&sot_models.Kurir{Email: email}).Or(&sot_models.Kurir{
 		Username: username,
@@ -554,6 +625,14 @@ func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWri
 
 func ValidateUserRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateUserRegistration"
+
+	if !helper.OtpValidation(OTPkey) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal otp tidak valid",
+		}
+	}
 
 	key := fmt.Sprintf("registration_user_pending:%s", OTPkey)
 
@@ -637,6 +716,14 @@ func ValidateUserRegistration(ctx context.Context, db *environment.InternalDBRea
 
 func ValidateSellerRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "ValidateSellerRegistration"
+
+	if !helper.OtpValidation(OTPkey) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal otp tidak valid",
+		}
+	}
 
 	key := fmt.Sprintf("registration_seller_pending:%s", OTPkey)
 
@@ -722,6 +809,14 @@ func ValidateSellerRegistration(ctx context.Context, db *environment.InternalDBR
 
 func ValidateKurirRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "ValidateKurirRegistration"
+
+	if !helper.OtpValidation(OTPkey) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal otp tidak valid",
+		}
+	}
 
 	key := fmt.Sprintf("registration_kurir_pending:%s", OTPkey)
 

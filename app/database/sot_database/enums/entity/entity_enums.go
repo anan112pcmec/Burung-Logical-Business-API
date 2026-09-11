@@ -29,5 +29,5 @@ func NamaEntityStatusEnums() string {
 }
 
 func EntityStatusEnums() []string {
-	return []string{Online}
+	return []string{Online, Offline}
 }

@@ -16,10 +16,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"gorm.io/gorm"
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+
 )
 
 func DecodeJSONBody(r *http.Request, dst interface{}) error {
@@ -338,4 +340,39 @@ func GenerateMediaKeyDokumen() string {
 	b := make([]byte, 11)
 	mrand.Read(b)
 	return fmt.Sprintf("%s-dok", hex.EncodeToString(b))
+}
+
+func Contains(target string, syarat []string) bool {
+	for _, s := range syarat {
+		if terpenuhi := strings.Contains(target, s); terpenuhi {
+			return true
+		}
+	}
+
+	return false
+}
+
+func HasUppercase(s string) bool {
+	for _, r := range s {
+		if unicode.IsUpper(r) {
+			return true
+		}
+	}
+	return false
+}
+
+func OtpValidation(OTPkey string) bool {
+	// 1. Pastikan panjang string persis 8 karakter
+	if len(OTPkey) != 8 {
+		return false
+	}
+
+	// 2. Cek apakah setiap karakter adalah angka
+	for _, char := range OTPkey {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+
+	return true
 }

@@ -101,11 +101,11 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *env
 	var QuerySlotTersisa string = "maksimal_bid_kurir_reguler"
 
 	switch data.JenisPengiriman {
-	case pengiriman_enums.Instant:
+	case kurir_enums.Instant:
 		QuerySlotTersisa = "maksimal_bid_kurir_instant"
-	case pengiriman_enums.Express:
+	case kurir_enums.Express:
 		QuerySlotTersisa = "maksimal_bid_kurir_express"
-	case pengiriman_enums.Reguler:
+	case kurir_enums.Reguler:
 		QuerySlotTersisa = "maksimal_bid_kurir_reguler"
 	default:
 		return &response.ResponseForm{
@@ -127,7 +127,7 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *env
 		}
 	}
 
-	if data.Mode == "manual" && data.JenisPengiriman != pengiriman_enums.Reguler {
+	if data.Mode == "manual" && data.JenisPengiriman != kurir_enums.Reguler {
 		data.Mode = "auto"
 	}
 

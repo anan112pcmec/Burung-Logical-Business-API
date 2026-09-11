@@ -1,20 +1,5 @@
 package pengiriman_enums
 
-// Enums jenis pengiriman
-const (
-	Reguler = "Reguler"
-	Express = "Express"
-	Instant = "Instant"
-)
-
-func NamaJenisLayananKurirEnums() string {
-	return "jenis_layanan_kurir"
-}
-
-func JenisLayananKurirEnums() []string {
-	return []string{Reguler, Express, Instant}
-}
-
 // Enums untuk pengiriman non ekspedisi
 
 const (
