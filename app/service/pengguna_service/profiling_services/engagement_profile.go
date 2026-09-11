@@ -12,6 +12,7 @@ import (
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -19,7 +20,6 @@ import (
 	particular_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/particular_profiling"
 	response_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/response_profiling"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,6 +30,14 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 	var wg sync.WaitGroup
 
 	const services string = "UbahPersonalProfilingPengguna"
+
+	if !helper.Contains(data.EmailUpdate, []string{"@gmail.com", "BLANK"}) || !helper.Contains(data.UsernameUpdate, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "BLANK"}) || !helper.Contains(data.UsernameUpdate, []string{"_", "BLANK"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format input tidak valid",
+		}
+	}
 	var hasil_update_gmail particular_profiling_pengguna.ResponseUbahEmail
 	var hasil_update_username particular_profiling_pengguna.ResponseUbahUsername
 	var hasil_update_nama particular_profiling_pengguna.ResponseUbahNama
@@ -42,7 +50,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		}
 	}
 
-	if data.EmailUpdate != "" && data.EmailUpdate != pengguna.Email && data.EmailUpdate != "not" {
+	if data.EmailUpdate != "" && data.EmailUpdate != pengguna.Email && data.EmailUpdate != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -50,7 +58,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		}()
 	}
 
-	if data.UsernameUpdate != "" && data.UsernameUpdate != pengguna.Username && data.UsernameUpdate != "not" {
+	if data.UsernameUpdate != "" && data.UsernameUpdate != pengguna.Username && data.UsernameUpdate != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -58,7 +66,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		}()
 	}
 
-	if data.NamaUpdate != "" && data.NamaUpdate != pengguna.Nama && data.NamaUpdate != "not" {
+	if data.NamaUpdate != "" && data.NamaUpdate != pengguna.Nama && data.NamaUpdate != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
