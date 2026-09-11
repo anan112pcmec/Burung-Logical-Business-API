@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 
 )
 
@@ -45,6 +46,14 @@ func (i *IdentityPengguna) Validating(ctx context.Context, db *gorm.DB, rds *red
 	var user sot_models.Pengguna
 
 	if i.ID == 0 || i.Username == "" || i.Email == "" {
+		return user, false
+	}
+
+	if !helper.Contains(i.Username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+		return user, false
+	}
+
+	if !helper.Contains(i.Email, []string{"@gmail.com"}) {
 		return user, false
 	}
 

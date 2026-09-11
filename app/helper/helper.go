@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm"
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-
 )
 
 func DecodeJSONBody(r *http.Request, dst interface{}) error {
@@ -369,6 +368,20 @@ func OtpValidation(OTPkey string) bool {
 
 	// 2. Cek apakah setiap karakter adalah angka
 	for _, char := range OTPkey {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+
+	return true
+}
+
+func PinValidation(PIN string) bool {
+	if len(PIN) != 6 {
+		return false
+	}
+
+	for _, char := range PIN {
 		if char < '0' || char > '9' {
 			return false
 		}

@@ -36,6 +36,22 @@ import (
 func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client) *response.ResponseForm {
 	const services string = "PreUbahPasswordPengguna"
 
+	if !helper.Contains(data.PasswordBaru, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(data.PasswordBaru) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, password baru tidak sesuai ketentuan",
+		}
+	}
+
+	if !helper.Contains(data.PasswordSebelum, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(data.PasswordSebelum) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, password lama tidak sesuai ketentuan",
+		}
+	}
+
 	if data.FaktorKedua != "OTP" && data.FaktorKedua != "PIN" {
 		log.Printf("[WARN] Faktor kedua tidak valid: %s", data.FaktorKedua)
 		return &response.ResponseForm{
@@ -155,6 +171,14 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidateOTPPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "ValidateUbahPasswordPenggunaViaOtp"
 
+	if !helper.OtpValidation(data.OtpKey) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal Format Otp Tidak Valid",
+		}
+	}
+
 	var id_user int64
 	if check_user := db.Read.Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).First(&id_user).Error; check_user != nil {
 		log.Printf("[WARN] Pengguna tidak ditemukan untuk validasi OTP: %v", check_user)
@@ -226,6 +250,14 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 
 func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "ValidateUbahPasswordPenggunaViaPin"
+
+	if !helper.PinValidation(data.Pin) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal data pin tidak sesuai format ketentuan",
+		}
+	}
 
 	var pin_user string
 	if check_pin := db.Read.WithContext(ctx).Model(sot_models.Pengguna{}).Select("pin_hash").Where(sot_models.Pengguna{ID: data.IDPengguna}).Limit(1).Scan(&pin_user).Error; check_pin != nil {
@@ -305,6 +337,22 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MembuatSecretPinPengguna"
 
+	if !helper.PinValidation(data.Pin) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal data pin tidak sesuai format ketentuan",
+		}
+	}
+
+	if !helper.Contains(data.Password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(data.Password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, password lama tidak sesuai ketentuan",
+		}
+	}
+
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 
 	if !status {
@@ -378,6 +426,22 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 
 func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UpdateSecretPinPengguna"
+
+	if !helper.PinValidation(data.PinLama) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format pin lama tidak sesuai",
+		}
+	}
+
+	if !helper.PinValidation(data.PinBaru) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal fromat pin baru tidak sesuai",
+		}
+	}
 
 	user, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session)
 
