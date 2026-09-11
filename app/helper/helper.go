@@ -389,3 +389,32 @@ func PinValidation(PIN string) bool {
 
 	return true
 }
+
+func KodePosValidation(KodePos string) bool {
+	if len(KodePos) != 5 {
+		return false
+	}
+
+	for _, char := range KodePos {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+
+	return true
+}
+
+func NomorTelephoneValidatiom(noTelp string) bool {
+	if len(noTelp) > 13 || len(noTelp) < 10 {
+		return false
+	}
+
+	for _, char := range noTelp {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+
+	return true
+
+}

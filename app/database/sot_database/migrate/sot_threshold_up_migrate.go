@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
-
 )
 
 func UpThresholdTable(db *gorm.DB) {
@@ -23,6 +22,7 @@ func UpThresholdTable(db *gorm.DB) {
 	// Tabel dependent (FK harus dibuat setelah referensi)
 	dependent := []interface{}{
 		sot_threshold.AlamatGudangThreshold{},
+		sot_threshold.AlamatPenggunaThreshold{},
 		sot_threshold.TransaksiThreshold{},
 		sot_threshold.PembayaranThreshold{},
 		sot_threshold.PengirimanEkspedisiThreshold{},

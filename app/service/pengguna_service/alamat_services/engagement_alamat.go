@@ -21,6 +21,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,30 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal Data Pengguna Tidak Valid",
+		}
+	}
+
+	if !helper.KodePosValidation(data.KodePos) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format kode pos tidak valid",
+		}
+	}
+
+	if !helper.NomorTelephoneValidatiom(data.NomorTelephone) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format nomor telfon tidak valid",
+		}
+	}
+
+	if data.KodeNegara != "IDN" {
+		return &response.ResponseForm{
+			Status:   http.StatusNotAcceptable,
+			Services: services,
+			Message:  "Burung saat ini belum mendukung macanegara",
 		}
 	}
 
@@ -158,6 +183,30 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 			Status:   http.StatusNotFound,
 			Services: services,
 			Message:  "Gagal data Pengguna tidak ditemukan",
+		}
+	}
+
+	if !helper.KodePosValidation(data.KodePos) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format kode pos tidak valid",
+		}
+	}
+
+	if !helper.NomorTelephoneValidatiom(data.NomorTelephone) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format nomor telfon tidak valid",
+		}
+	}
+
+	if data.KodeNegara != "IDN" {
+		return &response.ResponseForm{
+			Status:   http.StatusNotAcceptable,
+			Services: services,
+			Message:  "Burung saat ini belum mendukung macanegara",
 		}
 	}
 
@@ -286,6 +335,14 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		}
 	}
 
+	if data.IdAlamatPengguna < 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal id tidak valid",
+		}
+	}
+
 	var alamat_pengguna sot_models.AlamatPengguna
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Where(&sot_models.AlamatPengguna{
 		ID:         data.IdAlamatPengguna,
@@ -352,6 +409,8 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		if err := threshold_pengguna.Decrement(konteks, Trh, stsk_pengguna.AlamatPengguna); err != nil {
 			fmt.Println("gagal decr threshold pengguna")
 		}
+
+		fmt.Println("ini ID: ", Ap.ID)
 
 		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
 			IdAlamatPengguna: Ap.ID,
