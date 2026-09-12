@@ -14,6 +14,7 @@ import (
 
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
+	seller_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
@@ -35,11 +36,19 @@ func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSyste
 	service := "PenggunaLogin"
 	var user sot_models.Pengguna
 
-	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+	if !helper.Contains(email, []string{"@gmail.com"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: service,
 			Message:  "Gagal, format tidak valid",
+		}
+	}
+
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: service,
+			Message:  "Password harus mengandung angka/underscore dan minimal 1 huruf kapital",
 		}
 	}
 
@@ -143,11 +152,19 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 	service := "SellerLogin"
 	var seller sot_models.Seller
 
-	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+	if !helper.Contains(email, []string{"@gmail.com"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: service,
 			Message:  "Gagal, format tidak valid",
+		}
+	}
+
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: service,
+			Message:  "Password harus mengandung angka/underscore dan minimal 1 huruf kapital",
 		}
 	}
 
@@ -365,7 +382,7 @@ func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, 
 func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, username, nama, email, password string, rds *redis.Client) *response.ResponseForm {
 	services := "PreUserRegistration"
 
-	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) || !helper.Contains(username, []string{"_"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -373,7 +390,7 @@ func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWrit
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -449,7 +466,7 @@ func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWrit
 func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, username, nama, email string, jenis string, SellerDedication string, password string, rds *redis.Client) *response.ResponseForm {
 	services := "PreSellerRegistration"
 
-	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) || !helper.Contains(username, []string{"_"}) || jenis != seller_enums.Personal || !helper.SellerDedicationValidation(SellerDedication) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -457,7 +474,7 @@ func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWr
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -548,7 +565,7 @@ func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWri
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,

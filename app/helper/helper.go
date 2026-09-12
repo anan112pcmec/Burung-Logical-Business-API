@@ -20,6 +20,7 @@ import (
 
 	"gorm.io/gorm"
 
+	seller_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
 
@@ -417,4 +418,26 @@ func NomorTelephoneValidatiom(noTelp string) bool {
 
 	return true
 
+}
+
+func SellerDedicationValidation(dedication string) bool {
+	return Contains(dedication, []string{
+		seller_enums.PakaianFashion,
+		seller_enums.KosmetikKecantikan,
+		seller_enums.ElektronikGadget,
+		seller_enums.BukuMedia,
+		seller_enums.MakananMinuman,
+		seller_enums.IbuBayi,
+		seller_enums.Mainan,
+		seller_enums.OlahragaOutdoor,
+		seller_enums.OtomotifSparepart,
+		seller_enums.RumahTangga,
+		seller_enums.AlatTulis,
+		seller_enums.PerhiasanAksesoris,
+		seller_enums.ProdukDigital,
+		seller_enums.BangunanPerkakas,
+		seller_enums.MusikInstrumen,
+		seller_enums.FilmBroadcasting,
+		seller_enums.SemuaBarang,
+	})
 }
