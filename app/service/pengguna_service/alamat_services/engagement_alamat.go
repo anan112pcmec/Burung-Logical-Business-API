@@ -21,7 +21,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +46,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		}
 	}
 
-	if !helper.NomorTelephoneValidatiom(data.NomorTelephone) {
+	if !helper.NomorTelephoneValidation(data.NomorTelephone) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -186,6 +185,14 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		}
 	}
 
+	if data.IdAlamatPengguna <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id alamat yang dituju tidak ada",
+		}
+	}
+
 	if !helper.KodePosValidation(data.KodePos) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -194,7 +201,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		}
 	}
 
-	if !helper.NomorTelephoneValidatiom(data.NomorTelephone) {
+	if !helper.NomorTelephoneValidation(data.NomorTelephone) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,

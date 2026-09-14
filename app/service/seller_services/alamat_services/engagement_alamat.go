@@ -22,6 +22,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,6 +35,22 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 	const services string = "TambahAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
+
+	if !helper.NomorTelephoneValidation(data.NomorTelefon) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format nomor telfon tidak valid",
+		}
+	}
+
+	if !helper.KodePosValidation(data.KodePos) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format kode pos tidak valid",
+		}
+	}
 
 	if !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)
@@ -146,6 +163,30 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 	const services string = "EditAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
+
+	if data.IdAlamatGudang <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, alamat yang dituju tidak ada",
+		}
+	}
+
+	if !helper.NomorTelephoneValidation(data.NomorTelefon) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format nomor telefon tidak valid ",
+		}
+	}
+
+	if !helper.KodePosValidation(data.KodePos) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format kode pos tidak valid",
+		}
+	}
 
 	if !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)
@@ -275,6 +316,14 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	const services string = "HapusAlamatGudang"
 
 	_, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
+
+	if data.IdGudang <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, alamat gudang yang dituju tidak ada",
+		}
+	}
 
 	if !status {
 		log.Printf("[WARN] Kredensial seller tidak valid untuk ID %d", data.IdentitasSeller.IdSeller)

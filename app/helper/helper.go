@@ -405,7 +405,7 @@ func KodePosValidation(KodePos string) bool {
 	return true
 }
 
-func NomorTelephoneValidatiom(noTelp string) bool {
+func NomorTelephoneValidation(noTelp string) bool {
 	if len(noTelp) > 13 || len(noTelp) < 10 {
 		return false
 	}
