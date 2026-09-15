@@ -14,11 +14,13 @@ import (
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	settings "github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,12 +31,11 @@ import (
 func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahRekeningSeller"
 
-	// validasi kredensial seller
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
+	if !helper.NomorRekeningValidation(data.NomorRekening) {
 		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
+			Status:   http.StatusUnauthorized,
 			Services: services,
-			Message:  "Gagal Kredensial Seller Tidak Valid",
+			Message:  "Gagal, format rekening tidak valid",
 		}
 	}
 
@@ -43,6 +44,23 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Gagal, nama bank tidak diterima",
+		}
+	}
+
+	if len(data.PemilikiRekening) < 3 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama pemilik rekening minimal 3 karakter",
+		}
+	}
+
+	// validasi kredensial seller
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal Kredensial Seller Tidak Valid",
 		}
 	}
 
@@ -159,11 +177,19 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditRekeningSeller"
 
-	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
+	if data.IdRekening < 0 {
 		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
+			Status:   http.StatusUnauthorized,
 			Services: services,
-			Message:  "Gagal Data seller tidak valid",
+			Message:  "Gagal, id data rekening tidak valid",
+		}
+	}
+
+	if !helper.NomorRekeningValidation(data.NomorRekening) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format rekening tidak valid",
 		}
 	}
 
@@ -172,6 +198,22 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Gagal, nama bank tidak diterima",
+		}
+	}
+
+	if len(data.PemilikiRekening) < 3 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama pemilik rekening minimal 3 karakter",
+		}
+	}
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal Data seller tidak valid",
 		}
 	}
 
@@ -241,6 +283,14 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 
 func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekeningSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "SetDefaultRekeningSeller"
+
+	if data.IdRekening < 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id data rekening tidak valid",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -326,6 +376,22 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 
 func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusRekeningSeller"
+
+	if data.IdRekening < 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id data rekening tidak valid",
+		}
+	}
+
+	if !helper.NomorRekeningValidation(data.NomorRekening) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format rekening tidak valid",
+		}
+	}
 
 	// Validasi kredensial seller
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {

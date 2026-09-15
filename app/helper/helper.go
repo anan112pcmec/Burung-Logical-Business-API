@@ -441,3 +441,17 @@ func SellerDedicationValidation(dedication string) bool {
 		seller_enums.SemuaBarang,
 	})
 }
+
+func NomorRekeningValidation(norek string) bool {
+	if len(norek) < 10 || len(norek) > 15 {
+		return false
+	}
+
+	for _, nomor := range norek {
+		if _, s := strconv.Atoi(string(nomor)); s != nil {
+			return false
+		}
+	}
+
+	return true
+}
