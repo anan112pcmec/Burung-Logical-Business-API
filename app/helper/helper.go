@@ -455,3 +455,24 @@ func NomorRekeningValidation(norek string) bool {
 
 	return true
 }
+
+func PasswordValidation(pass string) bool {
+
+	if len(pass) < 10 {
+		return false
+	}
+
+	if !HasUppercase(pass) {
+		return false
+	}
+
+	if !Contains(pass, []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}) {
+		return false
+	}
+
+	if !Contains(pass, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "+", "=", "_", "{", "}", "[", "]", "|", ";", ":", "'", `"`, "?", ",", "<", ">", ".", "/", "`"}) {
+		return false
+	}
+
+	return true
+}

@@ -36,19 +36,11 @@ import (
 func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client) *response.ResponseForm {
 	const services string = "PreUbahPasswordPengguna"
 
-	if !helper.Contains(data.PasswordBaru, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(data.PasswordBaru) {
+	if !helper.PasswordValidation(data.PasswordBaru) || !helper.PasswordValidation(data.PasswordSebelum) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Message:  "Gagal, password baru tidak sesuai ketentuan",
-		}
-	}
-
-	if !helper.Contains(data.PasswordSebelum, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(data.PasswordSebelum) {
-		return &response.ResponseForm{
-			Status:   http.StatusUnauthorized,
-			Services: services,
-			Message:  "Gagal, password lama tidak sesuai ketentuan",
+			Message:  "Gagal, Format password tidak valid",
 		}
 	}
 

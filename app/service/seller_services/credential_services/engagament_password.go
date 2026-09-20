@@ -30,6 +30,14 @@ import (
 func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSeller, db *environment.InternalDBReadWriteSystem, rds_auth *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "PreUbahPasswordSeller"
 
+	if !helper.PasswordValidation(data.PasswordBaru) || !helper.PasswordValidation(data.PasswordLama) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Format password tidak valid",
+		}
+	}
+
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
@@ -111,12 +119,12 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 func ValidateUbahPasswordSeller(ctx context.Context, data PayloadValidateUbahPasswordSellerOTP, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "ValidateUbahPasswordSeller"
 
-	if data.OtpKeyValidateSeller == "" {
+	if !helper.OtpValidation(data.OtpKeyValidateSeller) {
 		log.Println("[WARN] OTP tidak ditemukan pada permintaan validasi OTP.")
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
-			Message:  "OTP tidak ditemukan.",
+			Message:  "Format Otp Tidak Valid.",
 		}
 	}
 

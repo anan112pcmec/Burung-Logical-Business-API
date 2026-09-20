@@ -44,7 +44,7 @@ func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSyste
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+	if !helper.PasswordValidation(password) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: service,
@@ -160,7 +160,7 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+	if !helper.PasswordValidation(password) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: service,
