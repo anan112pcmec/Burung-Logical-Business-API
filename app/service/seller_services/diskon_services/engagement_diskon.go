@@ -27,6 +27,22 @@ import (
 func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahDiskonProduk"
 
+	if len(data.Nama) < 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama diskon harus lebih dari 5 karakter",
+		}
+	}
+
+	if data.BerlakuMulai.After(data.BerlakuSampai) || data.BerlakuMulai.Equal(data.BerlakuSampai) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, berlaku mulai tak boleh lebih atau sama dengan berlaku sampai",
+		}
+	}
+
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
@@ -166,6 +182,30 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditDiskonProduk"
 
+	if data.IdDiskonProduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDiskon tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
+
+	if len(data.Nama) < 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama diskon harus lebih dari 5 karakter",
+		}
+	}
+
+	if data.BerlakuMulai.After(data.BerlakuSampai) || data.BerlakuMulai.Equal(data.BerlakuSampai) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, berlaku mulai tak boleh lebih atau sama dengan berlaku sampai",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -249,6 +289,14 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 
 func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusDiskonProduk"
+
+	if data.IdDiskonProduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDiskonProduk tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -343,6 +391,30 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 
 func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPadaBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TetapkanDiskonPadaBarang"
+
+	if data.IdDiskonProduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDiskonProduk tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdBarangInduk tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
+
+	if data.IdKategoriBarang <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdKategoriBarang tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -476,6 +548,14 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 
 func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusDiskonPadaBarang"
+
+	if data.IdBarangDiDiskon <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdBarangDiDiskon tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{

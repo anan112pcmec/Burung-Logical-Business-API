@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/identity_seller"
+
 )
 
 type PayloadTambahDiskonProduk struct {
@@ -14,6 +15,7 @@ type PayloadTambahDiskonProduk struct {
 	BerlakuMulai    time.Time                      `json:"berlaku_mulai"`
 	BerlakuSampai   time.Time                      `json:"berlaku_sampai"`
 }
+
 
 type PayloadEditDiskonProduk struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
