@@ -25,6 +25,14 @@ import (
 func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahEtalaseSeller"
 
+	if len(data.NamaEtalase) < 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama etalase harus lebih dari 5 karakter",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -114,6 +122,22 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditEtalaseSeller"
 
+	if data.IdEtalase <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdEtalase tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
+
+	if len(data.NamaEtalase) < 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama etalase harus lebih dari 5 karakter",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -191,6 +215,14 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 
 func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusEtalaseSeller"
+
+	if data.IdEtalase <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdEtalase tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -285,6 +317,22 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKeEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahkanBarangKeEtalase"
 
+	if data.IdEtalase <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdEtalase tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdBarangInduk tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -372,6 +420,30 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 
 func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusBarangDariEtalase"
+
+	if data.IdEtalase <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdEtalase tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdBarangInduk tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
+
+	if data.IdBarangKeEtalase <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdBarangKeEtalase tak boleh lebih kecil dari 0 atau kosong atau nol",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
