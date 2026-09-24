@@ -12,7 +12,9 @@ import (
 	"math/rand"
 	mrand "math/rand"
 	"net/http"
+	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -471,6 +473,65 @@ func PasswordValidation(pass string) bool {
 	}
 
 	if !Contains(pass, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "+", "=", "_", "{", "}", "[", "]", "|", ";", ":", "'", `"`, "?", ",", "<", ">", ".", "/", "`"}) {
+		return false
+	}
+
+	return true
+}
+
+func NIBValidation(nib string) bool {
+
+	if len(nib) != 13 {
+		return false
+	}
+
+	for _, s := range nib {
+		if _, err := strconv.Atoi(string(s)); err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+func NPWPValidation(npwp string) bool {
+	if Contains(npwp, []string{".", "-"}) {
+		hasil := regexp.MustCompile("[^0-9]")
+		npwp = hasil.ReplaceAllString(npwp, "")
+	}
+
+	if len(npwp) > 16 || len(npwp) < 15 {
+		return false
+	}
+
+	for _, s := range npwp {
+		if _, err := strconv.Atoi(string(s)); err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+func ValidationURL(rawURL string) bool {
+	rawURL = strings.TrimSpace(rawURL)
+	if rawURL == "" {
+		return false
+	}
+
+	// Parse URL
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return false
+	}
+
+	// Wajib menggunakan https
+	if parsedURL.Scheme != "https" {
+		return false
+	}
+
+	// Wajib memiliki host/domain
+	if parsedURL.Host == "" {
 		return false
 	}
 

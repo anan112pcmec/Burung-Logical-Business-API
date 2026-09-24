@@ -8,10 +8,13 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/lembaga_pendaftaran"
+	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_negara"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -22,6 +25,38 @@ import (
 
 func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanDataDistributor"
+
+	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama perusahaan tak boleh kosong",
+		}
+	}
+
+	if !helper.NIBValidation(data.NIB) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NIB tak valid",
+		}
+	}
+
+	if !helper.NPWPValidation(data.NPWP) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NPWP tak valid",
+		}
+	}
+
+	if !helper.ValidationURL(data.DokumenIzinDistributorUrl) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Url Tidak Valid",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -115,6 +150,46 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditDataDistributor"
 
+	if data.IdDistributorData <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDistributorData tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama perusahaan tak boleh kosong",
+		}
+	}
+
+	if !helper.NIBValidation(data.NIB) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NIB tak valid",
+		}
+	}
+
+	if !helper.NPWPValidation(data.NPWP) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NPWP tak valid",
+		}
+	}
+
+	if !helper.ValidationURL(data.DokumenIzinDistributorUrl) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Url Tidak Valid",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -197,6 +272,14 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 
 func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusDataDistributor"
+
+	if data.IdDistributorData <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDistributorData tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -282,6 +365,72 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanDataBrand"
 
+	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Nama perusahaan tak boleh kosong",
+		}
+	}
+
+	negara := nama_negara.NegaraValid[data.NegaraAsal]
+	if negara == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, negara tidak valid atau terdaftar",
+		}
+	}
+
+	lembaga := lembaga_pendaftaran.DaftarLembagaValid[data.LembagaPendaftaran]
+	if lembaga == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, lembaga pendaftaran tidak valid atau terdaftar",
+		}
+	}
+
+	if data.NomorPendaftaranMerek == "" || data.NomorPendaftaranMerek == " " {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data nomor pendaftaran merek tidak valid",
+		}
+	}
+
+	if !helper.ValidationURL(data.SertifikatMerekUrl) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, url sertifikat merek tak valid",
+		}
+	}
+
+	if !helper.ValidationURL(data.DokumenPerwakilanUrl) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, url dokumen perwakilan tidak valid",
+		}
+	}
+
+	if !helper.NIBValidation(data.NIB) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NIB tak valid",
+		}
+	}
+
+	if !helper.NPWPValidation(data.NPWP) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NPWP tak valid",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -318,8 +467,8 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 	newBrandData := sot_models.BrandData{
 		SellerId:              data.IdentitasSeller.IdSeller,
 		NamaPerusahaan:        data.NamaPerusahaan,
-		NegaraAsal:            data.NegaraAsal,
-		LembagaPendaftaran:    data.LembagaPendaftaran,
+		NegaraAsal:            negara,
+		LembagaPendaftaran:    lembaga,
 		NomorPendaftaranMerek: data.NomorPendaftaranMerek,
 		SertifikatMerekUrl:    data.SertifikatMerekUrl,
 		DokumenPerwakilanUrl:  data.DokumenPerwakilanUrl,
@@ -377,6 +526,80 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditDataBrand"
 
+	if data.IdDataBrand <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDataBrand tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Nama perusahaan tak boleh kosong",
+		}
+	}
+
+	negara := nama_negara.NegaraValid[data.NegaraAsal]
+	if negara == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, negara tidak valid atau terdaftar",
+		}
+	}
+
+	lembaga := lembaga_pendaftaran.DaftarLembagaValid[data.LembagaPendaftaran]
+	if lembaga == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, lembaga pendaftaran tidak valid atau terdaftar",
+		}
+	}
+
+	if data.NomorPendaftaranMerek == "" || data.NomorPendaftaranMerek == " " {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data nomor pendaftaran merek tidak valid",
+		}
+	}
+
+	if !helper.ValidationURL(data.SertifikatMerekUrl) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, url sertifikat merek tak valid",
+		}
+	}
+
+	if !helper.ValidationURL(data.DokumenPerwakilanUrl) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, url dokumen perwakilan tidak valid",
+		}
+	}
+
+	if !helper.NIBValidation(data.NIB) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NIB tak valid",
+		}
+	}
+
+	if !helper.NPWPValidation(data.NPWP) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data NPWP tak valid",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -416,8 +639,8 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 		ID: data.IdDataBrand,
 	}).Updates(&sot_models.BrandData{
 		NamaPerusahaan:        data.NamaPerusahaan,
-		NegaraAsal:            data.NegaraAsal,
-		LembagaPendaftaran:    data.LembagaPendaftaran,
+		NegaraAsal:            negara,
+		LembagaPendaftaran:    lembaga,
 		NomorPendaftaranMerek: data.NomorPendaftaranMerek,
 		SertifikatMerekUrl:    data.SertifikatMerekUrl,
 		DokumenPerwakilanUrl:  data.DokumenPerwakilanUrl,
@@ -463,6 +686,14 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 
 func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusDataBrand"
+
+	if data.IdDataBrand <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdDataBrand tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
