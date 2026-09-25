@@ -32,6 +32,22 @@ import (
 func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaksi, db *environment.InternalDBReadWriteSystem, rds, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "ApproveOrderTransaksi"
 
+	if data.IdTransaksi <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdTransaksi tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.AutoPengiriman.Before(time.Now()) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, auto pengiriman tak bisa dijadwalkan di waktu lampau",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -150,6 +166,14 @@ func ApproveOrderTransaksi(ctx context.Context, data PayloadApproveOrderTransaks
 
 func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "KirimOrderTransaksi"
+
+	if data.IdTransaksi <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdTransaksi Tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -376,6 +400,14 @@ func KirimOrderTransaksi(ctx context.Context, data PayloadKirimOrderTransaksi, d
 func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTransaksi, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UnApproveOrderTransaksi"
 
+	if data.IdTransaksi <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdTransaksi Tak boleh kosong atau lebih kecil dari 0",
+		}
+	}
+
 	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -449,6 +481,31 @@ func UnApproveOrderTransaksi(ctx context.Context, data PayloadUnApproveOrderTran
 
 func SellerRatingPengirimanKurir(ctx context.Context, data PayloadSellerRatingPengirimanKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "SellerRatingPengirimanKurir"
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdPengiriman Tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, IdKurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.Rating < 1 || data.Rating > 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Rating hanya boleh dalam jangkauan angka 1 sampai 5 ",
+		}
+	}
+
 	if _, valid := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !valid {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
