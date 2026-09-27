@@ -537,3 +537,47 @@ func ValidationURL(rawURL string) bool {
 
 	return true
 }
+
+func PhotoExtensionValidation(eks string) bool {
+	return Contains(eks, []string{
+		"jpg", "jpeg",
+		"png",
+		"webp",
+		"gif",
+		"bmp",
+		"tiff", "tif",
+		"cr2", "cr3",
+		"nef", "nrw",
+		"arw", "srf",
+		"dng",
+		"heic", "heif",
+		"avif"})
+}
+
+func VideoExtensionValidation(eks string) bool {
+	return Contains(eks, []string{
+		"mp4",
+		"m4v",
+		"mov",
+		"avi",
+		"mkv",
+		"webm",
+		"flv",
+		"wmv",
+		"3gp",
+		"mpeg", "mpg",
+	})
+}
+
+func DokumenExtensionValidation(eks string) bool {
+	return Contains(eks, []string{
+		"pdf",
+		"doc", "docx",
+		"odt", "ods", "odp",
+		"rtf", "txt", "md",
+		"xls", "xlsx", "csv",
+		"ppt", "pptx",
+		"epub", "mobi", "azw",
+		"zip", "rar", "7z",
+	})
+}

@@ -1,10 +1,8 @@
 package media_ekstension
 
-var PhotoValidExt = map[string]bool{"jpg": true, "jpeg": true, "png": true, "webp": true}
+var VideoValistEx = map[string]bool{"mp4": true, "mov": true, "avi": true, "wmv": true, "mpeg": true, "mpg": true}
 
-var VideoValistExt = map[string]bool{"mp4": true, "mov": true, "avi": true, "wmv": true, "mpeg": true, "mpg": true}
-
-var DokumenValidExt = map[string]bool{
+var DokumenValidEx = map[string]bool{
 	// PDF
 	"pdf": true,
 

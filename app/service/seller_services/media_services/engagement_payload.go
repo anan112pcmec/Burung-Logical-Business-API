@@ -10,9 +10,9 @@ type PayloadUbahFotoProfilSeller struct {
 }
 
 type PayloadHapusFotoProfilSeller struct {
-	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
-	IdMediaSeller   int64                          `json:"id_media_seller_profil_foto"`
-	KeyFoto         string                         `json:"key_foto"`
+	IdentitasSeller         identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdMediaSellerProfilFoto int64                          `json:"id_media_seller_profil_foto"`
+	KeyFoto                 string                         `json:"key_foto"`
 }
 
 type PayloadUbahFotoBannerSeller struct {
@@ -67,7 +67,7 @@ type PayloadHapusBarangIndukFoto struct {
 		IdMedia  int64  `json:"id_media_barang_induk_foto"`
 		KeyMedia string `json:"key"`
 	} `json:"data_media_dan_key"`
-}
+} //
 
 type PayloadUbahVideoBarangInduk struct {
 	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`

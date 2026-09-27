@@ -10,6 +10,7 @@ type ResponseForm struct {
 type ResponseMediaUpload struct {
 	Status    int32       `json:"status"`
 	Services  string      `json:"service"`
+	Error     error       `json:"error"`
 	UrlUpload string      `json:"upload_url"`
 	Key       string      `json:"key"`
 	Type      string      `json:"type"`
