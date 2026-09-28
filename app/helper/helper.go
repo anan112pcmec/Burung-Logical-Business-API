@@ -24,6 +24,7 @@ import (
 
 	seller_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+
 )
 
 func DecodeJSONBody(r *http.Request, dst interface{}) error {
@@ -423,25 +424,7 @@ func NomorTelephoneValidation(noTelp string) bool {
 }
 
 func SellerDedicationValidation(dedication string) bool {
-	return Contains(dedication, []string{
-		seller_enums.PakaianFashion,
-		seller_enums.KosmetikKecantikan,
-		seller_enums.ElektronikGadget,
-		seller_enums.BukuMedia,
-		seller_enums.MakananMinuman,
-		seller_enums.IbuBayi,
-		seller_enums.Mainan,
-		seller_enums.OlahragaOutdoor,
-		seller_enums.OtomotifSparepart,
-		seller_enums.RumahTangga,
-		seller_enums.AlatTulis,
-		seller_enums.PerhiasanAksesoris,
-		seller_enums.ProdukDigital,
-		seller_enums.BangunanPerkakas,
-		seller_enums.MusikInstrumen,
-		seller_enums.FilmBroadcasting,
-		seller_enums.SemuaBarang,
-	})
+	return Contains(dedication, seller_enums.SellerDedicationEnums())
 }
 
 func NomorRekeningValidation(norek string) bool {
@@ -580,4 +563,107 @@ func DokumenExtensionValidation(eks string) bool {
 		"epub", "mobi", "azw",
 		"zip", "rar", "7z",
 	})
+}
+
+func JamOperasionalSellerValidation(jam string) bool {
+	// Contoh input: "08:00 - 17:00"
+
+	if len(jam) != 13 {
+		return false
+	}
+
+	for i, s := range jam {
+		if i < 2 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 2 {
+			if string(s) != ":" {
+				return false
+			}
+
+			continue
+		}
+
+		if i <= 4 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 5 {
+			if string(s) != " " {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 6 {
+			if string(s) != "-" {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 7 {
+			if string(s) != " " {
+				return false
+			}
+
+			continue
+		}
+
+		if i <= 9 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 10 {
+			if string(s) != ":" {
+				return false
+			}
+		}
+
+		if i <= 12 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+	}
+
+	parts := strings.Split(jam, "-")
+	if len(parts) != 2 {
+		return false
+	}
+
+	// Buang spasi, lalu hilangkan tanda ":" biar jadi angka murni (misal: "08:00" jadi "0800")
+	startStr := strings.ReplaceAll(strings.TrimSpace(parts[0]), ":", "")
+	endStr := strings.ReplaceAll(strings.TrimSpace(parts[1]), ":", "")
+
+	// Konversi ke integer mentah
+	sebelum, err1 := strconv.Atoi(startStr)
+	sesudah, err2 := strconv.Atoi(endStr)
+	if err1 != nil || err2 != nil {
+		return false
+	}
+
+	// Bandingkan secara matematis langsung (misal: 800 < 1700)
+	if sebelum >= sesudah {
+		return false
+	}
+
+	return true
 }

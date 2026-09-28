@@ -11,6 +11,7 @@ import (
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -29,6 +30,14 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 	var hasil_update_nama seller_particular_profiling.ResponseUbahNama
 	var hasil_update_username seller_particular_profiling.ResponseUbahUsername
 	var hasil_update_gmail seller_particular_profiling.ResponseUbahEmail
+
+	if !helper.Contains(data.Email, []string{"@gmail.com", "BLANK"}) || !helper.Contains(data.Username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "BLANK"}) || !helper.Contains(data.Username, []string{"_", "BLANK"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format input tidak valid",
+		}
+	}
 
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
@@ -96,6 +105,21 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 	var hasil_update_jam_operasional seller_particular_profiling.ResponseUbahJamOperasional
 	var hasil_update_dedication seller_particular_profiling.ResponseUbahDedication
 
+	if !helper.JamOperasionalSellerValidation(data.JamOperasional) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Format Jam Operasional Tak Sesuai",
+		}
+	}
+
+	if !helper.SellerDedicationValidation(data.Dedication) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Seller Dedication tidak valid",
+		}
+	}
 	seller, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session)
 	if !status {
 		return &response.ResponseForm{
