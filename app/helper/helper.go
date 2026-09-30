@@ -22,9 +22,8 @@ import (
 
 	"gorm.io/gorm"
 
-	seller_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
+	seller_dedication_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-
 )
 
 func DecodeJSONBody(r *http.Request, dst interface{}) error {
@@ -424,7 +423,7 @@ func NomorTelephoneValidation(noTelp string) bool {
 }
 
 func SellerDedicationValidation(dedication string) bool {
-	return Contains(dedication, seller_enums.SellerDedicationEnums())
+	return seller_dedication_enums.CategoryMap[dedication]
 }
 
 func NomorRekeningValidation(norek string) bool {
@@ -666,4 +665,8 @@ func JamOperasionalSellerValidation(jam string) bool {
 	}
 
 	return true
+}
+
+func HexaColorValidation(c string) bool {
+	return len(c) == 7 && c[0] == '#'
 }
