@@ -670,3 +670,11 @@ func JamOperasionalSellerValidation(jam string) bool {
 func HexaColorValidation(c string) bool {
 	return len(c) == 7 && c[0] == '#'
 }
+
+func RatingValidation(r float32) bool {
+	if r < 0 || r > 5 {
+		return false
+	}
+
+	return true
+}

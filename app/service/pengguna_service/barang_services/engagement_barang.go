@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"
 	stsk_review "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/review"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -168,9 +170,26 @@ func (b *BatchViewUpdate) IncrUpdateViewColumn(id_column int64) {
 // Hanya bersifat menaikan view (increment)
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func ViewBarang(ctx context.Context, b *BatchViewUpdate, data PayloadViewBarang) *response.ResponseForm {
+func ViewBarang(ctx context.Context, b *BatchViewUpdate, data PayloadViewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
 	const services string = "ViewBarang"
-	b.IncrUpdateViewColumn(int64(data.ID))
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, identitas pengguna tidak vali",
+		}
+	}
+
+	b.IncrUpdateViewColumn(int64(data.IdBarangInduk))
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -186,6 +205,14 @@ func ViewBarang(ctx context.Context, b *BatchViewUpdate, data PayloadViewBarang)
 func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "LikesBarang"
 
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -197,7 +224,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 	var id_pengguna_disukai int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDisukai{}).Select("id").Where(&sot_models.BarangDisukai{
 		IdPengguna:    data.IdentitasPengguna.ID,
-		IdBarangInduk: data.IDBarangInduk,
+		IdBarangInduk: data.IdBarangInduk,
 	}).Limit(1).Scan(&id_pengguna_disukai).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -216,7 +243,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 
 	newLikeBarang := sot_models.BarangDisukai{
 		IdPengguna:    data.IdentitasPengguna.ID,
-		IdBarangInduk: data.IDBarangInduk,
+		IdBarangInduk: data.IdBarangInduk,
 	}
 
 	if err := db.Write.WithContext(ctx).Create(&newLikeBarang).Error; err != nil {
@@ -264,6 +291,30 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 
 func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UnlikeBarang"
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBarangDisukai <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang disukai tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, identitas pengguna tidak vali",
+		}
+	}
 
 	var barang_disukai sot_models.BarangDisukai
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangDisukai{}).Where(&sot_models.BarangDisukai{
@@ -337,6 +388,22 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahKomentarBarang"
 
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.Komentar) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Komentar tak boleh kosong",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -397,6 +464,22 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 
 func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditKomentarBarang"
+
+	if data.IdKomentar <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id komentar tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.Komentar) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Komentar tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -465,6 +548,14 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusKomentarBarang"
 
+	if data.IdKomentar <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id komentar tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	var Komentar sot_models.Komentar
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
 		ID:          data.IdKomentar,
@@ -525,6 +616,22 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanChildKomentar"
 
+	if data.IdKomentar <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id komentar tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.Komentar) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Komentar tak boleh kosong",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -534,7 +641,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 	}
 
 	newKomentar := sot_models.KomentarChild{
-		IdKomentar:  data.IdKomentarBarang,
+		IdKomentar:  data.IdKomentar,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
 		IsiKomentar: data.Komentar,
@@ -576,6 +683,38 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 
 func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MentionChildKomentar"
+
+	if data.IdKomentar <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id komentar tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.Contains(data.UsernameMentioned, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}) || strings.Contains(data.UsernameMentioned, "_") {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, username tidak vali",
+		}
+	}
+
+	if strings.TrimSpace(data.Komentar) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Komentar tak boleh kosong",
+		}
+	}
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data user tidak ditemukan",
+		}
+	}
 
 	newKomentar := sot_models.KomentarChild{
 		IdKomentar:  data.IdKomentar,
@@ -620,6 +759,22 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 
 func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditChildKomentar"
+
+	if data.IdKomentar <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id komentar tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.Komentar) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Komentar tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -686,6 +841,14 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 
 func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusChildKomentar"
+
+	if data.IdKomentar <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -756,6 +919,30 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 
 func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahKeranjangBarang"
+
+	if data.IdSeller <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id seller tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdKategori <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id kategori tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -868,6 +1055,30 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditKeranjangBarang"
 
+	if data.IdKeranjang <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id keranjang tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdKategori <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id kategori tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -962,6 +1173,14 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusKeranjangBarang"
 
+	if data.IdKeranjang <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id keranjang tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -1044,6 +1263,22 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 
 func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "BerikanReviewBarang"
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.RatingValidation(data.Rating) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, angka rating tidak valid",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1161,6 +1396,14 @@ func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, d
 func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "LikeReviewBarang"
 
+	if data.IdReview <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id review tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -1238,7 +1481,15 @@ func LikeReviewBarang(ctx context.Context, data PayloadLikeReviewBarang, db *env
 }
 
 func UnlikeReviewBarang(ctx context.Context, data PayloadUnlikeReviewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UnlikeReviewBarang"
+	const services string = "UnlikeReviewBarang"
+
+	if data.IdReview <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id review tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{

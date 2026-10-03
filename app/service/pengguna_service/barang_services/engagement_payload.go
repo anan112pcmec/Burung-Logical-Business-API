@@ -14,7 +14,8 @@ import (
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 type PayloadViewBarang struct {
-	ID int32 `json:"id_barang_induk"`
+	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
+	IdBarangInduk     int32                              `json:"id_barang_induk"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +24,7 @@ type PayloadViewBarang struct {
 
 type PayloadLikesBarang struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
-	IDBarangInduk     int32                              `json:"id_barang_induk_likes"`
+	IdBarangInduk     int32                              `json:"id_barang_induk_likes"`
 }
 
 type PayloadUnlikeBarang struct {
@@ -71,7 +72,7 @@ type PayloadHapusKomentarBarangInduk struct {
 
 type PayloadMasukanChildKomentar struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
-	IdKomentarBarang  int64                              `json:"id_komentar_masukan_komentar"`
+	IdKomentar        int64                              `json:"id_komentar_masukan_komentar"`
 	Komentar          string                             `json:"komentar_masukan_komentar"`
 }
 

@@ -11,6 +11,7 @@ import (
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	seller_alamat_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/alamat_services"
+	seller_barang_service "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/barang_services"
 	seller_service "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/barang_services"
 	seller_credential_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/credential_services"
 	seller_diskon_services "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services"
@@ -84,6 +85,14 @@ func PatchSellerHandler(db *environment.InternalDBReadWriteSystem, w http.Respon
 			return
 		}
 		hasil = seller_alamat_services.EditAlamatGudang(ctx, data, db, rds_session, mb_cud_publisher)
+
+	case "/seller/barang/ubah-harga-kategori-barang":
+		var data seller_barang_service.PayloadUbahHargaKategori
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = seller_barang_service.UbahHargaKategoriBarang(ctx, db, data, rds_auth, mb_cud_publisher)
 	case "/seller/barang/edit-alamat-barang-induk":
 		var data seller_service.PayloadEditAlamatBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

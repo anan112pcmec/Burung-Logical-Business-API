@@ -36,7 +36,7 @@ func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.ViewBarang(ctx, b, data)
+		hasil = pengguna_barang_services.ViewBarang(ctx, b, data, db, rds_session)
 	case "/user/barang/unlikes-barang":
 		var data pengguna_barang_services.PayloadUnlikeBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
