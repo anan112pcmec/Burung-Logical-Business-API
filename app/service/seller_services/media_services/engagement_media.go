@@ -165,7 +165,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -361,7 +361,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -782,7 +782,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -1492,7 +1492,7 @@ func HapusKategoriBarangFoto(ctx context.Context, data PayloadHapusKategoriBaran
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -1962,7 +1962,7 @@ func HapusMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadHapusMed
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -2211,7 +2211,7 @@ func HapusDistributorDataNIBFoto(ctx context.Context, data PayloadHapusDistribut
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -2962,7 +2962,7 @@ func HapusMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadHapusBra
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -3213,7 +3213,7 @@ func HapusMediaBrandDataNIBFoto(ctx context.Context, data PayloadHapusMediaBrand
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -3466,7 +3466,7 @@ func HapusMediaBrandNPWPFoto(ctx context.Context, data PayloadHapusMediaBrandDat
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -3717,7 +3717,7 @@ func HapusMediaBrandDataLogo(ctx context.Context, data PayloadHapusMediaBrandDat
 		}
 	}
 
-	if data.KeyFoto == "" || data.KeyFoto == " " {
+	if strings.TrimSpace(data.KeyFoto) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,

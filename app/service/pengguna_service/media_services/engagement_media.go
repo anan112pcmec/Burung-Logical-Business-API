@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -24,11 +25,17 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "UbahFotoProfilPengguna"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	// Validasi identitas pengguna
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
@@ -177,6 +184,22 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusFotoProfilPengguna"
 
+	if data.IdMediaDataPengguna <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media data pengguna tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, key foto tidak valid",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -243,6 +266,22 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	const services string = "TambahMediaReviewFoto"
 	const LimitPhoto = 5
 
+	if data.IdReviewData <= 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	for _, e := range data.Ekstensi {
+		if !helper.PhotoExtensionValidation(e) {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+			}
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
@@ -298,12 +337,6 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 	var keyzAndUrl []response.UrlAndKey = make([]response.UrlAndKey, 0, totalData)
 
 	for i := 0; i < totalData; i++ {
-		if !media_ekstension.PhotoValidExt[data.Ekstensi[i]] {
-			return &response.ResponseMediaUpload{
-				Status:   http.StatusUnauthorized,
-				Services: services,
-			}
-		}
 
 		keyz := sot_models.MediaReviewFoto{}.PathName() + strconv.Itoa(int(id_data_review_produk)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi[i]
 
@@ -375,16 +408,23 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaReviewVideo"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+	if data.IdReviewData <= 0 {
 		return &response.ResponseMediaUpload{
-			Status:   http.StatusNotFound,
+			Status:   http.StatusUnauthorized,
 			Services: services,
 		}
 	}
 
-	if !media_ekstension.VideoValistExt[data.Ekstensi] {
+	if !helper.VideoExtensionValidation(data.Ekstensi) {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
 			Services: services,
 		}
 	}

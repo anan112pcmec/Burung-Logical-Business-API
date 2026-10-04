@@ -19,6 +19,7 @@ type PayloadTambahMediaReviewFoto struct {
 	Ekstensi          []string                           `json:"ekstensi"`
 }
 
+// ini belum ada
 type PayloadHapusMediaReviewFoto struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
 	IdReviewData      int64                              `json:"id_review_data"`
@@ -30,6 +31,7 @@ type PayloadTambahMediaReviewVideo struct {
 	Ekstensi          string                             `json:"ekstensi"`
 }
 
+// ini belum ada next patch
 type PayloadHapusMediaReviewVideo struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
 	KeyVideo          string                             `json:"key_video"`

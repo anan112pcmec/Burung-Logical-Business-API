@@ -65,6 +65,20 @@ func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			return
 		}
 		hasil = pengguna_barang_services.EditKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/barang/review/like":
+		var data pengguna_barang_services.PayloadLikeReviewBarang
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_barang_services.LikeReviewBarang(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/barang/review/unlike":
+		var data pengguna_barang_services.PayloadUnlikeReviewBarang
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_barang_services.UnlikeReviewBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/profiling/personal-update":
 		var data pengguna_profiling_services.PayloadPersonalProfilingPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

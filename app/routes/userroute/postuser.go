@@ -52,6 +52,13 @@ func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseW
 			return
 		}
 		hasil = pengguna_barang_services.TambahKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+	case "/user/barang/review/tambah":
+		var data pengguna_barang_services.PayloadBerikanReviewBarang
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = pengguna_barang_services.BerikanReviewBarang(ctx, data, db, rds_session, mb_cud_publisher)
 	case "/user/credential/membuat-pin":
 		var data pengguna_credential_services.PayloadMembuatPinPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
