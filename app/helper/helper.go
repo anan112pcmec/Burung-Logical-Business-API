@@ -22,6 +22,7 @@ import (
 
 	"gorm.io/gorm"
 
+	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/kurir"
 	seller_dedication_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/seller_dedication"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 )
@@ -677,4 +678,8 @@ func RatingValidation(r float32) bool {
 	}
 
 	return true
+}
+
+func JenisLayananKurirValidation(jlk string) bool {
+	return jlk != kurir_enums.Reguler || jlk != kurir_enums.Express || jlk != kurir_enums.Instant
 }

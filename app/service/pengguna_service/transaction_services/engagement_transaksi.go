@@ -52,6 +52,69 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	const services string = "CheckoutBarangUser"
 	log.Printf("[%s] Memulai proses checkout untuk user ID: %v", services, data.IdentitasPengguna.ID)
 
+	for _, d := range data.DataCheckout {
+		if d.ID <= 0 {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, id keranjang tak boleh lebih kecil atau sama dengan 0",
+			}
+		}
+		if d.IdPengguna <= 0 {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, id pengguna keranjang tak boleh lebih kecil atau sama dengan 0",
+			}
+		}
+		if d.IdSeller <= 0 {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, id seller keranjang tak boleh lebih kecil atau sama dengan 0",
+			}
+		}
+		if d.IdBarangInduk <= 0 {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, id barang induk keranjang tak boleh lebih kecil atau sama dengan 0",
+			}
+		}
+
+		if d.IdKategori <= 0 {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, id kategori barang keranjang tak boleh lebih kecil atau sama dengan 0",
+			}
+		}
+
+		if d.Jumlah <= 0 {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, jumlah barang tak boleh lebih kecil atau sama dengan 0",
+			}
+		}
+
+		if d.Status != barang_enums.Ready {
+			return &response.ResponseForm{
+				Status:   http.StatusUnauthorized,
+				Services: services,
+				Message:  "Gagal, status tidak ready",
+			}
+		}
+	}
+
+	if !helper.JenisLayananKurirValidation(data.JenisLayananKurir) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, jenis layanan kurir tidak valid",
+		}
+	}
+
 	// Validasi pengguna
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[%s] Kredensial pengguna tidak valid untuk user ID: %v", services, data.IdentitasPengguna.ID)

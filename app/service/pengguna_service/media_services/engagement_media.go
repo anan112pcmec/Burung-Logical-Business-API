@@ -13,7 +13,6 @@ import (
 	"gorm.io/gorm"
 
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
-	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/media_ekstension"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_pengguna "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengguna"

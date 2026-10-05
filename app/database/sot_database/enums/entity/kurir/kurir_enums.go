@@ -6,9 +6,9 @@ package kurir_enums
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Enums jenis pengiriman
 const (
-	Reguler = "Reguler"
-	Express = "Express"
-	Instant = "Instant"
+	Reguler string = "Reguler"
+	Express string = "Express"
+	Instant string = "Instant"
 )
 
 func NamaJenisLayananKurirEnums() string {
