@@ -21,6 +21,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,14 +30,6 @@ import (
 
 func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanAlamatPengguna"
-
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
-		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
-			Services: services,
-			Message:  "Gagal Data Pengguna Tidak Valid",
-		}
-	}
 
 	if !helper.KodePosValidation(data.KodePos) {
 		return &response.ResponseForm{
@@ -78,6 +71,16 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		}
 	}
 
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal Data Pengguna Tidak Valid",
+		}
+	}
+
+	
 	var id_data_alamats []int64
 	if err := db.Read.WithContext(ctx).Select("id").Model(&sot_models.AlamatPengguna{}).
 		Where(sot_models.AlamatPengguna{IDPengguna: data.IdentitasPengguna.ID}).

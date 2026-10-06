@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_kota"
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_provinsi"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
@@ -18,22 +21,32 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services/response_alamat_service_kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "MasukanAlamatKurir"
 
-	// Validasi identitas kurir
-	_, valid := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
-	if !valid {
+	if !helper.NomorTelephoneValidation(data.NomorTelephone) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-				Message: "Gagal: Data kurir tidak valid",
-			},
+			Message:  "Gagal, format nomor telephone tidak valid",
+		}
+	}
+
+	if !helper.KodePosValidation(data.KodePos) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format kode pos tidak valid",
+		}
+	}
+
+	if data.KodeNegara != "IDN" {
+		return &response.ResponseForm{
+			Status:   http.StatusNotAcceptable,
+			Services: services,
+			Message:  "Burung saat ini belum mendukung macanegara",
 		}
 	}
 
@@ -50,6 +63,18 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Nama kota tidak valid",
+		}
+	}
+
+	// Validasi identitas kurir
+	_, valid := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
+	if !valid {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
+				Message: "Gagal: Data kurir tidak valid",
+			},
 		}
 	}
 
@@ -135,15 +160,35 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditAlamatKurir"
 
-	// Validasi identitas kurir
-	_, valid := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
-	if !valid {
+	if data.IDAlamatKurir <= 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseEditAlamatKurir{
-				Message: "Gagal: Data kurir tidak valid",
-			},
+			Message:  "Gagal, id alamat kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.NomorTelephoneValidation(data.NomorTelephone) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, format nomor telephone tidak valid",
+		}
+	}
+
+	if !helper.KodePosValidation(data.KodePos) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal format kode pos tidak valid",
+		}
+	}
+
+	if data.KodeNegara != "IDN" {
+		return &response.ResponseForm{
+			Status:   http.StatusNotAcceptable,
+			Services: services,
+			Message:  "Burung saat ini belum mendukung macanegara",
 		}
 	}
 
@@ -160,6 +205,18 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Nama kota tidak valid",
+		}
+	}
+
+	// Validasi identitas kurir
+	_, valid := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
+	if !valid {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
+				Message: "Gagal: Data kurir tidak valid",
+			},
 		}
 	}
 
@@ -244,6 +301,14 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 
 func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "HapusAlamatKurir"
+
+	if data.IdAlamatKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id alamat kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	// Validasi identitas kurir
 	_, valid := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
