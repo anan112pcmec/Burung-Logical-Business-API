@@ -268,11 +268,19 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	service := "KurirLogin"
 
-	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) {
+	if !helper.Contains(email, []string{"@gmail.com"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: service,
-			Message:  "Gagal, format tidak valid",
+			Message:  "Gagal, format email tidak valid",
+		}
+	}
+
+	if !helper.PasswordValidation(password) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: service,
+			Message:  "Gagal, format password tidak valid",
 		}
 	}
 
@@ -390,7 +398,7 @@ func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWrit
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+	if !helper.PasswordValidation(password) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -474,7 +482,7 @@ func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWr
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+	if !helper.PasswordValidation(password) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -557,7 +565,7 @@ func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWr
 func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, nama, email, password, username string, rds *redis.Client) *response.ResponseForm {
 	services := "PreKurirRegistration"
 
-	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) {
+	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}) || !helper.Contains(username, []string{"_"}) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -565,7 +573,7 @@ func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWri
 		}
 	}
 
-	if !helper.Contains(password, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "_"}) || !helper.HasUppercase(password) || !helper.Contains(password, []string{"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"}) {
+	if !helper.PasswordValidation(password) {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
