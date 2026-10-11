@@ -12,6 +12,7 @@ import (
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -24,6 +25,14 @@ import (
 func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	var wg sync.WaitGroup
 	services := "GeneralProfilingKurir"
+
+	if !helper.Contains(data.Email, []string{"@gmail.com"}) || !helper.Contains(data.Username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) || !helper.Contains(data.Username, []string{"_"}) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Kredensial Tidak Valid",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{

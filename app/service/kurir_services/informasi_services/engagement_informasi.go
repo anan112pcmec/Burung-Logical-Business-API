@@ -5,27 +5,53 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_informasi_services_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services/response_informasi_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "AjukanInformasiKendaraanKurir"
+	const services string = "AjukanInformasiKendaraanKurir"
 
-	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
+	if !helper.JenisKendaraanKurirValidation(data.JenisKendaraan) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, jenis kendaraan kurir tidak valid",
+		}
+	}
 
-	if !status {
+	if !helper.JenisRodaKendaraanKurirValidation(data.RodaKendaraan) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, roda kendaraan kurir tidak valid",
+		}
+	}
+
+	if strings.TrimSpace(data.NamaKendaraan) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama motor tak boleh kosong",
+		}
+	}
+
+	if _, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial kurir tidak valid untuk ID %d", data.DataIdentitasKurir.IdKurir)
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -121,6 +147,38 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditInformasiKendaraanKurir"
 
+	if data.IdInformasiKendaraan <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id informais kendaraan tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.JenisKendaraanKurirValidation(data.JenisKendaraan) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, jenis kendaraan kurir tidak valid",
+		}
+	}
+
+	if !helper.JenisRodaKendaraanKurirValidation(data.RodaKendaraan) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, roda kendaraan kurir tidak valid",
+		}
+	}
+
+	if strings.TrimSpace(data.NamaKendaraan) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama motor tak boleh kosong",
+		}
+	}
+
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
 
 	if !status {
@@ -209,6 +267,17 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 
 func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "AjukanInformasiKurir"
+
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", data.TanggalLahir)
+	if err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data tanggal lahir tidak berupa tanggal valid",
+		}
+	}
+
+	data.TanggalLahir = parsedTime.Format("YYYY-MM-DD")
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
 
@@ -303,6 +372,17 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 
 func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	services := "EditInformasiKurir"
+
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", data.TanggalLahir)
+	if err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data tanggal lahir tidak berupa tanggal valid",
+		}
+	}
+
+	data.TanggalLahir = parsedTime.Format("YYYY-MM-DD")
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
 

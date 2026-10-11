@@ -1,5 +1,7 @@
 package kurir_enums
 
+type Cache map[string]bool
+
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // JENIS LAYANAN KURIR ENUM
 // 6 ENUM UNTUK TABLE KURIR
@@ -60,6 +62,15 @@ func JenisKendaraanKurirEnums() []string {
 	return []string{Motor, Mobil, Truk, Pickup, Lainnya, Unknown}
 }
 
+var CacheJenisKendaraanKurir Cache = Cache{
+	Motor:   true,
+	Mobil:   true,
+	Truk:    true,
+	Pickup:  true,
+	Lainnya: true,
+	Unknown: true,
+}
+
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // RODA KENDARAAN KURIR ENUM
 // 3 ENUM UNTUK TABLE KURIR
@@ -77,6 +88,12 @@ func NamaRodaKendaraanKurirEnums() string {
 
 func RodaKendaraanKurirEnums() []string {
 	return []string{RodaDua, RodaTiga, RodaEmpat}
+}
+
+var CacheRodaKendaraanKurir Cache = Cache{
+	RodaDua:   true,
+	RodaTiga:  true,
+	RodaEmpat: true,
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

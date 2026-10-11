@@ -683,3 +683,11 @@ func RatingValidation(r float32) bool {
 func JenisLayananKurirValidation(jlk string) bool {
 	return jlk != kurir_enums.Reguler || jlk != kurir_enums.Express || jlk != kurir_enums.Instant
 }
+
+func JenisKendaraanKurirValidation(jkk string) bool {
+	return kurir_enums.CacheJenisKendaraanKurir[jkk]
+}
+
+func JenisRodaKendaraanKurirValidation(jrk string) bool {
+	return kurir_enums.CacheRodaKendaraanKurir[jrk]
+}
