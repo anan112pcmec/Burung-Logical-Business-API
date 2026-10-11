@@ -5,32 +5,31 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+
 	"github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/nama_bank"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services/response_rekening_services_kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanRekeningKurir"
+	const services string = "MasukanRekeningKurir"
 
-	_, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
-	if !validasi {
+	if !helper.NomorRekeningValidation(data.NomorRekening) {
 		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
+			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Gagal Data Kurir Tidak Valid",
-			},
+			Message:  "Gagal, services format nomor rekening tidak valid",
 		}
 	}
 
@@ -39,6 +38,24 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Gagal, nama bank tidak diterima",
+		}
+	}
+
+	if len(data.PemilikRekening) < 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, pemilik rekening minimal berisikan 5 karakter",
+		}
+	}
+
+	if _, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !validasi {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
+				Message: "Gagal Data Kurir Tidak Valid",
+			},
 		}
 	}
 
@@ -115,16 +132,21 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 }
 
 func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditRekeningKurir"
+	const services string = "EditRekeningKurir"
 
-	_, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
-	if !validasi {
+	if data.IdRekening <= 0 {
 		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
+			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseEditRekeningKurir{
-				Message: "Gagal menemukan data kurir",
-			},
+			Message:  "Gagal, id rekening tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.NomorRekeningValidation(data.NomorRekening) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, services format nomor rekening tidak valid",
 		}
 	}
 
@@ -133,6 +155,24 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Gagal, nama bank tidak diterima",
+		}
+	}
+
+	if len(data.PemilikRekening) < 5 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, pemilik rekening minimal berisikan 5 karakter",
+		}
+	}
+
+	if _, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !validasi {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Payload: response_rekening_services_kurir.ResponseEditRekeningKurir{
+				Message: "Gagal menemukan data kurir",
+			},
 		}
 	}
 
@@ -208,10 +248,17 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 }
 
 func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusRekeningKurir"
+	const services string = "HapusRekeningKurir"
 
-	_, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
-	if !validasi {
+	if data.IdRekening <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id rekening tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if _, validasi := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !validasi {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
