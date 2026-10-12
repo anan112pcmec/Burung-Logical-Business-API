@@ -5,7 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 
 	media_storage_database_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/media_storage_database/seeders"
 	pengiriman_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/pengiriman"
@@ -23,13 +28,17 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-	"github.com/minio/minio-go/v7"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "UbahKurirProfilFoto"
+	const services string = "UbahKurirProfilFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -133,7 +142,23 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 }
 
 func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusKurirProfilFoto"
+	const services string = "HapusKurirProfilFoto"
+
+	if data.IdMediaKurirProfilFoto <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media kurir profil foto tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, keyfoto tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -200,7 +225,14 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 }
 
 func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data PayloadTambahMediaInformasiKurirKendaraanFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaInformasiKendaraanKurirKendaraanFoto"
+	const services string = "TambahMediaInformasiKendaraanKurirKendaraanFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -320,7 +352,23 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 }
 
 func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data PayloadHapusMediaInformasiKurirKendaraanFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaInformasiKendaraanKurirKendaraanFoto"
+	const services string = "HapusMediaInformasiKendaraanKurirKendaraanFoto"
+
+	if data.IdMediaKendaraanKurirKendaraanFoto <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media kendaraan kurir kendaraan foto tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, key foto tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -395,7 +443,14 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 }
 
 func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTambahMediaInformasiKendaraanKurirBPKBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahInformasiKendaraanKurirBPKBFoto"
+	const services string = "TambahInformasiKendaraanKurirBPKBFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -513,7 +568,23 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 	}
 }
 func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapusMediaInformasiKendaraanKurirBPKBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusInformasiKendaraanKurirBPKBFoto"
+	const services string = "HapusInformasiKendaraanKurirBPKBFoto"
+
+	if data.IdMediaInformasiKendaraanKurirBPKBFoto <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media informasi kendaraan kurir bpkb foto tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, key foto tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -595,7 +666,14 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 }
 
 func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTambahMediaInformasiKendaraanKurirSTNKFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahInformasiKendaraanKurirSTNKFoto"
+	const services string = "TambahInformasiKendaraanKurirSTNKFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -715,7 +793,23 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 }
 
 func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapusMediaInformasiKendaraanKurirSTNKFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusInformasiKendaraanKurirSTNKFoto"
+	const services string = "HapusInformasiKendaraanKurirSTNKFoto"
+
+	if data.IdMediaInformasiKendaraanKurirSTNKFoto <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media informasi kendaraan kurir stnk foto tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, key foto tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -790,8 +884,14 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 }
 
 func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMediaInformasiKurirKTPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaInformasiKurirKTPFoto"
+	const services string = "TambahMediaInformasiKurirKTPFoto"
 
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
@@ -910,7 +1010,23 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 }
 
 func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMediaInformasiKurirKTPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusMediaInformasiKurirKTPFoto"
+	const services string = "HapusMediaInformasiKurirKTPFoto"
+
+	if data.IdMediaInformasiKurirKTPFoto <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media informasi kurir ktp foto tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, key foto tak boleh kosong",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -985,7 +1101,14 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 }
 
 func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPengirimanPickedUpFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaPengirimanPickedUpFoto"
+	const services string = "TambahMediaPengirimanPickedUpFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1080,7 +1203,14 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 }
 
 func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPengirimanSampaiFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaPengirimanSampaiFoto"
+	const services string = "TambahMediaPengirimanSampaiFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1174,7 +1304,14 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 	}
 }
 func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data PayloadTambahPengirimanEkspedisiPickedUpFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaPengirimanEkspedisiPickedUpFoto"
+	const services string = "TambahMediaPengirimanEkspedisiPickedUpFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
@@ -1269,7 +1406,14 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 }
 
 func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data PayloadTambahPengirimanEkspedisiSampaiAgentFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
-	services := "TambahMediaPengirimanEkspedisiSampaiAgentFoto"
+	const services string = "TambahMediaPengirimanEkspedisiSampaiAgentFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseMediaUpload{
