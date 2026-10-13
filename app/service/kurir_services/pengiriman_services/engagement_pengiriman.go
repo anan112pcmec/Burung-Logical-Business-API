@@ -26,6 +26,7 @@ import (
 	stsk_pengiriman_ekspedisi "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/pengiriman_ekspedisi"
 	stsk_seller "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
+	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
@@ -34,15 +35,21 @@ import (
 )
 
 func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "AktifkanBidKurir"
+	const services string = "AktifkanBidKurir"
 
-	kurir, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
-
-	if !status {
+	if !helper.JenisPengirimanValidation(data.JenisPengiriman) {
 		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
+			Status:   http.StatusUnauthorized,
 			Services: services,
-			Message:  "Gagal data kurir tidak ditemukan",
+			Message:  "Gagal, jenis pengiriman tidak valid",
+		}
+	}
+
+	if !helper.ModeBidKurirValidation(data.Mode) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, mode bid kurir tak valid",
 		}
 	}
 
@@ -59,6 +66,16 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *env
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Nama kota tidak valid",
+		}
+	}
+
+	kurir, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
+
+	if !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data kurir tidak ditemukan",
 		}
 	}
 
@@ -214,7 +231,15 @@ func AktifkanBidKurir(ctx context.Context, data PayloadAktifkanBidKurir, db *env
 }
 
 func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "UpdatePosisiBidKurir"
+	const services string = "UpdatePosisiBidKurir"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -286,6 +311,30 @@ func UpdatePosisiBidKurir(ctx context.Context, data PayloadUpdatePosisiBid, db *
 
 func AmbilPengirimanNonEks(ctx context.Context, data PayloadAmbilPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "AmbilPengirimanNonEks"
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBid <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.JenisPengirimanValidation(data.JenisPengiriman) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, jenis pengiriman tidak valid",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -532,7 +581,31 @@ func AmbilPengirimanNonEks(ctx context.Context, data PayloadAmbilPengirimanNonEk
 	}
 }
 func AmbilPengirimanEks(ctx context.Context, data PayloadAmbilPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "AmbilPengirimanEks"
+	const services string = "AmbilPengirimanEks"
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBid <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if !helper.JenisPengirimanValidation(data.JenisPengiriman) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, jenis pengiriman tidak valid",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -777,7 +850,15 @@ func AmbilPengirimanEks(ctx context.Context, data PayloadAmbilPengirimanEks, db 
 }
 
 func LockSiapAntarBidKurir(ctx context.Context, data PayloadLockSiapAntar, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "LockSiapAntarBidKurir"
+	const services string = "LockSiapAntarBidKurir"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -948,7 +1029,23 @@ func LockSiapAntarBidKurir(ctx context.Context, data PayloadLockSiapAntar, db *e
 }
 
 func PickedUpPengirimanNonEks(ctx context.Context, data PayloadPickedUpPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "PickedUpPengiriman"
+	const services string = "PickedUpPengiriman"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1104,7 +1201,23 @@ func PickedUpPengirimanNonEks(ctx context.Context, data PayloadPickedUpPengirima
 }
 
 func KirimPengirimanNonEks(ctx context.Context, data PayloadKirimPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "KirimPengirimanNonEks"
+	const services string = "KirimPengirimanNonEks"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1240,7 +1353,15 @@ func KirimPengirimanNonEks(ctx context.Context, data PayloadKirimPengirimanNonEk
 }
 
 func UpdateInformasiPerjalananPengirimanNonEks(ctx context.Context, data PayloadUpdateInformasiPerjalananPengiriman, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "UpdateInformasiPengirimanNonEks"
+	const services string = "UpdateInformasiPengirimanNonEks"
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -1312,7 +1433,24 @@ func UpdateInformasiPerjalananPengirimanNonEks(ctx context.Context, data Payload
 }
 
 func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNonEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "SampaiPengirimanNonEks"
+	const services string = "SampaiPengirimanNonEks"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdPengiriman <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	var wg sync.WaitGroup
 	var final bool = false
 
@@ -1857,7 +1995,23 @@ func SampaiPengirimanNonEks(ctx context.Context, data PayloadSampaiPengirimanNon
 }
 
 func PickedUpPengirimanEks(ctx context.Context, data PayloadPickedUpPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "PickedUpPengirimanEks"
+	const services string = "PickedUpPengirimanEks"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdPengirimanEks <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2015,7 +2169,23 @@ func PickedUpPengirimanEks(ctx context.Context, data PayloadPickedUpPengirimanEk
 }
 
 func KirimPengirimanEks(ctx context.Context, data PayloadKirimPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "KirimPengirimanEks"
+	const services string = "KirimPengirimanEks"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdPengirimanEks <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2160,7 +2330,15 @@ func KirimPengirimanEks(ctx context.Context, data PayloadKirimPengirimanEks, db 
 }
 
 func UpdateInformasiPerjalananPengirimanEks(ctx context.Context, data PayloadUpdateInformasiPerjalananPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	const services = "UpdateInformasiPerjalananPengirimanEks"
+	const services string = "UpdateInformasiPerjalananPengirimanEks"
+
+	if data.IdPengirimanEks <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdenititasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -2233,6 +2411,23 @@ func UpdateInformasiPerjalananPengirimanEks(ctx context.Context, data PayloadUpd
 
 func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services = "SampaiPengirimanEks"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdPengirimanEks <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id pengiriman tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	var wg sync.WaitGroup
 	var final bool = false
 
@@ -2632,7 +2827,15 @@ func SampaiPengirimanEks(ctx context.Context, data PayloadSampaiPengirimanEks, d
 }
 
 func NonaktifkanBidKurir(ctx context.Context, data PayloadNonaktifkanBidKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "NonaktifkanBidKurir"
+	const services string = "NonaktifkanBidKurir"
+
+	if data.IdBidKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id bid kurir tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{

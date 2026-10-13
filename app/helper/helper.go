@@ -691,3 +691,11 @@ func JenisKendaraanKurirValidation(jkk string) bool {
 func JenisRodaKendaraanKurirValidation(jrk string) bool {
 	return kurir_enums.CacheRodaKendaraanKurir[jrk]
 }
+
+func JenisPengirimanValidation(jp string) bool {
+	return kurir_enums.CacheJenisPengiriman[jp]
+}
+
+func ModeBidKurirValidation(mbk string) bool {
+	return kurir_enums.CacheModeBidKurir[mbk]
+}

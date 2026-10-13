@@ -13,6 +13,12 @@ const (
 	Instant string = "Instant"
 )
 
+var CacheJenisPengiriman Cache = Cache{
+	Reguler: true,
+	Express: true,
+	Instant: true,
+}
+
 func NamaJenisLayananKurirEnums() string {
 	return "jenis_layanan_kurir"
 }
@@ -129,6 +135,11 @@ func NamaModeBidKurirEnums() string {
 
 func ModeBidKurirEnums() []string {
 	return []string{Manual, Auto}
+}
+
+var CacheModeBidKurir Cache = Cache{
+	Manual: true,
+	Auto:   true,
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

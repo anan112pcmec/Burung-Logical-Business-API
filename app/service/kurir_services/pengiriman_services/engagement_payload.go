@@ -2,7 +2,6 @@ package kurir_pengiriman_services
 
 import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/identity_kurir"
-
 )
 
 type PayloadAktifkanBidKurir struct {
@@ -105,7 +104,6 @@ type PayloadKirimPengirimanEks struct {
 
 type PayloadUpdateInformasiPerjalananPengirimanEks struct {
 	IdenititasKurir identity_kurir.IdentitasKurir `json:"identitas_kurir"`
-	IdBid           int64                         `json:"id_bid"`
 	IdPengirimanEks int64                         `json:"id_pengiriman_eks"`
 	Lokasi          string                        `json:"lokasi"`
 	Keterangan      string                        `json:"keterangan"`
