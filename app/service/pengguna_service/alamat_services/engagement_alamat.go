@@ -21,7 +21,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +70,6 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		}
 	}
 
-
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -80,7 +78,6 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		}
 	}
 
-	
 	var id_data_alamats []int64
 	if err := db.Read.WithContext(ctx).Select("id").Model(&sot_models.AlamatPengguna{}).
 		Where(sot_models.AlamatPengguna{IDPengguna: data.IdentitasPengguna.ID}).
@@ -180,14 +177,6 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditAlamatPengguna"
 
-	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
-		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
-			Services: services,
-			Message:  "Gagal data Pengguna tidak ditemukan",
-		}
-	}
-
 	if data.IdAlamatPengguna <= 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -233,6 +222,14 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 			Status:   http.StatusNotAcceptable,
 			Services: services,
 			Message:  "Nama kota tidak valid",
+		}
+	}
+
+	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data Pengguna tidak ditemukan",
 		}
 	}
 

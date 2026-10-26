@@ -16,6 +16,7 @@ import (
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	seller_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
+	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
 	"github.com/anan112pcmec/Burung-backend-1/app/helper"
 	mb_cud_publisher "github.com/anan112pcmec/Burung-backend-1/app/message_broker/publisher/cud_exchange"
@@ -33,7 +34,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	service := "PenggunaLogin"
+	const service string = "PenggunaLogin"
 	var user sot_models.Pengguna
 
 	if !helper.Contains(email, []string{"@gmail.com"}) {
@@ -149,7 +150,7 @@ func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSyste
 } //Tuned
 
 func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	service := "SellerLogin"
+	const service string = "SellerLogin"
 	var seller sot_models.Seller
 
 	if !helper.Contains(email, []string{"@gmail.com"}) {
@@ -266,7 +267,7 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 } //Tuned
 
 func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	service := "KurirLogin"
+	const service string = "KurirLogin"
 
 	if !helper.Contains(email, []string{"@gmail.com"}) {
 		return &response.ResponseForm{
@@ -717,16 +718,24 @@ func ValidateUserRegistration(ctx context.Context, db *environment.InternalDBRea
 			},
 		}
 	} else {
-		go func(u sot_models.Pengguna, publisher *mb_cud_publisher.Publisher) {
+		go func(u sot_models.Pengguna, Write *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
+
+			penggunaThreshold := sot_threshold.PenggunaThreshold{
+				IdPengguna: u.ID,
+			}
+
+			if err := penggunaThreshold.Inisialisasi(konteks, Write); err != nil {
+				fmt.Println("Gagal membuat threshold pengguna")
+			}
 
 			newPenggunaCreated := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(u.TableName()).SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newPenggunaCreated); err != nil {
 				fmt.Println("Gagal mempublish create pengguna ber id: ", u.ID)
 			}
 
-		}(user, cud_publisher)
+		}(user, db.Write, cud_publisher)
 	}
 
 	return &response.ResponseForm{
