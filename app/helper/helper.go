@@ -573,7 +573,16 @@ func JamOperasionalSellerValidation(jam string) bool {
 	}
 
 	for i, s := range jam {
-		if i < 2 {
+
+		if i == 0 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 1 {
 			if _, err := strconv.Atoi(string(s)); err != nil {
 				return false
 			}
@@ -589,7 +598,15 @@ func JamOperasionalSellerValidation(jam string) bool {
 			continue
 		}
 
-		if i <= 4 {
+		if i == 3 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 4 {
 			if _, err := strconv.Atoi(string(s)); err != nil {
 				return false
 			}
@@ -621,7 +638,15 @@ func JamOperasionalSellerValidation(jam string) bool {
 			continue
 		}
 
-		if i <= 9 {
+		if i == 8 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 9 {
 			if _, err := strconv.Atoi(string(s)); err != nil {
 				return false
 			}
@@ -635,7 +660,15 @@ func JamOperasionalSellerValidation(jam string) bool {
 			}
 		}
 
-		if i <= 12 {
+		if i == 11 {
+			if _, err := strconv.Atoi(string(s)); err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		if i == 12 {
 			if _, err := strconv.Atoi(string(s)); err != nil {
 				return false
 			}

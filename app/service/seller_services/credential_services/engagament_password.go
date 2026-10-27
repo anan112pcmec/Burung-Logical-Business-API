@@ -47,14 +47,6 @@ func PreUbahPasswordSeller(ctx context.Context, data PayloadPreUbahPasswordSelle
 		}
 	}
 
-	if seller.Email == "" {
-		return &response.ResponseForm{
-			Status:   http.StatusNotFound,
-			Services: services,
-			Message:  "Gagal data tidak valid coba hubungi cs",
-		}
-	}
-
 	if err := bcrypt.CompareHashAndPassword([]byte(seller.Password), []byte(data.PasswordLama)); err != nil {
 		log.Println("[WARN] Password lama yang dimasukkan salah.")
 		return &response.ResponseForm{

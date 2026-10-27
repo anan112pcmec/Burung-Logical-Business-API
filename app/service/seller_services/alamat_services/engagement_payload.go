@@ -19,7 +19,7 @@ type PayloadTambahAlamatGudang struct {
 	KodeNegara      string                         `json:"kode_negara"`
 	Deskripsi       string                         `json:"deskripsi"`
 	Longitude       float64                        `json:"longitude"`
-	Latitude        float64                        `json:"latitutde"`
+	Latitude        float64                        `json:"latitude"`
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ type PayloadEditAlamatGudang struct {
 	KodeNegara      string                         `json:"kode_negara"`
 	Deskripsi       string                         `json:"deskripsi"`
 	Longitude       float64                        `json:"longitude"`
-	Latitude        float64                        `json:"latitutde"`
+	Latitude        float64                        `json:"latitude"`
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -47,19 +47,19 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 		}
 	}
 
-	if data.Username == "not" {
+	if data.Username == "BLANK" {
 		log.Println("[INFO] Username kosong, tidak diupdate.")
 	} else {
 		hasil_update_username = seller_particular_profiling.UbahUsernameSeller(ctx, data.IdentitasSeller.IdSeller, data.Username, db)
 	}
 
-	if data.Nama == "not" {
+	if data.Nama == "BLANK" {
 		log.Println("[INFO] Nama kosong, tidak diupdate.")
 	} else {
 		hasil_update_nama = seller_particular_profiling.UbahNamaSeller(ctx, data.IdentitasSeller.IdSeller, data.Nama, db)
 	}
 
-	if data.Email == "not" {
+	if data.Email == "BLANK" {
 		log.Println("[INFO] Email kosong, tidak diupdate.")
 	} else {
 		hasil_update_gmail = seller_particular_profiling.UbahEmailSeller(ctx, data.IdentitasSeller.IdSeller, data.Email, db)
@@ -128,25 +128,25 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 		}
 	}
 
-	if data.Deskripsi != "not" && data.Deskripsi != "" && data.Deskripsi != seller.Deskripsi {
+	if data.Deskripsi != "BLANK" && data.Deskripsi != "" && data.Deskripsi != seller.Deskripsi {
 		hasil_update_deskripsi = seller_particular_profiling.UbahDeskripsiSeller(ctx, data.IdentitasSeller.IdSeller, data.Deskripsi, db)
 	} else {
 		log.Println("[INFO] Deskripsi kosong atau tidak berubah, tidak diupdate.")
 	}
 
-	if data.Punchline != "not" && data.Punchline != "" && data.Punchline != seller.Punchline {
+	if data.Punchline != "BLANK" && data.Punchline != "" && data.Punchline != seller.Punchline {
 		hasil_update_punchline = seller_particular_profiling.UbahPunchlineSeller(ctx, data.IdentitasSeller.IdSeller, data.Punchline, db)
 	} else {
 		log.Println("[INFO] Punchline kosong atau tidak berubah, tidak diupdate.")
 	}
 
-	if data.JamOperasional != "not" && data.JamOperasional != "" && data.JamOperasional != seller.JamOperasional {
+	if data.JamOperasional != "BLANK" && data.JamOperasional != "" && data.JamOperasional != seller.JamOperasional {
 		hasil_update_jam_operasional = seller_particular_profiling.UbahJamOperasionalSeller(ctx, data.IdentitasSeller.IdSeller, data.JamOperasional, db)
 	} else {
 		log.Println("[INFO] Jam operasional kosong atau tidak berubah, tidak diupdate.")
 	}
 
-	if data.Dedication != "not" && data.Dedication != "" && data.Dedication != seller.SellerDedication {
+	if data.Dedication != "BLANK" && data.Dedication != "" && data.Dedication != seller.SellerDedication {
 		hasil_update_dedication = seller_particular_profiling.UbahSellerDedication(ctx, data.IdentitasSeller.IdSeller, data.Dedication, db)
 	} else {
 		log.Println("[INFO] Dedication seller kosong atau tidak berubah, tidak diupdate.")

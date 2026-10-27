@@ -473,7 +473,7 @@ func PreUserRegistration(ctx context.Context, db *environment.InternalDBReadWrit
 } // Tuned
 
 func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, username, nama, email string, jenis string, SellerDedication string, password string, rds *redis.Client) *response.ResponseForm {
-	services := "PreSellerRegistration"
+	const services string = "PreSellerRegistration"
 
 	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) || !helper.Contains(username, []string{"_"}) || jenis != seller_enums.Personal || !helper.SellerDedicationValidation(SellerDedication) {
 		return &response.ResponseForm{
@@ -819,16 +819,22 @@ func ValidateSellerRegistration(ctx context.Context, db *environment.InternalDBR
 			},
 		}
 	} else {
-		go func(s sot_models.Seller, publisher *mb_cud_publisher.Publisher) {
+		go func(s sot_models.Seller, Write *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
+
+			sellerThreshold := sot_threshold.SellerThreshold{
+				IdSeller: int64(s.ID),
+			}
+
+			sellerThreshold.Inisialisasi(konteks, Write)
 
 			newSellerCreated := mb_cud_serializer.NewJsonPayload().SetPayload(s).SetTableName(s.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newSellerCreated); err != nil {
 				fmt.Println("Gagal mempublish create seller ber id: ", s.ID)
 			}
 
-		}(seller, cud_publisher)
+		}(seller, db.Write, cud_publisher)
 	}
 
 	return &response.ResponseForm{

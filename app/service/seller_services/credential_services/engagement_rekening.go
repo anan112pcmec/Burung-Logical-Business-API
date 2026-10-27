@@ -20,7 +20,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	settings "github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,10 +405,10 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 	var data_rekening sot_models.RekeningSeller
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.RekeningSeller{}).
-		Select("id").
 		Where(&sot_models.RekeningSeller{
-			ID:       data.IdRekening,
-			IDSeller: data.IdentitasSeller.IdSeller,
+			ID:            data.IdRekening,
+			IDSeller:      data.IdentitasSeller.IdSeller,
+			NomorRekening: data.NomorRekening,
 		}).
 		Limit(1).
 		Scan(&data_rekening).Error; err != nil {
@@ -431,8 +430,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 	// Hapus rekening
 	if err := db.Write.WithContext(ctx).
 		Where(&sot_models.RekeningSeller{
-			ID:            data_rekening.ID,
-			NomorRekening: data.NomorRekening,
+			ID: data_rekening.ID,
 		}).
 		Delete(&sot_models.RekeningSeller{}).Error; err != nil {
 		return &response.ResponseForm{
