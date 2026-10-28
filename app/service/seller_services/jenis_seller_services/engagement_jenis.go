@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -26,7 +27,7 @@ import (
 func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanDataDistributor"
 
-	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+	if strings.TrimSpace(data.NamaPerusahaan) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -158,7 +159,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 		}
 	}
 
-	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+	if strings.TrimSpace(data.NamaPerusahaan) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -365,7 +366,7 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanDataBrand"
 
-	if data.NamaPerusahaan == "" || data.NamaPerusahaan == " " {
+	if strings.TrimSpace(data.NamaPerusahaan) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -382,7 +383,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 		}
 	}
 
-	lembaga := lembaga_pendaftaran.DaftarLembagaValid[data.LembagaPendaftaran]
+	var lembaga string = lembaga_pendaftaran.DaftarLembagaValid[data.LembagaPendaftaran]
 	if lembaga == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -391,7 +392,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 		}
 	}
 
-	if data.NomorPendaftaranMerek == "" || data.NomorPendaftaranMerek == " " {
+	if strings.TrimSpace(data.NomorPendaftaranMerek) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,

@@ -13,7 +13,7 @@ type PayloadMasukanDataDistributor struct {
 	NamaPerusahaan            string                         `json:"nama_perusahaan"`
 	NIB                       string                         `json:"kode_nib" `
 	NPWP                      string                         `json:"kode_npwp"`
-	DokumenIzinDistributorUrl string                         `json:"dokumen_izi_distributor_url"`
+	DokumenIzinDistributorUrl string                         `json:"dokumen_izin_distributor_url"`
 	Alasan                    string                         `json:"alasan"`
 }
 
@@ -23,7 +23,7 @@ type PayloadEditDataDistributor struct {
 	NamaPerusahaan            string                         `json:"nama_perusahaan"`
 	NIB                       string                         `json:"kode_nib" `
 	NPWP                      string                         `json:"kode_npwp"`
-	DokumenIzinDistributorUrl string                         `json:"dokumen_izi_distributor_url"`
+	DokumenIzinDistributorUrl string                         `json:"dokumen_izin_distributor_url"`
 	Alasan                    string                         `json:"alasan"`
 }
 
