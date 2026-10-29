@@ -3,7 +3,6 @@ package seller_barang_service
 import (
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/identity_seller"
-
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +79,7 @@ type PayloadHapusKategori struct {
 
 type PayloadUbahHargaKategori struct {
 	IdentitasSeller  identity_seller.IdentitySeller `json:"identitas_seller"`
-	IdBarangInduk    int32                          `json:"id_barang_induk_edit_kategori"`
+	IdBarangInduk    int32                          `json:"id_barang_induk"`
 	IdKategoriBarang int64                          `json:"id_kategori_barang"`
 	HargaBarangBaru  int64                          `json:"harga_barang_baru"`
 }

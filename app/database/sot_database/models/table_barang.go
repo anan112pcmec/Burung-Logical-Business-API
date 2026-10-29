@@ -49,7 +49,7 @@ type KategoriBarang struct {
 	PotonganDiskon int32          `gorm:"column:diskon;type:int4;default:0" json:"-"`
 	BeratGram      int16          `gorm:"column:berat_gram;type:int2" json:"berat_gram_kategori_barang"`
 	DimensiPanjang int16          `gorm:"column:dimensi_panjang_cm;type:int2" json:"dimensi_panjang_cm_kategori_barang"`
-	DimensiLebar   int16          `gorm:"column:dimensi_lebar_cm;type:int2" json:"dimensi_tinggi_cm_kategori_barang"`
+	DimensiLebar   int16          `gorm:"column:dimensi_lebar_cm;type:int2" json:"dimensi_lebar_cm_kategori_barang"`
 	Sku            string         `gorm:"column:sku;type:varchar(20);not null" json:"sku_kategori"`
 	IsOriginal     bool           `gorm:"column:is_original;type:bool;not null;default:false" json:"is_original_kategori_barang"`
 	CreatedAt      time.Time      `gorm:"autoCreateTime"`

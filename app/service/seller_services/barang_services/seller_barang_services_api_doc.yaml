@@ -872,7 +872,7 @@ components:
           type: integer
           format: int16
           example: 40
-        dimensi_tinggi_cm_kategori_barang:
+        dimensi_lebar_cm_kategori_barang:
           type: integer
           format: int16
           example: 30
