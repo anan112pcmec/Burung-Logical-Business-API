@@ -132,12 +132,18 @@ type KategoriBarangThreshold struct {
 	IdKategoriBarang int64                     `gorm:"column:id_kategori_barang;index;not null" json:"id_kategori_barang"`
 	KategoriBarang   sot_models.KategoriBarang `gorm:"foreignKey:IdKategoriBarang;references:ID" json:"-"`
 
+	// 3. Update Threshold Kategori Barang hapus field varian barang tambahkan sesuai pada status barang Down, Pending, Ready, Dipesan, Diproses, Terjual
 	// Counter
 	BarangDiDiskon          int32 `gorm:"column:barang_di_diskon;type:int4;default:0" json:"barang_di_diskon"`
 	Keranjang               int32 `gorm:"column:keranjang;type:int4;default:0" json:"keranjang"`
 	MediaKategoriBarangFoto int32 `gorm:"column:media_kategori_barang_foto;type:int4;default:0" json:"media_kategori_barang_foto"`
 	Transaksi               int32 `gorm:"column:transaksi;type:int4;default:0" json:"transaksi"`
-	VarianBarang            int32 `gorm:"column:varian_barang;type:int4;default:0" json:"varian_barang"`
+	Down                    int32 `gorm:"column:down;type:int4;default:0" json:"down"`
+	Ready                   int32 `gorm:"column:ready;type:int4;default:0" json:"ready"`
+	Pending                 int32 `gorm:"column:pending;type:int4;default:0" json:"pending"`
+	Dipesan                 int32 `gorm:"column:dipesan;type:int4;default:0" json:"dipesan"`
+	Diproses                int32 `gorm:"column:diproses;type:int4;default:0" json:"diproses"`
+	Terjual                 int32 `gorm:"column:terjual;type:int4;default:0" json:"terjual"`
 }
 
 func (KategoriBarangThreshold) TableName() string {

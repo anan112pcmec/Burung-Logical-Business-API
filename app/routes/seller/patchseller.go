@@ -121,6 +121,20 @@ func PatchSellerHandler(db *environment.InternalDBReadWriteSystem, w http.Respon
 			return
 		}
 		hasil = seller_service.DownKategoriBarang(ctx, db, data, rds_session, mb_cud_publisher)
+	case "/seller/barang/up-barang-induk":
+		var data seller_service.PayloadUpBarangInduk
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = seller_service.UpBarangInduk(ctx, db, data, rds_session, mb_cud_publisher)
+	case "/seller/barang/up-kategori-barang":
+		var data seller_service.PayloadUpKategoriBarang
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = seller_service.UpKategoriBarang(ctx, db, data, rds_session, mb_cud_publisher)
 	case "/seller/barang/edit-rekening-barang":
 		var data seller_service.PayloadEditRekeningBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

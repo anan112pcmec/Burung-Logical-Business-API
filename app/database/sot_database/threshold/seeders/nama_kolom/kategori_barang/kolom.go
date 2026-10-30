@@ -5,5 +5,12 @@ const (
 	Keranjang               string = "keranjang"
 	MediaKategoriBarangFoto string = "media_kategori_barang_foto"
 	Transaksi               string = "transaksi"
-	VarianBarang            string = "varian_barang"
+	Down                    string = "down"
+	Ready                   string = "ready"
+	Pending                 string = "pending"
+	Dipesan                 string = "dipesan"
+	Diproses                string = "diproses"
+	Terjual                 string = "terjual"
 )
+
+// 3. Update Threshold Kategori Barang hapus field varian barang tambahkan sesuai pada status barang Down, Pending, Ready, Dipesan, Diproses, Terjual

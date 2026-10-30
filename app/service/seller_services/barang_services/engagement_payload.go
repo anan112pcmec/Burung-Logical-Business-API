@@ -116,6 +116,19 @@ type PayloadDownKategoriBarang struct {
 	IdentitasSeller  identity_seller.IdentitySeller `json:"identitas_seller"`
 	IdBarangInduk    int32                          `json:"id_barang_induk"`
 	IdKategoriBarang int64                          `json:"id_kategori_barang"`
+	Jumlah           int64                          `json:"jumlah"`
+}
+
+type PayloadUpBarangInduk struct {
+	IdentitasSeller identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBarangInduk   int32                          `json:"id_barang_induk_up"`
+}
+
+type PayloadUpKategoriBarang struct {
+	IdentitasSeller  identity_seller.IdentitySeller `json:"identitas_seller"`
+	IdBarangInduk    int64                          `json:"id_barang_induk"`
+	IdKategoriBarang int64                          `json:"id_kategori_barang"`
+	Jumlah           int64                          `json:"jumlah"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////

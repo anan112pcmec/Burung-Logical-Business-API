@@ -7,7 +7,7 @@ const (
 	// 1. TIMEOUTS & DEADLINES (System-wide)
 	// =========================================================================
 	// Batasan waktu maksimum untuk operasi I/O dan Context di level aplikasi
-	TimeoutContext        = 6 * time.Second
+	TimeoutContext        = 10 * time.Second
 	TimeoutDatabaseQuery  = 5 * time.Second
 	TimeoutCacheOperation = 2 * time.Second
 
