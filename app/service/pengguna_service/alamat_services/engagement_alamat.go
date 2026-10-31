@@ -78,7 +78,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		}
 	}
 
-	var id_data_alamats []int64
+	var id_data_alamats []int64 = make([]int64, 0, 5)
 	if err := db.Read.WithContext(ctx).Select("id").Model(&sot_models.AlamatPengguna{}).
 		Where(sot_models.AlamatPengguna{IDPengguna: data.IdentitasPengguna.ID}).
 		Limit(5).Scan(&id_data_alamats).Error; err != nil {
@@ -101,7 +101,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Select("id").Where(&sot_models.AlamatPengguna{
 		IDPengguna:      data.IdentitasPengguna.ID,
 		PanggilanAlamat: data.PanggilanAlamat,
-	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
+	}).Limit(1).Take(&id_data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -146,15 +146,15 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 			IdPengguna: Ap.IDPengguna,
 		}
 
+		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
+			IdAlamatPengguna: Ap.ID,
+		}
+
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		if err := threshold_pengguna.Increment(konteks, Trh, stsk_pengguna.AlamatPengguna); err != nil {
 			fmt.Println("gagal incr threshold pengguna")
-		}
-
-		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
-			IdAlamatPengguna: Ap.ID,
 		}
 
 		if err := threshold_alamat.Inisialisasi(konteks, Trh); err != nil {
@@ -172,7 +172,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditAlamatPengguna"
@@ -237,7 +237,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Select("id").Where(&sot_models.AlamatPengguna{
 		ID:         data.IdAlamatPengguna,
 		IDPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Scan(&id_alamat_pengguna).Error; err != nil {
+	}).Limit(1).Take(&id_alamat_pengguna).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -260,7 +260,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		Select("id").
 		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, transaksi_enums.Selesai).
 		Limit(1).
-		Scan(&idDataTransaksi).Error; err != nil {
+		Take(&idDataTransaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -325,7 +325,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Hapus Alamat Pengguna
@@ -354,7 +354,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Where(&sot_models.AlamatPengguna{
 		ID:         data.IdAlamatPengguna,
 		IDPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Scan(&alamat_pengguna).Error; err != nil {
+	}).Limit(1).Take(&alamat_pengguna).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -377,7 +377,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		Select("id").
 		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, transaksi_enums.Selesai).
 		Limit(1).
-		Scan(&idDataTransaksi).Error; err != nil {
+		Take(&idDataTransaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -410,6 +410,10 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 			IdPengguna: Ap.IDPengguna,
 		}
 
+		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
+			IdAlamatPengguna: Ap.ID,
+		}
+
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
@@ -419,11 +423,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 
 		fmt.Println("ini ID: ", Ap.ID)
 
-		threshold_alamat := sot_threshold.AlamatPenggunaThreshold{
-			IdAlamatPengguna: Ap.ID,
-		}
-
-		if err := db.Write.WithContext(konteks).Delete(&threshold_alamat).Error; err != nil {
+		if err := db.Write.Unscoped().WithContext(konteks).Delete(&threshold_alamat).Error; err != nil {
 			fmt.Println("gagal menghapus threshold alamat")
 		}
 
@@ -438,4 +438,4 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		Services: services,
 		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed

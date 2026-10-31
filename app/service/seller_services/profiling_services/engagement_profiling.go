@@ -26,7 +26,7 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUpdateProfilePersonalSeller, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "UpdatePersonalSeller"
+	const services string = "UpdatePersonalSeller"
 	var hasil_update_nama seller_particular_profiling.ResponseUbahNama
 	var hasil_update_username seller_particular_profiling.ResponseUbahUsername
 	var hasil_update_gmail seller_particular_profiling.ResponseUbahEmail
@@ -92,7 +92,7 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 			UpdateGmail:    hasil_update_gmail,
 		},
 	}
-} //  Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Update Info General Public
@@ -180,4 +180,4 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 			UpdateDedication:     hasil_update_dedication,
 		},
 	}
-}
+} // Passed

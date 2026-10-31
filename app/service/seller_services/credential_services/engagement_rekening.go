@@ -74,7 +74,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 			NomorRekening: data.NomorRekening,
 		}).
 		Limit(1).
-		Scan(&id_rekening).Error; err_check_rekening == nil && id_rekening != 0 {
+		Take(&id_rekening).Error; err_check_rekening == nil && id_rekening != 0 {
 		log.Printf("[WARN] Rekening sudah ada untuk seller ID %d: %s - %s",
 			data.IdentitasSeller.IdSeller, data.NamaBank, data.NomorRekening)
 		return &response.ResponseForm{
@@ -101,7 +101,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 			IDSeller: data.IdentitasSeller.IdSeller,
 		}).
 		Limit(1).
-		Scan(&id_data_rekening).Error; err != nil {
+		Take(&id_data_rekening).Error; err != nil {
 		log.Printf("[ERROR] Gagal cek rekening seller ID %d: %v", data.IdentitasSeller.IdSeller, err)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -136,19 +136,19 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 	}
 
 	go func(Dr sot_models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(Dr.IDSeller),
 		}
 
-		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.Rekening); err != nil {
-			fmt.Println("Gagal increment rekening seller ke threshold seller")
-		}
-
 		rekeningSellerThreshold := sot_threshold.RekeningSellerThreshold{
 			IdRekeningSeller: Dr.ID,
+		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.Rekening); err != nil {
+			fmt.Println("Gagal increment rekening seller ke threshold seller")
 		}
 
 		if err := rekeningSellerThreshold.Inisialisasi(konteks, Trh); err != nil {
@@ -166,7 +166,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 		Services: services,
 		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Rekening Seller
@@ -220,7 +220,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekening,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
+	}).Limit(1).Take(&id_data_rekening).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -303,7 +303,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekening,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
+	}).Limit(1).Take(&id_data_rekening).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -411,7 +411,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 			NomorRekening: data.NomorRekening,
 		}).
 		Limit(1).
-		Scan(&data_rekening).Error; err != nil {
+		Take(&data_rekening).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -441,18 +441,18 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 	}
 
 	go func(Dr sot_models.RekeningSeller, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(Dr.IDSeller),
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.Rekening); err != nil {
 			fmt.Println("Gagal decr count rekening rekening ke threshold seller")
 		}
 
-		if err := Trh.WithContext(konteks).Model(sot_threshold.RekeningSellerThreshold{}).Where(&sot_threshold.RekeningSellerThreshold{
+		if err := Trh.Unscoped().WithContext(konteks).Model(sot_threshold.RekeningSellerThreshold{}).Where(&sot_threshold.RekeningSellerThreshold{
 			ID: Dr.ID,
 		}).Delete(&sot_threshold.RekeningSellerThreshold{}).Error; err != nil {
 			fmt.Println("Gagal menghapus threshold rekening seller")
@@ -472,4 +472,4 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 		Services: services,
 		Message:  "Rekening berhasil dihapus.",
 	}
-} // Tuned
+} // Passed

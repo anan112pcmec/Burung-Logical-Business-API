@@ -84,16 +84,15 @@ func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSyste
 	} else {
 		if user.StatusPengguna == entity_enums.Offline {
 			go func(u sot_models.Pengguna, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+				defer cancel()
+
 				if err1 := Write.Model(sot_models.Pengguna{}).Where(sot_models.Pengguna{ID: u.ID}).Update("status", entity_enums.Online).Error; err1 != nil {
 					fmt.Println("Gagal Ubah Status")
 					return
 				} else {
 					u.StatusPengguna = entity_enums.Online
 				}
-
-				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-				defer cancel()
 
 				updateOnlinePengguna := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Pengguna)
 				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateOnlinePengguna); err != nil {
@@ -119,15 +118,15 @@ func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSyste
 	}
 
 	go func(u sot_models.Pengguna, rds_pass *redis.Client) {
-		ctx_t, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
 		session := helper.StructToJSONMap(u)
 		pipe := rds_pass.Pipeline()
-		pipe.HSet(ctx_t, key, session)
+		pipe.HSet(konteks, key, session)
 
-		if _, err := pipe.Exec(ctx_t); err != nil {
+		if _, err := pipe.Exec(konteks); err != nil {
 			log.Printf("[UserLogin][Redis] %v", err)
 		} else {
 			log.Printf("[UserLogin][Redis] %v", "berhasil")
@@ -147,7 +146,7 @@ func PenggunaLogin(ctx context.Context, db *environment.InternalDBReadWriteSyste
 			},
 		},
 	}
-} //Tuned
+} //Passed
 
 func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, email, password string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const service string = "SellerLogin"
@@ -201,6 +200,9 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 	} else {
 		if seller.StatusSeller == entity_enums.Offline {
 			go func(u sot_models.Seller, Write gorm.DB, publisher *mb_cud_publisher.Publisher) {
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+				defer cancel()
+
 				if err := Write.Model(&sot_models.Seller{}).
 					Where(&sot_models.Seller{ID: u.ID}).
 					Update("status", entity_enums.Online).Error; err != nil {
@@ -209,9 +211,6 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 				} else {
 					u.StatusSeller = entity_enums.Online
 				}
-				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-				defer cancel()
 
 				updateOnlineSeller := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Seller)
 				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateOnlineSeller); err != nil {
@@ -238,15 +237,15 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 	}
 
 	go func(u sot_models.Seller, rds_pass *redis.Client) {
-		ctx_t, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
 		session := helper.StructToJSONMap(u)
 		pipe := rds_pass.Pipeline()
-		pipe.HSet(ctx_t, key, session)
+		pipe.HSet(konteks, key, session)
 
-		if _, err := pipe.Exec(ctx_t); err != nil {
+		if _, err := pipe.Exec(konteks); err != nil {
 			log.Printf("[SellerLogin][Redis] %v", err)
 		}
 	}(seller, rds)
@@ -327,8 +326,7 @@ func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, 
 					u.StatusKurir = entity_enums.Online
 				}
 
-				ctx_t := context.Background()
-				konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+				konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancel()
 
 				updateOnlineKurir := mb_cud_serializer.NewJsonPayload().SetPayload(u).SetTableName(service).SetRole(mb_cud_seeders.Kurir)
@@ -355,15 +353,15 @@ func KurirLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem, 
 	}
 
 	go func(u sot_models.Kurir, rds_pass *redis.Client) {
-		ctx_t, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		key := cache_db_entity_sessioning_seeders.SetSessionKey(&u)
 		session := helper.StructToJSONMap(u)
 		pipe := rds_pass.Pipeline()
-		pipe.HSet(ctx_t, key, session)
+		pipe.HSet(konteks, key, session)
 
-		if _, err := pipe.Exec(ctx_t); err != nil {
+		if _, err := pipe.Exec(konteks); err != nil {
 			log.Printf("[KurirLogin][Redis] %v", err)
 		}
 	}(kurir, rds)
@@ -564,7 +562,7 @@ func PreSellerRegistration(ctx context.Context, db *environment.InternalDBReadWr
 } // Tuned
 
 func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, nama, email, password, username string, rds *redis.Client) *response.ResponseForm {
-	services := "PreKurirRegistration"
+	const services string = "PreKurirRegistration"
 
 	if !helper.Contains(email, []string{"@gmail.com"}) || !helper.Contains(username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}) || !helper.Contains(username, []string{"_"}) {
 		return &response.ResponseForm{
@@ -650,7 +648,7 @@ func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWri
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func ValidateUserRegistration(ctx context.Context, db *environment.InternalDBReadWriteSystem, OTPkey string, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "ValidateUserRegistration"
+	const services string = "ValidateUserRegistration"
 
 	if !helper.OtpValidation(OTPkey) {
 		return &response.ResponseForm{
@@ -827,7 +825,9 @@ func ValidateSellerRegistration(ctx context.Context, db *environment.InternalDBR
 				IdSeller: int64(s.ID),
 			}
 
-			sellerThreshold.Inisialisasi(konteks, Write)
+			if err := sellerThreshold.Inisialisasi(konteks, Write); err != nil {
+				fmt.Println("Gagal membuat threshold seller")
+			}
 
 			newSellerCreated := mb_cud_serializer.NewJsonPayload().SetPayload(s).SetTableName(s.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newSellerCreated); err != nil {
@@ -917,17 +917,24 @@ func ValidateKurirRegistration(ctx context.Context, db *environment.InternalDBRe
 		}
 	} else {
 		// POLA SAMA PERSIS: Menjalankan background task secara async untuk kurir
-		go func(k sot_models.Kurir, publisher *mb_cud_publisher.Publisher) {
+		go func(k sot_models.Kurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			thresholdKurir := sot_threshold.KurirThreshold{
+				IdKurir: k.ID,
+			}
+
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
-			// Catatan: Pastikan k.TableName() dan mb_cud_seeders.Kurir sudah terdefinisi di project Anda
+			if err := thresholdKurir.Inisialisasi(konteks, Trh); err != nil {
+				fmt.Println("Gagal membuat threshold Kurir")
+			}
+
 			newKurirCreated := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName()).SetRole(mb_cud_seeders.Kurir)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newKurirCreated); err != nil {
 				fmt.Println("Gagal mempublish create kurir ber id: ", k.ID)
 			}
 
-		}(kurir, cud_publisher)
+		}(kurir, db.Write, cud_publisher)
 	}
 
 	return &response.ResponseForm{

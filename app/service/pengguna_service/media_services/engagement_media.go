@@ -178,7 +178,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 		UrlUpload: minIOUploadUrl,
 		Key:       keyz,
 	}
-}
+} // passed
 
 func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPengguna, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusFotoProfilPengguna"
@@ -211,7 +211,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		ID:         data.IdMediaDataPengguna,
 		IdPengguna: data.IdentitasPengguna.ID,
 		Key:        data.KeyFoto,
-	}).Limit(1).Scan(&data_media_foto).Error; err != nil {
+	}).Limit(1).Take(&data_media_foto).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -225,7 +225,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaPenggunaProfilFoto{}).Where(&sot_models.MediaPenggunaProfilFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaPenggunaProfilFoto{}).Where(&sot_models.MediaPenggunaProfilFoto{
 		ID: data.IdMediaDataPengguna,
 	}).Delete(&sot_models.MediaPenggunaProfilFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -253,13 +253,12 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		}
 	}(data_media_foto, db.Write, cud_publisher)
 
-	// nanti push ke cassandra hystorical db
-
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
+		Message:  "Berhasil",
 	}
-}
+} // passed
 
 func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaReviewFoto"
@@ -373,19 +372,18 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		customIncr := sot_threshold.CustomCounter{
-			FieldName: stsk_review.MediaReviewFoto,
-			Count:     len(mediaPhotos),
-		}
-
-		if err := thresholdReview.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{customIncr}); err != nil {
+		if err := thresholdReview.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_review.MediaReviewFoto,
+				Count:     len(mediaPhotos),
+			},
+		}); err != nil {
 			fmt.Println("gagal increment review foto ke threhsold review")
 		}
 
 		for _, mP := range mediaPhotos {
 			go func(Photo sot_models.MediaReviewFoto, publisherr *mb_cud_publisher.Publisher) {
-				ctx_tt := context.Background()
-				kontekss, cancell := context.WithTimeout(ctx_tt, settings.TimeoutContext)
+				kontekss, cancell := context.WithTimeout(context.Background(), settings.TimeoutContext)
 				defer cancell()
 
 				createReviewFotoPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Photo).SetTableName(Photo.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -402,7 +400,7 @@ func TambahMediaReviewFoto(ctx context.Context, data PayloadTambahMediaReviewFot
 		Services:  services,
 		UrlAndKey: keyzAndUrl,
 	}
-}
+} // Passed
 
 func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVideo, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaReviewVideo"
@@ -432,7 +430,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Review{}).Select("id").Where(&sot_models.Review{
 		ID:         data.IdReviewData,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Scan(&id_data_review_produk).Error; err != nil {
+	}).Limit(1).Take(&id_data_review_produk).Error; err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -449,7 +447,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 	var id_media_review_video int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaReviewVideo{}).Select("id").Where(&sot_models.MediaReviewVideo{
 		IdReview: id_data_review_produk,
-	}).Limit(1).Scan(&id_media_review_video).Error; err != nil {
+	}).Limit(1).Take(&id_media_review_video).Error; err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -510,4 +508,4 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Pased

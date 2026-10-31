@@ -95,8 +95,6 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 				log.Println("[INFO] Email OTP berhasil dikirim.")
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-			defer cancel()
 			fields := map[string]interface{}{
 				"id_user":       user.ID,
 				"username":      user.Username,
@@ -127,8 +125,6 @@ func PreUbahPasswordPengguna(ctx context.Context, data PayloadPreUbahPasswordPen
 				log.Println("[INFO] Email notifikasi PIN berhasil dikirim.")
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-			defer cancel()
 			fields := map[string]interface{}{
 				"id_user":       user.ID,
 				"username":      user.Username,
@@ -172,7 +168,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 	}
 
 	var id_user int64
-	if check_user := db.Read.Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).First(&id_user).Error; check_user != nil {
+	if check_user := db.Read.WithContext(ctx).Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).Limit(1).Take(&id_user).Error; check_user != nil {
 		log.Printf("[WARN] Pengguna tidak ditemukan untuk validasi OTP: %v", check_user)
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -208,7 +204,6 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 	}
 
 	go func(Ip int64, Read *gorm.DB, rds_session *redis.Client, publisher *mb_cud_publisher.Publisher) {
-
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
@@ -237,8 +232,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 		Services: services,
 		Message:  "Password berhasil diubah.",
 	}
-
-}
+} // Passed
 
 func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidatePinPasswordPengguna, db *environment.InternalDBReadWriteSystem, rds_auth, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "ValidateUbahPasswordPenggunaViaPin"
@@ -324,7 +318,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 		Services: services,
 		Message:  "Password berhasil diubah.",
 	}
-}
+} // Passed
 
 func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MembuatSecretPinPengguna"
@@ -414,7 +408,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 		Services: services,
 		Message:  "PIN berhasil dibuat.",
 	}
-}
+} // Passed
 
 func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UpdateSecretPinPengguna"
@@ -504,4 +498,4 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 		Services: services,
 		Message:  "PIN berhasil diubah.",
 	}
-}
+} // Passed

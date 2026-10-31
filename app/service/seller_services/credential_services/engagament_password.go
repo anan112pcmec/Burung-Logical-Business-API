@@ -174,4 +174,4 @@ func ValidateUbahPasswordSeller(ctx context.Context, data PayloadValidateUbahPas
 		Services: services,
 		Message:  "Password berhasil diubah.",
 	}
-} // Tuned
+} // Passed

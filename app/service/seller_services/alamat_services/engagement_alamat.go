@@ -80,7 +80,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Select("id").Where(&sot_models.AlamatGudang{
 		IDSeller:   data.IdentitasSeller.IdSeller,
 		NamaAlamat: data.NamaAlamat,
-	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
+	}).Limit(1).Take(&id_data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -151,7 +151,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 		Services: services,
 		Message:  "Alamat gudang berhasil ditambahkan.",
 	}
-} //Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Alamat Gudang
@@ -239,7 +239,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 		Select("id").
 		Where("id_alamat_gudang = ? AND status != ?", data.IdAlamatGudang, transaksi_enums.Selesai).
 		Limit(1).
-		Scan(&idDataTransaksi).Error; err != nil {
+		Take(&idDataTransaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -304,7 +304,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 		Services: services,
 		Message:  "Alamat gudang berhasil diubah.",
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Hapus Alamat Gudang Seller
@@ -338,7 +338,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 		ID:       data.IdGudang,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&data_alamat).Error; err != nil {
+	}).Limit(1).Take(&data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -354,10 +354,10 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		}
 	}
 
-	var total int64 = 0
+	var kategori_masih_menggunakan int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 		IDAlamat: data.IdGudang,
-	}).Limit(1).Scan(&total).Error; err != nil {
+	}).Limit(1).Take(&kategori_masih_menggunakan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -365,7 +365,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		}
 	}
 
-	if total != 0 {
+	if kategori_masih_menggunakan != 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -373,14 +373,13 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		}
 	}
 
-	var idDataTransaksi int64 = 0
-
+	var id_data_transaksi int64 = 0
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.Transaksi{}).
 		Select("id").
 		Where("id_alamat_gudang = ? AND status != ?", data.IdGudang, transaksi_enums.Selesai).
 		Limit(1).
-		Scan(&idDataTransaksi).Error; err != nil {
+		Take(&id_data_transaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -390,7 +389,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	}
 
 	// Jika ada transaksi yang menggunakan alamat ini
-	if idDataTransaksi != 0 {
+	if id_data_transaksi != 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -420,7 +419,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 			fmt.Println("Gagal decr alamat gudang count ke threshold seller")
 		}
 
-		if err := Trh.WithContext(konteks).Model(&sot_threshold.AlamatGudangThreshold{}).Where(&sot_threshold.AlamatGudangThreshold{
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.AlamatGudangThreshold{}).Where(&sot_threshold.AlamatGudangThreshold{
 			IdAlamatGudang: A.ID,
 		}).Delete(&sot_threshold.AlamatGudangThreshold{}).Error; err != nil {
 			fmt.Printf("Gagal hapus threshold alamat gudang ber id: %v", A.ID)
@@ -437,4 +436,4 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		Services: services,
 		Message:  "Alamat gudang berhasil dihapus.",
 	}
-} // Tuned
+} // Passed

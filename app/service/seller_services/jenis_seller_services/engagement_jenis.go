@@ -72,7 +72,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 	var id_data_distributor int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.DistributorData{}).Select("id").Where(&sot_models.DistributorData{
 		SellerId: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
+	}).Limit(1).Take(&id_data_distributor).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -99,7 +99,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 		NPWP:                      data.NPWP,
 		Alasan:                    data.Alasan,
 		DokumenIzinDistributorUrl: data.DokumenIzinDistributorUrl,
-		Status:                    "Pending",
+		Status:                    "Pending", // ini bahaya
 	}
 
 	if err := db.Write.WithContext(ctx).Create(&newDistributorData).Error; err != nil {
@@ -113,9 +113,6 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 	}
 
 	go func(Ddata sot_models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		sellerThreshold := sot_threshold.SellerThreshold{
 			IdSeller: int64(Ddata.SellerId),
 		}
@@ -123,6 +120,9 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 		distributorDataThreshold := sot_threshold.DistributorDataThreshold{
 			IdDistributorData: Ddata.ID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := sellerThreshold.Increment(konteks, Trh, stsk_seller.DistributorData); err != nil {
 			fmt.Println("Gagal incr count distributor data ke seller threshold")
@@ -146,7 +146,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 			Message: "Berhasil",
 		},
 	}
-}
+} // Passed
 
 func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditDataDistributor"
@@ -206,7 +206,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 		ID:       data.IdDistributorData,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
-	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
+	}).Limit(1).Take(&id_data_distributor).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -269,7 +269,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 			Message: "Berhasil",
 		},
 	}
-}
+} // Passed
 
 func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusDataDistributor"
@@ -330,18 +330,18 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 	}
 
 	go func(Ddata sot_models.DistributorData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		sellerThreshold := sot_threshold.SellerThreshold{
 			IdSeller: int64(Ddata.SellerId),
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := sellerThreshold.Decrement(konteks, Trh, stsk_seller.DistributorData); err != nil {
 			fmt.Println("Gagal decr count distributor data ke seller threshold")
 		}
 
-		if err := Trh.WithContext(konteks).Model(&sot_threshold.DistributorDataThreshold{}).Where(&sot_threshold.DistributorDataThreshold{
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.DistributorDataThreshold{}).Where(&sot_threshold.DistributorDataThreshold{
 			IdDistributorData: Ddata.ID,
 		}).Delete(&sot_threshold.DistributorDataThreshold{}).Error; err != nil {
 			fmt.Println("Gagal menghapus threshold data distributor")
@@ -361,7 +361,7 @@ func HapusDataDistributor(ctx context.Context, data PayloadHapusDataDistributor,
 			Message: "Berhasil",
 		},
 	}
-} // Tuned
+} // Passed
 
 func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "MasukanDataBrand"
@@ -445,7 +445,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 	var id_data_brand int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BrandData{}).Select("id").Where(&sot_models.BrandData{
 		SellerId: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+	}).Limit(1).Take(&id_data_brand).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -490,9 +490,6 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 	}
 
 	go func(Db sot_models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		sellerThreshold := sot_threshold.SellerThreshold{
 			IdSeller: int64(Db.SellerId),
 		}
@@ -500,6 +497,9 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 		brandDataThreshold := sot_threshold.BrandDataThreshold{
 			IdBrandData: Db.ID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := sellerThreshold.Increment(konteks, Trh, stsk_seller.BrandData); err != nil {
 			fmt.Println("Gagal incr count brand data ke seller threshold")
@@ -522,7 +522,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 			Message: "Berhasil",
 		},
 	}
-}
+} // Passed
 
 func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditDataBrand"
@@ -616,7 +616,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 		ID:       data.IdDataBrand,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
-	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
+	}).Limit(1).Take(&id_data_brand).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -683,7 +683,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 			Message: "Berhasil",
 		},
 	}
-}
+} // Passed
 
 func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusDataBrand"
@@ -711,7 +711,7 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 		ID:       data.IdDataBrand,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
-	}).Limit(1).Scan(&data_brand).Error; err != nil {
+	}).Limit(1).Take(&data_brand).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -744,18 +744,18 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 	}
 
 	go func(Db sot_models.BrandData, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		sellerThreshold := sot_threshold.SellerThreshold{
 			IdSeller: int64(Db.SellerId),
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := sellerThreshold.Decrement(konteks, Trh, stsk_seller.BrandData); err != nil {
 			fmt.Println("Gagal decr count brand data ke seller threshold")
 		}
 
-		if err := Trh.WithContext(konteks).Model(&sot_threshold.BrandDataThreshold{}).Where(&sot_threshold.BrandDataThreshold{
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.BrandDataThreshold{}).Where(&sot_threshold.BrandDataThreshold{
 			IdBrandData: Db.ID,
 		}).Delete(&sot_threshold.BrandDataThreshold{}).Error; err != nil {
 			fmt.Println("Gagal delete threshold brand data")
@@ -774,4 +774,4 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 			Message: "Berhasil",
 		},
 	}
-}
+} // Passed

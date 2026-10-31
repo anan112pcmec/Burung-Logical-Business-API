@@ -17,6 +17,7 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
+	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/identity_pengguna"
 	particular_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/particular_profiling"
 	response_profiling_pengguna "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/profiling_services/response_profiling"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
@@ -76,14 +77,14 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 
 	wg.Wait()
 
-	go func(Bpengguna sot_models.Pengguna, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
+	go func(IP identity_pengguna.IdentityPengguna, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Pengguna](&Bpengguna)
+		KeyLama := cache_db_entity_sessioning_seeders.SetSessionKey[*sot_models.Pengguna](&sot_models.Pengguna{ID: IP.ID, Username: IP.Username, Email: IP.Email})
 		var uptodatePenggunaData sot_models.Pengguna
 		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
-			ID: Bpengguna.ID,
+			ID: IP.ID,
 		}).Limit(1).Take(&uptodatePenggunaData); err != nil {
 			fmt.Println("Gagal mengambil data pengguna terbaru")
 			return
@@ -98,7 +99,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedPenggunaDataPublish); err != nil {
 			fmt.Println("Gagal publish update data pengguna ke message broker")
 		}
-	}(pengguna, db.Read, rds_session, cud_publisher)
+	}(data.IdentitasPengguna, db.Read, rds_session, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -110,4 +111,4 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 			UpdateGmail:    hasil_update_gmail,
 		},
 	}
-}
+} // Passed
