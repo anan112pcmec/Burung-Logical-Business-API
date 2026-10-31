@@ -366,7 +366,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 		Services: services,
 		Message:  "Barang berhasil ditambahkan.",
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Barang Induk
@@ -466,7 +466,7 @@ func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSys
 		Services: services,
 		Message:  "Barang Berhasil Diubah.",
 	}
-}
+} //Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Hapus Barang Induk
@@ -651,7 +651,7 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 		Services: services,
 		Message:  "Barang berhasil dihapus.",
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Tambah Kategori Barang Induk
@@ -915,15 +915,6 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		if err := thresholdBarangInduk.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
-			{
-				FieldName: stsk_baranginduk.KategoriBarang,
-				Count:     len(Kb),
-			},
-		}); err != nil {
-			fmt.Println("gagal count up threshold barang induk untuk kategori barang", err)
-		}
-
 		if err := thresholdSeller.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
 			{
 				FieldName: stsk_seller.KategoriBarang,
@@ -933,10 +924,13 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 			fmt.Println("gagal count up threshold barang induk untuk kategori barang", err)
 		}
 
+		var varian_baru int32 = 0
 		for _, kategoribarangdata := range Kb {
 			thresholdKategoriBarang = sot_threshold.KategoriBarangThreshold{IdKategoriBarang: kategoribarangdata.ID}
 			thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: kategoribarangdata.IDAlamat}
 			thresholdRekeningSeller = sot_threshold.RekeningSellerThreshold{IdRekeningSeller: kategoribarangdata.IDRekening}
+
+			varian_baru = varian_baru + kategoribarangdata.Stok
 
 			if err := thresholdKategoriBarang.Inisialisasi(konteks, Trh); err != nil {
 				fmt.Printf("Gagal membuat threshold kategori barang ber id %v, bernama %s", kategoribarangdata.ID, kategoribarangdata.Nama)
@@ -964,6 +958,20 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 				fmt.Printf("Gagal mempublish create kategori barang ber id %v dan bernama %s ke message broker", kategoribarangdata.ID, kategoribarangdata.Nama)
 			}
 		}
+
+		if err := thresholdBarangInduk.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_baranginduk.KategoriBarang,
+				Count:     len(Kb),
+			},
+			{
+				FieldName: stsk_baranginduk.VarianBarang,
+				Count:     int(varian_baru),
+			},
+		}); err != nil {
+			fmt.Println("gagal count up threshold barang induk untuk kategori barang", err)
+		}
+
 	}(kategori_barang, int64(data.IdBarangInduk), data.IdentitasSeller.IdSeller, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
@@ -971,7 +979,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 		Services: services,
 		Message:  "Kategori barang berhasil ditambahkan",
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Edit Kategori Barang
@@ -1131,7 +1139,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		Services: services,
 		Message:  "Kategori barang berhasil diubah.",
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Prosedur Hapus Kategori Barang Induk
@@ -1249,7 +1257,16 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 			fmt.Println("Gagal decrement seller threshold field kategori barang")
 		}
 
-		if err := thresholdBarangInduk.Decrement(konteks, Trh, stsk_baranginduk.KategoriBarang); err != nil {
+		if err := thresholdBarangInduk.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_baranginduk.KategoriBarang,
+				Count:     1,
+			},
+			{
+				FieldName: stsk_baranginduk.VarianBarang,
+				Count:     int(Kb.Stok),
+			},
+		}); err != nil {
 			fmt.Println("Gagal decrement kategori barang dalam ts baranginduk")
 		}
 
@@ -1279,7 +1296,7 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 		Services: services,
 		Message:  "Kategori barang berhasil dihapus (soft delete manual).",
 	}
-} // Tuned
+} // Passed
 
 func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUbahHargaKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UbahHargaKategoriBarang"
@@ -1535,7 +1552,7 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 				IdBarangInduk: data.IdBarangInduk,
 				IdKategori:    data.IdKategoriBarang,
 				Sku:           sku,
-				Status:        barang_enums.Ready,
+				Status:        barang_enums.Down,
 			})
 		}
 		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -1560,7 +1577,10 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 		}
 	}
 
-	go func(IdKb int64, t bool, s int, Write *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(IdKb int64, IDB int64, t bool, s int, Write *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: IDB,
+		}
 		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: IdKb,
 		}
@@ -1568,6 +1588,12 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 		defer cancel()
 
 		if t {
+			thresholdBarangInduk.CustomIncrement(konteks, Write, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_baranginduk.VarianBarang,
+					Count:     s,
+				},
+			})
 			thresholdKategoriBarang.CustomIncrement(konteks, Write, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Down,
@@ -1575,6 +1601,12 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 				},
 			})
 		} else {
+			thresholdBarangInduk.CustomDecrement(konteks, Write, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_baranginduk.VarianBarang,
+					Count:     s,
+				},
+			})
 			thresholdKategoriBarang.CustomDecrement(konteks, Write, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Down,
@@ -1595,14 +1627,14 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 			fmt.Println("Gagal publish updated kategori barang stok ke message broker")
 		}
-	}(data.IdKategoriBarang, tambah, sebanyak, db.Write, cud_publisher)
+	}(data.IdKategoriBarang, int64(data.IdBarangInduk), tambah, sebanyak, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
 		Message:  "Proses update stok sedang berjalan",
 	}
-} // Tuned
+} // Passed
 
 func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadDownBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "DownStokBarangInduk"
@@ -1649,14 +1681,6 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		}).Error; err != nil {
 			return err
 		}
-
-		if err := tx.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
-			IdBarangInduk: data.IdBarangInduk,
-			SellerID:      data.IdentitasSeller.IdSeller,
-		}).Update("stok", 0).Error; err != nil {
-			return err
-		}
-
 		return nil
 	}); err != nil {
 		fmt.Println(err)
@@ -1683,7 +1707,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		var thresholdBarangIndukFieldKategoriBarang int64 = 0
 		if err := Read.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Select(stsk_baranginduk.KategoriBarang).Where(&sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: int64(IdBi),
-		}).Limit(1).Take(&thresholdBarangIndukFieldKategoriBarang); err != nil {
+		}).Limit(1).Take(&thresholdBarangIndukFieldKategoriBarang).Error; err != nil {
 			fmt.Println("Gagal mengambil threshold barang induk")
 		}
 
@@ -1748,7 +1772,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		Services: services,
 		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed
 
 func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadDownKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "DownKategoriBarang"
@@ -1833,15 +1857,6 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		const stok string = "stok"
-
-		var exp map[string]interface{} = map[string]interface{}{stok: gorm.Expr(fmt.Sprintf("%s - ?", stok), len(id_varian_barang))}
-		if err := tx.Model(&sot_models.KategoriBarang{}).
-			Where(&sot_models.KategoriBarang{ID: data.IdKategoriBarang}).
-			Updates(exp).Error; err != nil {
-			return err
-		}
-
 		if len(id_varian_barang) > 0 {
 			if err := tx.Model(&sot_models.VarianBarang{}).
 				Where("id IN ?", id_varian_barang).
@@ -1901,7 +1916,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		Services: services,
 		Message:  "Berhasil",
 	}
-} // tuned
+} // Passed
 
 func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUpBarangInduk, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UpBarangInduk"
@@ -1979,24 +1994,6 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 			return err
 		}
 
-		for _, ik := range id_kategori_barang {
-			var countDown int32 = 0
-			if err := tx.Model(&sot_threshold.KategoriBarangThreshold{}).Select(stsk_kategori_barang.Down).Where(&sot_threshold.KategoriBarangThreshold{
-				IdKategoriBarang: ik,
-			}).Limit(1).Take(countDown).Error; err != nil {
-				return err
-			}
-
-			const stok string = "stok"
-
-			var exp map[string]interface{} = map[string]interface{}{stok: gorm.Expr(fmt.Sprintf("%s + ?", stok), countDown)}
-			if err := tx.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
-				IdBarangInduk: int32(ik),
-			}).Updates(exp).Error; err != nil {
-				return err
-			}
-		}
-
 		return nil
 	}); err != nil {
 		return &response.ResponseForm{
@@ -2069,7 +2066,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUpKategoriBarang, rds *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UpKategoriBarang"
@@ -2145,7 +2142,7 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 	}
 
 	// 3. Ambil ID varian barang yang statusnya Down berdasarkan limit
-	var id_varian_barang []int64
+	id_varian_barang := make([]int64, 0, limit_varian)
 
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.VarianBarang{}).
@@ -2165,17 +2162,6 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 
 	// 4. Jalankan transaksi database (Update stok kategori + Update status varian menjadi Ready)
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		const stok string = "stok"
-
-		// Tambah stok kategori sebanyak jumlah varian yang di-up
-		var exp map[string]interface{} = map[string]interface{}{
-			stok: gorm.Expr(fmt.Sprintf("%s + ?", stok), len(id_varian_barang)),
-		}
-		if err := tx.Model(&sot_models.KategoriBarang{}).
-			Where(&sot_models.KategoriBarang{ID: data.IdKategoriBarang}).
-			Updates(exp).Error; err != nil {
-			return err
-		}
 
 		// Update status varian barang dari Down menjadi Ready secara massal (1 query)
 		if len(id_varian_barang) > 0 {
@@ -2240,7 +2226,7 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // passed
 
 func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarangInduk, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditRekeningBarangInduk"
@@ -2343,7 +2329,10 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+		errtK, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
+		if errtK != nil {
+			fmt.Println("Gagal ada masalah dalam mengambil total kategori")
+		}
 
 		var updatesEditRekening []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategori)
 		if err := Read.WithContext(konteks).Where(&sot_models.KategoriBarang{
