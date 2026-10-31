@@ -1038,7 +1038,7 @@ func (a *AlamatGudangThreshold) Decrement(ctx context.Context, db *gorm.DB, kolo
 	}).Updates(updates).Error
 }
 
-func (a *AlamatGudangThreshold) CustomIncrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (a *AlamatGudangThreshold) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -1049,13 +1049,13 @@ func (a *AlamatGudangThreshold) CustomIncrement(id_fk int64, ctx context.Context
 	}
 
 	return db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Where(&AlamatGudangThreshold{
-		ID: id_fk,
+		IdAlamatGudang: a.IdAlamatGudang,
 	}).Updates(
 		updates,
 	).Error
 }
 
-func (a AlamatGudangThreshold) CustomDecrement(id_fk int64, ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+func (a AlamatGudangThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
 	if len(kj) == 0 {
 		return fmt.Errorf("gagal data kosong")
 	}
@@ -1066,7 +1066,7 @@ func (a AlamatGudangThreshold) CustomDecrement(id_fk int64, ctx context.Context,
 	}
 
 	return db.WithContext(ctx).Model(&AlamatGudangThreshold{}).Where(&AlamatGudangThreshold{
-		ID: id_fk,
+		IdAlamatGudang: a.IdAlamatGudang,
 	}).Updates(
 		updates,
 	).Error

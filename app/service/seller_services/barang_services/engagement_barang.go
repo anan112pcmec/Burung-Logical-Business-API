@@ -261,6 +261,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 		}
 	} else {
 		go func(Bi sot_models.BarangInduk, Kb []sot_models.KategoriBarang, Trh *environment.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
+			var banyak_kategori int = len(Kb)
 			thresholdSeller := sot_threshold.SellerThreshold{
 				IdSeller: int64(Bi.SellerID),
 			}
@@ -269,10 +270,12 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 				IdBarangInduk: int64(Bi.ID),
 			}
 
+			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{}
+
+			thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{}
+
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
-
-			fmt.Println("NIH KB NGENTOT", len(Kb))
 
 			if err := thresholdSeller.CustomIncrement(konteks, Trh.Write, []sot_threshold.CustomCounter{
 				{
@@ -281,7 +284,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 				},
 				{
 					FieldName: stsk_seller.KategoriBarang,
-					Count:     len(Kb),
+					Count:     banyak_kategori,
 				},
 			}); err != nil {
 				fmt.Println("Gagal increment seller threshold field barang induk dan kategori barang")
@@ -308,9 +311,9 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 			for _, k := range Kb {
 				total_varian += int(k.Stok)
 
-				thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{IdKategoriBarang: k.ID}
+				thresholdKategoriBarang = sot_threshold.KategoriBarangThreshold{IdKategoriBarang: k.ID}
 
-				thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{IdAlamatGudang: k.IDAlamat}
+				thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: k.IDAlamat}
 
 				thresholdRekeningSeller := sot_threshold.RekeningSellerThreshold{IdRekeningSeller: k.IDRekening}
 				if err := thresholdKategoriBarang.Inisialisasi(konteks, Trh.Write); err != nil {
@@ -345,7 +348,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 			if err := thresholdBarangInduk.CustomIncrement(konteks, Trh.Write, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_baranginduk.KategoriBarang,
-					Count:     len(Kb),
+					Count:     banyak_kategori,
 				},
 				{
 					FieldName: stsk_baranginduk.VarianBarang,
@@ -511,7 +514,6 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 		}
 	}
 
-	// Cek apakah masih ada varian dalam transaksi (status: Dipesan/Diproses)
 	var id_varian_dalam_transaksi int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").
 		Where("id_barang_induk = ? AND status IN ?", dataBarangInduk.ID, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
@@ -539,11 +541,9 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Message:  "Terjadi kesalahan pada database",
+			Message:  "Server sedang sibuk coba lagi lain waktu",
 		}
 	}
-
-	fmt.Println("Total barang ngentotttt: ", totalKategoriBarang)
 
 	var dataKategoriBarang []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategoriBarang)
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
@@ -575,73 +575,75 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 
 		return nil
 	}); err != nil {
-		fmt.Println(err)
-
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Message:  "Gagal menghapus barang.",
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
-	} else {
-		go func(DBI sot_models.BarangInduk, DBK []sot_models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			thresholdSeller := sot_threshold.SellerThreshold{
-				IdSeller: int64(DBI.SellerID),
-			}
-
-			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-			defer cancel()
-
-			if err := thresholdSeller.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
-				{
-					FieldName: stsk_seller.BarangInduk,
-					Count:     1,
-				},
-				{
-					FieldName: stsk_seller.KategoriBarang,
-					Count:     len(DBK),
-				},
-			}); err != nil {
-				fmt.Println("Gagal decrement seller threshold field barang induk dan kategori barang")
-			}
-
-			if err := Trh.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Where(&sot_threshold.BarangIndukThreshold{
-				IdBarangInduk: int64(DBI.ID),
-			}).Delete(&sot_threshold.BarangIndukThreshold{}).Error; err != nil {
-				fmt.Println("Gagal menghapus barang_induk threshold")
-			}
-
-			deleteBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(DBI).SetTableName(DBI.TableName()).SetRole(mb_cud_seeders.Seller)
-			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteBarangIndukPublish); err != nil {
-				fmt.Printf("Gagal publish delete barang induk ber id: %v, bernama %s ke message broker", DBI.ID, DBI.NamaBarang)
-			}
-
-			for _, dbkategori := range DBK {
-				if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
-					IdKategoriBarang: dbkategori.ID,
-				}).Delete(&sot_threshold.KategoriBarangThreshold{}).Error; err != nil {
-					fmt.Printf("Gagal menghapus data kategori barang ber id %v dan bernama %s", dbkategori.ID, dbkategori.Nama)
-				}
-
-				thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{IdAlamatGudang: dbkategori.IDAlamat}
-
-				thresholdRekeningSeller := sot_threshold.RekeningSellerThreshold{IdRekeningSeller: dbkategori.IDRekening}
-
-				if err := thresholdAlamatGudang.Decrement(konteks, Trh, stsk_alamat_gudang.KategoriBarang); err != nil {
-					fmt.Println("Gagal decrement threshold alamat gudang field kategori barang")
-				}
-
-				if err := thresholdRekeningSeller.Decrement(konteks, Trh, stsk_rekening_seller.KategoriBarang); err != nil {
-					fmt.Println("Gagal decrement threshold rekening seller field kategori barang")
-				}
-
-				deleteKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dbkategori).SetTableName(dbkategori.TableName()).SetRole(mb_cud_seeders.Seller)
-				if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKategoriBarangPublish); err != nil {
-					fmt.Printf("Gagal publish delete kategori barang ber id %v dan bernama %s ke message broker", dbkategori.ID, dbkategori.Nama)
-				}
-			}
-
-		}(dataBarangInduk, dataKategoriBarang, db.Write, cud_publisher)
 	}
+
+	go func(DBI sot_models.BarangInduk, DBK []sot_models.KategoriBarang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdSeller := sot_threshold.SellerThreshold{
+			IdSeller: int64(DBI.SellerID),
+		}
+
+		thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{}
+
+		thresholdRekeningSeller := sot_threshold.RekeningSellerThreshold{}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		if err := thresholdSeller.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_seller.BarangInduk,
+				Count:     1,
+			},
+			{
+				FieldName: stsk_seller.KategoriBarang,
+				Count:     len(DBK),
+			},
+		}); err != nil {
+			fmt.Println("Gagal decrement seller threshold field barang induk dan kategori barang")
+		}
+
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Where(&sot_threshold.BarangIndukThreshold{
+			IdBarangInduk: int64(DBI.ID),
+		}).Delete(&sot_threshold.BarangIndukThreshold{}).Error; err != nil {
+			fmt.Println("Gagal menghapus barang_induk threshold")
+		}
+
+		deleteBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(DBI).SetTableName(DBI.TableName()).SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteBarangIndukPublish); err != nil {
+			fmt.Printf("Gagal publish delete barang induk ber id: %v, bernama %s ke message broker", DBI.ID, DBI.NamaBarang)
+		}
+
+		for _, dbkategori := range DBK {
+			if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
+				IdKategoriBarang: dbkategori.ID,
+			}).Delete(&sot_threshold.KategoriBarangThreshold{}).Error; err != nil {
+				fmt.Printf("Gagal menghapus data kategori barang ber id %v dan bernama %s", dbkategori.ID, dbkategori.Nama)
+			}
+
+			thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: dbkategori.IDAlamat}
+
+			thresholdRekeningSeller = sot_threshold.RekeningSellerThreshold{IdRekeningSeller: dbkategori.IDRekening}
+
+			if err := thresholdAlamatGudang.Decrement(konteks, Trh, stsk_alamat_gudang.KategoriBarang); err != nil {
+				fmt.Println("Gagal decrement threshold alamat gudang field kategori barang")
+			}
+
+			if err := thresholdRekeningSeller.Decrement(konteks, Trh, stsk_rekening_seller.KategoriBarang); err != nil {
+				fmt.Println("Gagal decrement threshold rekening seller field kategori barang")
+			}
+
+			deleteKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dbkategori).SetTableName(dbkategori.TableName()).SetRole(mb_cud_seeders.Seller)
+			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKategoriBarangPublish); err != nil {
+				fmt.Printf("Gagal publish delete kategori barang ber id %v dan bernama %s ke message broker", dbkategori.ID, dbkategori.Nama)
+			}
+		}
+
+	}(dataBarangInduk, dataKategoriBarang, db.Write, cud_publisher)
 
 	// Kembalikan respons sukses
 	return &response.ResponseForm{
@@ -811,7 +813,8 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 		}
 	}
 
-	var kategori_barang []sot_models.KategoriBarang
+	var kategori_barang []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, len(data.KategoriBarang))
+	var total_varian_barang int64 = 0
 
 	// 1Ã¯Â¸ÂÃ¢Æ’Â£ Loop validasi dan siapkan batch kategori
 	for i := range data.KategoriBarang {
@@ -838,6 +841,8 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 			continue
 		}
 
+		total_varian_barang = total_varian_barang + int64(data.KategoriBarang[i].Stok)
+
 		// Tambahkan kategori baru ke batch
 		kategori_barang = append(kategori_barang, sot_models.KategoriBarang{
 			SellerID:       data.IdentitasSeller.IdSeller,
@@ -863,8 +868,7 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 			return err
 		}
 
-		var varian_barang_total []sot_models.VarianBarang
-		var VarianBatch int64 = 0
+		var varian_barang_total []sot_models.VarianBarang = make([]sot_models.VarianBarang, 0, total_varian_barang)
 
 		for _, kategori := range kategori_barang {
 			for s := 0; s < int(kategori.Stok); s++ {
@@ -875,11 +879,10 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 					Status:        barang_enums.Down,
 				})
 			}
-			VarianBatch += int64(kategori.Stok)
 		}
 
-		if len(varian_barang_total) > 0 {
-			if err := tx.CreateInBatches(&varian_barang_total, int(VarianBatch)).Error; err != nil {
+		if total_varian_barang > 0 {
+			if err := tx.CreateInBatches(&varian_barang_total, int(total_varian_barang)).Error; err != nil {
 				return err
 			}
 		}
@@ -931,9 +934,9 @@ func TambahKategoriBarang(ctx context.Context, db *environment.InternalDBReadWri
 		}
 
 		for _, kategoribarangdata := range Kb {
-			thresholdKategoriBarang.IdKategoriBarang = kategoribarangdata.ID
-			thresholdAlamatGudang.IdAlamatGudang = kategoribarangdata.IDAlamat
-			thresholdRekeningSeller.IdRekeningSeller = kategoribarangdata.IDRekening
+			thresholdKategoriBarang = sot_threshold.KategoriBarangThreshold{IdKategoriBarang: kategoribarangdata.ID}
+			thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: kategoribarangdata.IDAlamat}
+			thresholdRekeningSeller = sot_threshold.RekeningSellerThreshold{IdRekeningSeller: kategoribarangdata.IDRekening}
 
 			if err := thresholdKategoriBarang.Inisialisasi(konteks, Trh); err != nil {
 				fmt.Printf("Gagal membuat threshold kategori barang ber id %v, bernama %s", kategoribarangdata.ID, kategoribarangdata.Nama)
@@ -1163,6 +1166,20 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 		}
 	}
 
+	var exist_varian_transaksi int64 = 0
+	if errStock := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").
+		Where("id_barang_induk = ? AND id_kategori = ? AND status IN ?", data.IdBarangInduk, data.IdKategoriBarang, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
+		Limit(1).Scan(&exist_varian_transaksi).Error; errStock != nil {
+	}
+
+	if exist_varian_transaksi != 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusConflict,
+			Services: services,
+			Message:  "Gagal Kategori ini masih ada dalam transaksi yang belum selesai, Down kan dulu",
+		}
+	}
+
 	var data_kategori sot_models.KategoriBarang
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 		ID:            data.IdKategoriBarang,
@@ -1184,25 +1201,8 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 		}
 	}
 
-	// Cek apakah kategori yang akan dihapus masih punya varian dalam transaksi
-
-	var exist_varian_transaksi int64 = 0
-	if errStock := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").
-		Where("id_barang_induk = ? AND id_kategori = ? AND status IN ?", data.IdBarangInduk, data.IdKategoriBarang, []string{barang_enums.Dipesan, barang_enums.Diproses, barang_enums.Ready}).
-		Limit(1).Scan(&exist_varian_transaksi).Error; errStock != nil {
-	}
-
-	if exist_varian_transaksi != 0 {
-		return &response.ResponseForm{
-			Status:   http.StatusConflict,
-			Services: services,
-			Message:  "Gagal Kategori ini masih ada dalam transaksi yang belum selesai, Down kan dulu",
-		}
-	}
-
-	// Jalankan proses penghapusan di goroutine
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&sot_models.VarianBarang{}).Where(&sot_models.VarianBarang{
+		if err := tx.Unscoped().Model(&sot_models.VarianBarang{}).Where(&sot_models.VarianBarang{
 			IdKategori: data.IdKategoriBarang,
 		}).Delete(&sot_models.KategoriBarang{}).Error; err != nil {
 			return err
@@ -1261,7 +1261,7 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 			fmt.Println("Gagal decrement rekening seller threshold field kategori barang")
 		}
 
-		if err := Trh.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Where(&sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: Kb.ID,
 		}).Delete(&sot_threshold.KategoriBarangThreshold{}).Error; err != nil {
 			fmt.Printf("Gagal menghapus threshold kategori barang ber ID:%v", Kb.ID)
@@ -1468,7 +1468,7 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 		Where(&sot_models.VarianBarang{
 			IdKategori: data.IdKategoriBarang,
 			Status:     barang_enums.Down,
-		}).Limit(limit).Scan(&id_varians).Error; err != nil {
+		}).Limit(limit).Find(&id_varians).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -1668,13 +1668,12 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 	}
 
 	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: IdBi,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		err_tk, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
 		if err_tk != nil {
@@ -1682,15 +1681,15 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		}
 
 		var thresholdBarangIndukFieldKategoriBarang int64 = 0
-		if err := Read.WithContext(ctx).Model(&sot_threshold.BarangIndukThreshold{}).Select(stsk_baranginduk.KategoriBarang).Where(&sot_threshold.BarangIndukThreshold{
+		if err := Read.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Select(stsk_baranginduk.KategoriBarang).Where(&sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: int64(IdBi),
 		}).Limit(1).Take(&thresholdBarangIndukFieldKategoriBarang); err != nil {
 			fmt.Println("Gagal mengambil threshold barang induk")
 		}
 
-		var id_kategori_barang []int64
+		var id_kategori_barang []int64 = make([]int64, 0, thresholdBarangIndukFieldKategoriBarang)
 
-		if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
+		if err := db.Read.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 			IdBarangInduk: data.IdBarangInduk,
 		}).Limit(func(ibi int32) int {
 			if ibi != 0 {
@@ -1709,7 +1708,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 				fmt.Println("Gagal mengambil count")
 			}
 
-			if err := kategoriBarangThreshold.CustomDecrement(ctx, Read, []sot_threshold.CustomCounter{
+			if err := kategoriBarangThreshold.CustomDecrement(konteks, Read, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Ready,
 					Count:     int(countReady),
@@ -1718,7 +1717,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 				fmt.Println("Gagal increment kategori ready")
 			}
 
-			if err := kategoriBarangThreshold.CustomIncrement(ctx, Read, []sot_threshold.CustomCounter{
+			if err := kategoriBarangThreshold.CustomIncrement(konteks, Read, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Down,
 					Count:     int(countReady),
@@ -1800,7 +1799,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 	}
 
 	var limit_varian int64 = 0
-
+	// kalau nol artinya seluruhnya
 	if data.Jumlah == 0 {
 		if err := db.Read.WithContext(ctx).Model(&sot_threshold.KategoriBarangThreshold{}).Select(stsk_kategori_barang.Ready).Where(&sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: data.IdKategoriBarang,
@@ -1865,7 +1864,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		if err := kategoriBarangThreshold.CustomDecrement(ctx, Read, []sot_threshold.CustomCounter{
+		if err := kategoriBarangThreshold.CustomDecrement(konteks, Read, []sot_threshold.CustomCounter{
 			{
 				FieldName: stsk_kategori_barang.Ready,
 				Count:     Downed,
@@ -1874,7 +1873,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 			fmt.Println("Gagal increment kategori ready")
 		}
 
-		if err := kategoriBarangThreshold.CustomIncrement(ctx, Read, []sot_threshold.CustomCounter{
+		if err := kategoriBarangThreshold.CustomIncrement(konteks, Read, []sot_threshold.CustomCounter{
 			{
 				FieldName: stsk_kategori_barang.Down,
 				Count:     Downed,
@@ -1962,7 +1961,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 		}
 	}
 
-	var id_kategori_barang []int64
+	var id_kategori_barang []int64 = make([]int64, 0, thresholdBarangIndukFieldKategoriBarang)
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 		IdBarangInduk: data.IdBarangInduk,
 	}).Limit(int(thresholdBarangIndukFieldKategoriBarang)).Find(&id_kategori_barang).Error; err != nil {
@@ -1974,7 +1973,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&sot_models.VarianBarang{}).Where("id_barang_induk = ? AND status IN ?", data.IdBarangInduk, [3]string{barang_enums.Down}).Updates(&sot_models.VarianBarang{
+		if err := tx.Model(&sot_models.VarianBarang{}).Where("id_barang_induk = ? AND status IN ?", data.IdBarangInduk, [1]string{barang_enums.Down}).Updates(&sot_models.VarianBarang{
 			Status: barang_enums.Ready,
 		}).Error; err != nil {
 			return err
@@ -2031,7 +2030,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 				fmt.Println("Gagal mengambil Countdown")
 			}
 
-			if err := kategoriBarangThreshold.CustomIncrement(ctx, Read, []sot_threshold.CustomCounter{
+			if err := kategoriBarangThreshold.CustomIncrement(konteks, Read, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Ready,
 					Count:     int(countDown),
@@ -2040,7 +2039,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 				fmt.Println("Gagal increment kategori ready")
 			}
 
-			if err := kategoriBarangThreshold.CustomDecrement(ctx, Read, []sot_threshold.CustomCounter{
+			if err := kategoriBarangThreshold.CustomDecrement(konteks, Read, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Down,
 					Count:     int(countDown),
@@ -2203,7 +2202,7 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 		defer cancel()
 
 		// Karena di-up: Decrement counter Down, Increment counter Ready
-		if err := kategoriBarangThreshold.CustomDecrement(ctx, Read, []sot_threshold.CustomCounter{
+		if err := kategoriBarangThreshold.CustomDecrement(konteks, Read, []sot_threshold.CustomCounter{
 			{
 				FieldName: stsk_kategori_barang.Down,
 				Count:     Upped,
@@ -2212,7 +2211,7 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 			fmt.Println("Gagal decrement kategori down")
 		}
 
-		if err := kategoriBarangThreshold.CustomIncrement(ctx, Read, []sot_threshold.CustomCounter{
+		if err := kategoriBarangThreshold.CustomIncrement(konteks, Read, []sot_threshold.CustomCounter{
 			{
 				FieldName: stsk_kategori_barang.Ready,
 				Count:     Upped,
@@ -2270,11 +2269,11 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		}
 	}
 
-	var id_data_rekening int64 = 0
+	var id_data_rekening_tujuan int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekeningSeller,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
+	}).Limit(1).Scan(&id_data_rekening_tujuan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -2282,7 +2281,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		}
 	}
 
-	if id_data_rekening == 0 {
+	if id_data_rekening_tujuan == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -2310,6 +2309,18 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		}
 	}
 
+	var id_rekening_sebelum int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id_rekening").Where(&sot_models.KategoriBarang{
+		IdBarangInduk: data.IdBarangInduk,
+	}).Limit(1).Take(&id_rekening_sebelum).Error; err != nil {
+		fmt.Println("Gagal id rekening sebelum tidak ditemukan", err)
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
 	if err_kategori := db.Write.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 		IdBarangInduk: data.IdBarangInduk,
 		SellerID:      data.IdentitasSeller.IdSeller,
@@ -2321,31 +2332,52 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 		}
 	}
 
-	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
+	go func(IdBi int64, IRsebelum, IRsetelah int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: IdBi,
 		}
 
+		thresholdRekeningSeller := sot_threshold.RekeningSellerThreshold{IdRekeningSeller: IRsebelum}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
 		_, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
 
-		var updatesDownKategori []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategori)
+		var updatesEditRekening []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, totalKategori)
 		if err := Read.WithContext(konteks).Where(&sot_models.KategoriBarang{
 			IdBarangInduk: int32(IdBi),
-		}).Limit(totalKategori).Find(&updatesDownKategori).Error; err != nil {
+		}).Limit(totalKategori).Find(&updatesEditRekening).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kategori barang updated rekening")
 		}
 
-		for _, dk := range updatesDownKategori {
+		if err := thresholdRekeningSeller.CustomDecrement(konteks, Read, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_rekening_seller.KategoriBarang,
+				Count:     totalKategori,
+			}}); err != nil {
+			fmt.Println("Gagal Decrement threshold rekening seller dengan id sebelum")
+		}
+
+		thresholdRekeningSeller = sot_threshold.RekeningSellerThreshold{IdRekeningSeller: IRsetelah}
+
+		if err := thresholdRekeningSeller.CustomIncrement(konteks, Read, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_rekening_seller.KategoriBarang,
+				Count:     totalKategori,
+			},
+		}); err != nil {
+			fmt.Println("Gagal increment threshold rekening seller dengan id setelah")
+		}
+
+		for _, dk := range updatesEditRekening {
 			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 				fmt.Println("Gagal publish updated kategori barang rekening ke message broker")
 			}
 		}
-	}(int64(data.IdBarangInduk), db.Read, cud_publisher)
+	}(int64(data.IdBarangInduk), id_rekening_sebelum, id_data_rekening_tujuan, db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -2406,13 +2438,12 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		}
 	}
 
-	var id_alamat_gudang int64 = 0
-
+	var id_alamat_gudang_tujuan int64 = 0
 	if errCheck := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Select("id").
 		Where(&sot_models.AlamatGudang{
 			ID:       data.IdAlamatGudang,
 			IDSeller: data.IdentitasSeller.IdSeller,
-		}).Limit(1).Scan(&id_alamat_gudang).Error; errCheck != nil {
+		}).Limit(1).Scan(&id_alamat_gudang_tujuan).Error; errCheck != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -2420,11 +2451,31 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		}
 	}
 
-	if id_alamat_gudang == 0 {
+	if id_alamat_gudang_tujuan == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 			Message:  "Gagal, kredensial alamat tidak valid.",
+		}
+	}
+
+	tbi := sot_threshold.BarangIndukThreshold{IdBarangInduk: int64(data.IdBarangInduk)}
+	_, total_kategori := tbi.GetKolomCount(ctx, db.Read, stsk_baranginduk.KategoriBarang)
+
+	var id_alamat_gudang_sebelum []int64 = make([]int64, 0, total_kategori)
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id_alamat_gudang").Where(&sot_models.KategoriBarang{
+		IdBarangInduk: data.IdBarangInduk,
+	}).Limit(func(tk *int) int {
+		if *tk != 0 {
+			return *tk
+		}
+		return 1
+	}(&total_kategori)).Find(&id_alamat_gudang_sebelum).Error; err != nil {
+		fmt.Println("Gagal id rekening sebelum tidak ditemukan", err)
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -2438,13 +2489,27 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 		}
 	}
 
-	go func(IdBi int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
+	go func(IdBi int64, IAsebelum []int64, IAsetelah int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: IdBi,
 		}
+
+		thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{}
+
+		var dataIASebelumDetail = func(ids *[]int64) map[int64]int64 {
+			if ids == nil {
+				return make(map[int64]int64)
+			}
+
+			mapped := make(map[int64]int64, len(*ids))
+			for _, id := range *ids {
+				mapped[id]++
+			}
+			return mapped
+		}(&IAsebelum)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		err_tk, totalKategori := thresholdBarangInduk.GetKolomCount(konteks, Read, stsk_baranginduk.KategoriBarang)
 		if err_tk != nil {
@@ -2458,13 +2523,36 @@ func EditAlamatGudangBarangInduk(ctx context.Context, data PayloadEditAlamatBara
 			fmt.Println("Gagal mendapatkan data kategori barang updated alamat gudang")
 		}
 
+		for IdAlamatSebelum, Count := range dataIASebelumDetail {
+			thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: IdAlamatSebelum}
+			if err := thresholdAlamatGudang.CustomDecrement(konteks, Read, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_alamat_gudang.KategoriBarang,
+					Count:     int(Count),
+				},
+			}); err != nil {
+				fmt.Println("Gagal Decrement threshold alamat gudang dengan id sebelum")
+			}
+
+		}
+		thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: IAsetelah}
+
+		if err := thresholdAlamatGudang.CustomIncrement(konteks, Read, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_alamat_gudang.KategoriBarang,
+				Count:     totalKategori,
+			},
+		}); err != nil {
+			fmt.Println("Gagal Increment threshold Alamat Gudang dengan id setelah")
+		}
+
 		for _, dk := range updatesDownKategori {
 			updatedDataKategoriBarang := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedDataKategoriBarang); err != nil {
 				fmt.Println("Gagal publish updated kategori barang alamat gudang ke message broker")
 			}
 		}
-	}(int64(data.IdBarangInduk), db.Read, cud_publisher)
+	}(int64(data.IdBarangInduk), id_alamat_gudang_sebelum, id_alamat_gudang_tujuan, db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -2532,13 +2620,13 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		}
 	}
 
-	var id_data_alamat_gudang int64 = 0
+	var id_data_alamat_gudang_tujuan int64 = 0
 
 	if errCheck := db.Read.Model(&sot_models.AlamatGudang{}).Select("id").
 		Where(&sot_models.AlamatGudang{
 			ID:       data.IdAlamatGudang,
 			IDSeller: data.IdentitasSeller.IdSeller,
-		}).Limit(1).Scan(&id_data_alamat_gudang).Error; errCheck != nil {
+		}).Limit(1).Scan(&id_data_alamat_gudang_tujuan).Error; errCheck != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -2546,11 +2634,24 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		}
 	}
 
-	if id_data_alamat_gudang == 0 {
+	if id_data_alamat_gudang_tujuan == 0 {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 			Message:  "Gagal, kredensial alamat tidak valid.",
+		}
+	}
+
+	var id_alamat_gudang_sebelum int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id_alamat_gudang").Where(&sot_models.KategoriBarang{
+		ID:            data.IdKategoriBarang,
+		IdBarangInduk: data.IdBarangInduk,
+	}).Limit(1).Take(&id_alamat_gudang_sebelum).Error; err != nil {
+		fmt.Println("Gagal id rekening sebelum tidak ditemukan", err)
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -2565,7 +2666,8 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		}
 	}
 
-	go func(IdKb int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+	go func(IdKb int64, IAsebelum, IAsetelah int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdAlamatGudang := sot_threshold.AlamatGudangThreshold{IdAlamatGudang: IAsebelum}
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
@@ -2576,11 +2678,21 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
+		if err := thresholdAlamatGudang.Decrement(konteks, Read, stsk_alamat_gudang.KategoriBarang); err != nil {
+			fmt.Println("Gagal Decrement threshold alamat gudang dengan id sebelum")
+		}
+
+		thresholdAlamatGudang = sot_threshold.AlamatGudangThreshold{IdAlamatGudang: IAsetelah}
+
+		if err := thresholdAlamatGudang.Increment(konteks, Read, stsk_alamat_gudang.KategoriBarang); err != nil {
+			fmt.Println("Gagal Increment threshold Alamat Gudang dengan id setelah")
+		}
+
 		kategoriBarangUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataKategoriBarangUpdated).SetTableName(dataKategoriBarangUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangUpdatedPublish); err != nil {
 			fmt.Printf("Gagal publish update kategori barang Id: %v ke message broker", IdKb)
 		}
-	}(data.IdKategoriBarang, db.Read, cud_publisher)
+	}(data.IdKategoriBarang, id_alamat_gudang_sebelum, id_data_alamat_gudang_tujuan, db.Read, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
