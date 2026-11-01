@@ -20,7 +20,6 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	"github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/diskon_services/response_diskon_services_seller"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
@@ -48,9 +47,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal data seller tidak ditemukan",
-			},
+			Message:  "Gagal data seller tidak ditemukan",
 		}
 	}
 
@@ -63,9 +60,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -73,16 +68,14 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal kamu sudah memiliki diskon serupa",
-			},
+			Message:  "Gagal kamu sudah memiliki diskon serupa",
 		}
 	}
 
 	var KebijakanSistem sot_models.KebijakanSistem
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KebijakanSistem{}).Where(&sot_models.KebijakanSistem{
 		StatusActive: true,
-	}).Limit(1).Take(&KebijakanSistem).Error; err != nil {
+	}).Limit(1).Scan(&KebijakanSistem).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -107,9 +100,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -117,9 +108,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Kamu telah mencapai batasan Diskon",
-			},
+			Message:  "Kamu telah mencapai batasan Diskon",
 		}
 	}
 
@@ -137,16 +126,11 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Dp sot_models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(Dp.SellerId),
 		}
@@ -154,6 +138,9 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		diskonProdukThreshold := sot_threshold.DiskonProdukThreshold{
 			IdDiskonProduk: Dp.ID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.DiskonProduk); err != nil {
 			fmt.Println("Gagal menambah count diskon produk ke threshold seller")
@@ -173,9 +160,7 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -210,9 +195,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal data seller tidak ditemukan",
-			},
+			Message:  "Gagal data seller tidak ditemukan",
 		}
 	}
 
@@ -225,9 +208,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -235,13 +216,11 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTambahDiskonProduk{
-				Message: "Gagal data diskon tidak ditemukan",
-			},
+			Message:  "Gagal data diskon tidak ditemukan",
 		}
 	}
 
-	if err := db.Read.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 		ID: data.IdDiskonProduk,
 	}).Updates(&sot_models.DiskonProduk{
 		Nama:          data.Nama,
@@ -253,21 +232,18 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseEditDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(IdDp int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedDiskonProduk sot_models.DiskonProduk
 		if err := Read.WithContext(konteks).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 			ID: IdDp,
-		}).Limit(1).Take(&data.IdDiskonProduk).Error; err != nil {
+		}).Limit(1).Scan(&data.IdDiskonProduk).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data updated diskon produk")
 			return
 		}
@@ -281,9 +257,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_diskon_services_seller.ResponseEditDiskonProduk{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -302,9 +276,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonProduk{
-				Message: "Gagal data seller tidak ditemukan",
-			},
+			Message:  "Gagal data seller tidak ditemukan",
 		}
 	}
 
@@ -317,9 +289,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -327,14 +297,12 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonProduk{
-				Message: "Gagal data diskon tidak ditemukan",
-			},
+			Message:  "Gagal data diskon tidak ditemukan",
 		}
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
+		if err := tx.Unscoped().Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
 			IdDiskon: diskon_produk.ID,
 		}).Delete(&sot_models.BarangDiDiskon{}).Error; err != nil {
 			return err
@@ -349,26 +317,24 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonProduk{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Dp sot_models.DiskonProduk, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		sellerThreshold := sot_threshold.SellerThreshold{
 			IdSeller: int64(Dp.SellerId),
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := sellerThreshold.Decrement(konteks, Trh, stsk_seller.DiskonProduk); err != nil {
 			fmt.Println("Gagal decr count diskon produk ke threshold diskon produk")
 		}
 
-		if err := Trh.WithContext(konteks).Model(&sot_threshold.DiskonProdukThreshold{}).Where(&sot_threshold.DiskonProdukThreshold{
-			ID: Dp.ID,
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.DiskonProdukThreshold{}).Where(&sot_threshold.DiskonProdukThreshold{
+			IdDiskonProduk: Dp.ID,
 		}).Delete(&sot_threshold.DiskonProdukThreshold{}).Error; err != nil {
 			fmt.Println("Gagal hapus threshold diskon produk ")
 		}
@@ -383,9 +349,7 @@ func HapusDiskonProduk(ctx context.Context, data PayloadHapusDiskonProduk, db *e
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_diskon_services_seller.ResponseHapusDiskonProduk{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 } // Tuned
 
@@ -420,9 +384,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-				Message: "Gagal data seller tidak valid",
-			},
+			Message:  "Gagal data seller tidak valid",
 		}
 	}
 
@@ -435,9 +397,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -445,9 +405,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-				Message: "Gagal Barang tidak ditemukan",
-			},
+			Message:  "Gagal Barang tidak ditemukan",
 		}
 	}
 
@@ -460,9 +418,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -470,9 +426,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-				Message: "Gagal kamu sudah menetapkan barang itu kedalam diskon",
-			},
+			Message:  "Gagal kamu sudah menetapkan barang itu kedalam diskon",
 		}
 	}
 
@@ -488,16 +442,11 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Bdd sot_models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(Bdd.SellerId),
 		}
@@ -513,6 +462,9 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 		thresholdDiskonProduk := sot_threshold.DiskonProdukThreshold{
 			IdDiskonProduk: Bdd.IdDiskon,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.BarangDiDiskon); err != nil {
 			fmt.Println("Gagal incr count barang di diskon ke threshold seller")
@@ -540,9 +492,7 @@ func TetapKanDiskonPadaBarang(ctx context.Context, data PayloadTetapkanDiskonPad
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_diskon_services_seller.ResponseTetapkanDiskonPadaBarang{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 }
 
@@ -561,9 +511,7 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonPadaBarang{
-				Message: "Gagal data seller tidak valid",
-			},
+			Message:  "Gagal data seller tidak valid",
 		}
 	}
 
@@ -575,9 +523,7 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonPadaBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -585,28 +531,21 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonPadaBarang{
-				Message: "Gagal barang itu tidak di diskon",
-			},
+			Message:  "Gagal barang itu tidak di diskon",
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.BarangDiDiskon{}).Where(&sot_models.BarangDiDiskon{
 		ID: barang_di_diskon.ID,
 	}).Delete(&sot_models.BarangDiDiskon{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_diskon_services_seller.ResponseHapusDiskonPadaBarang{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Bdd sot_models.BarangDiDiskon, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: int64(Bdd.SellerId),
 		}
@@ -622,6 +561,9 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 		thresholdDiskonProduk := sot_threshold.DiskonProdukThreshold{
 			IdDiskonProduk: Bdd.IdDiskon,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.BarangDiDiskon); err != nil {
 			fmt.Println("Gagal decr count barang di diskon ke threshold seller")
@@ -649,8 +591,6 @@ func HapusDiskonPadaBarang(ctx context.Context, data PayloadHapusDiskonPadaBaran
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_diskon_services_seller.ResponseHapusDiskonPadaBarang{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed
