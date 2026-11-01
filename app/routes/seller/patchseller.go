@@ -85,7 +85,13 @@ func PatchSellerHandler(db *environment.InternalDBReadWriteSystem, w http.Respon
 			return
 		}
 		hasil = seller_alamat_services.EditAlamatGudang(ctx, data, db, rds_session, mb_cud_publisher)
-
+	case "seller/barang/set-as-origin-kategori-barang":
+		var data seller_barang_service.PayloadSetAsOriginKategoriBarang
+		if err := helper.DecodeJSONBody(r, &data); err != nil {
+			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		hasil = seller_barang_service.SetAsOriginKategoriBarang(ctx, db, data, rds_session, mb_cud_publisher)
 	case "/seller/barang/ubah-harga-kategori-barang":
 		var data seller_barang_service.PayloadUbahHargaKategori
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

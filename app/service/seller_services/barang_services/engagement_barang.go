@@ -1298,6 +1298,158 @@ func HapusKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrit
 	}
 } // Passed
 
+func SetAsOriginKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadSetAsOriginKategoriBarang, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "SetAsOriginKategoriBarang"
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id barang induk tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdKategoriBarang <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id kategori barang tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if _, status := data.IdentitasSeller.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal kredensial seller tidak valid",
+		}
+	}
+
+	var id_kategori int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
+		ID:            data.IdKategoriBarang,
+		IdBarangInduk: data.IdBarangInduk,
+		SellerID:      data.IdentitasSeller.IdSeller,
+	}).Limit(1).Take(&id_kategori).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_kategori == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data kategori tidak ditemukan",
+		}
+	}
+
+	var id_original_kategori int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("original_kategori").Where(&sot_models.BarangInduk{
+		ID:       data.IdBarangInduk,
+		SellerID: data.IdentitasSeller.IdSeller,
+	}).Limit(1).Take(&id_original_kategori).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_original_kategori == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal menemukan original kategori coba lagi lain waktu",
+		}
+	}
+
+	if id_original_kategori == id_kategori {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, kategori tersebut merupakan original nya",
+		}
+	}
+
+	if err := db.Read.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
+			ID: data.IdBarangInduk,
+		}).Updates(&sot_models.BarangInduk{OriginalKategori: id_kategori}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
+			ID: id_kategori,
+		}).Updates(&sot_models.KategoriBarang{IsOriginal: true}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
+			ID: id_original_kategori,
+		}).Updates(&sot_models.KategoriBarang{IsOriginal: false}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	go func(IDB int32, IDKOS, IDKOB int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		var updatedBarangIndukOriginal sot_models.BarangInduk = sot_models.BarangInduk{}
+		if err := Trh.WithContext(konteks).Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
+			ID: IDB,
+		}).Limit(1).Take(&updatedBarangIndukOriginal).Error; err != nil {
+			fmt.Println("Gagal mengambil data barang induk")
+		}
+
+		updatedBarangIndukOriginalPublish := mb_cud_serializer.NewJsonPayload().SetPayload(updatedBarangIndukOriginal).SetTableName(services).SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedBarangIndukOriginalPublish); err != nil {
+			fmt.Printf("Gagal publish update is original barang induk Id: %v ke message broker\n", IDB)
+		}
+
+		var kategoriOriginalSebelum sot_models.KategoriBarang = sot_models.KategoriBarang{}
+		if err := Trh.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
+			ID: IDKOS,
+		}).Limit(1).Take(&kategoriOriginalSebelum).Error; err != nil {
+			fmt.Println("Gagal mengambil data Kategori Original sebelum")
+		}
+
+		kategoriBarangOriginalSebelumUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(kategoriOriginalSebelum).SetTableName(services).SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangOriginalSebelumUpdatedPublish); err != nil {
+			fmt.Printf("Gagal publish update is original kategori barang Id: %v ke message broker\n", IDKOS)
+		}
+
+		var kategoriOriginalBaru sot_models.KategoriBarang = sot_models.KategoriBarang{}
+		if err := Trh.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
+			ID: IDKOB,
+		}).Limit(1).Take(&kategoriOriginalBaru).Error; err != nil {
+			fmt.Println("Gagal mengambil data Kategori Original sebelum")
+		}
+
+		kategoriBarangOriginalBaruUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(kategoriOriginalBaru).SetTableName(services).SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kategoriBarangOriginalBaruUpdatedPublish); err != nil {
+			fmt.Printf("Gagal publish update is original kategori barang Id: %v ke message broker\n", IDKOS)
+		}
+	}(data.IdBarangInduk, id_original_kategori, id_kategori, db.Read, cud_publisher)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
 func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSystem, data PayloadUbahHargaKategori, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "UbahHargaKategoriBarang"
 
