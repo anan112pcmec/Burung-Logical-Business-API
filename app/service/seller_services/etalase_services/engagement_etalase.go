@@ -18,7 +18,6 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	response_etalase_services_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/etalase_services/response_etalase_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
@@ -37,9 +36,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseMenambahEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -51,9 +48,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseMenambahEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -61,9 +56,7 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseMenambahEtalase{
-				Message: "Gagal kamu sudah memiliki etalase dengan nama itu",
-			},
+			Message:  "Gagal kamu sudah memiliki etalase dengan nama itu",
 		}
 	}
 
@@ -78,16 +71,11 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseMenambahEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Es sot_models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: Es.SellerID,
 		}
@@ -95,6 +83,9 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 		thresholdEtalase := sot_threshold.EtalaseThreshold{
 			IdEtalase: Es.ID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.Etalase); err != nil {
 			fmt.Println("Gagal incr count etalase ke threshold seller")
@@ -113,11 +104,9 @@ func TambahEtalaseSeller(ctx context.Context, data PayloadMenambahEtalase, db *e
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_etalase_services_seller.ResponseMenambahEtalase{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed
 
 func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditEtalaseSeller"
@@ -142,9 +131,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseEditEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -156,9 +143,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseEditEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -166,9 +151,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseEditEtalase{
-				Message: "Gagal etalase tak ditemukan",
-			},
+			Message:  "Gagal etalase tak ditemukan",
 		}
 	}
 
@@ -181,9 +164,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseEditEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -194,7 +175,7 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 		var dataUpdatedEtalase sot_models.Etalase
 		if err := Read.WithContext(konteks).Model(&sot_models.Etalase{}).Where(&sot_models.Etalase{
 			ID: IdE,
-		}).Limit(1).Take(&dataUpdatedEtalase).Error; err != nil {
+		}).Limit(1).Scan(&dataUpdatedEtalase).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data etalase updated")
 			return
 		}
@@ -207,11 +188,9 @@ func EditEtalaseSeller(ctx context.Context, data PayloadEditEtalase, db *environ
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_etalase_services_seller.ResponseEditEtalase{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed
 
 func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusEtalaseSeller"
@@ -228,9 +207,7 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -242,9 +219,7 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -252,14 +227,12 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusEtalase{
-				Message: "Gagal etalase tidak ditemukan",
-			},
+			Message:  "Gagal etalase tidak ditemukan",
 		}
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&sot_models.BarangKeEtalase{}).Where(&sot_models.BarangKeEtalase{
+		if err := tx.Unscoped().Model(&sot_models.BarangKeEtalase{}).Where(&sot_models.BarangKeEtalase{
 			IdEtalase: data.IdEtalase,
 		}).Delete(&sot_models.BarangKeEtalase{}).Error; err != nil {
 			return err
@@ -274,26 +247,23 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(De sot_models.Etalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		sellerThreshold := sot_threshold.SellerThreshold{
 			IdSeller: De.SellerID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := sellerThreshold.Decrement(konteks, Trh, stsk_seller.Etalase); err != nil {
 			fmt.Println("Gagal decr count etalase ke threshold seller")
 		}
 
-		if err := Trh.WithContext(konteks).Model(&sot_threshold.EtalaseThreshold{}).Where(&sot_threshold.EtalaseThreshold{
+		if err := Trh.Unscoped().WithContext(konteks).Model(&sot_threshold.EtalaseThreshold{}).Where(&sot_threshold.EtalaseThreshold{
 			IdEtalase: De.ID,
 		}).Delete(&sot_threshold.EtalaseThreshold{}).Error; err != nil {
 			fmt.Println("Gagal menghapus threshold etalase")
@@ -308,11 +278,9 @@ func HapusEtalaseSeller(ctx context.Context, data PayloadHapusEtalase, db *envir
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_etalase_services_seller.ResponseHapusEtalase{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed
 
 func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKeEtalase, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahkanBarangKeEtalase"
@@ -337,9 +305,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseTambahBarangKeEtalase{
-				Message: "Gagal data seller tidak valid",
-			},
+			Message:  "Gagal data seller tidak valid",
 		}
 	}
 
@@ -351,9 +317,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseTambahBarangKeEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -361,9 +325,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseTambahBarangKeEtalase{
-				Message: "Gagal barang itu sudah termasuk dalam etalase ini",
-			},
+			Message:  "Gagal barang itu sudah termasuk dalam etalase ini",
 		}
 	}
 
@@ -376,16 +338,11 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseTambahBarangKeEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Bke sot_models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: Bke.IdBarangInduk,
 		}
@@ -393,6 +350,9 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 		etalaseThreshold := sot_threshold.EtalaseThreshold{
 			IdEtalase: Bke.IdEtalase,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := barangIndukThreshold.Increment(konteks, Trh, stsk_baranginduk.BarangKeEtalase); err != nil {
 			fmt.Println("Gagal incr count barang ke etalase ke threshold barang induk")
@@ -412,9 +372,7 @@ func TambahkanBarangKeEtalase(ctx context.Context, data PayloadTambahkanBarangKe
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_etalase_services_seller.ResponseTambahBarangKeEtalase{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
 } // Tuned
 
@@ -449,9 +407,7 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusBarangKeEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -464,9 +420,7 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusBarangKeEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -474,9 +428,7 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusBarangKeEtalase{
-				Message: "Gagal barang tida termasuk dalam etalase",
-			},
+			Message:  "Gagal barang tidak termasuk dalam etalase",
 		}
 	}
 
@@ -486,16 +438,11 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_etalase_services_seller.ResponseHapusBarangKeEtalase{
-				Message: "Gagal server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Bke sot_models.BarangKeEtalase, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: Bke.IdBarangInduk,
 		}
@@ -503,6 +450,9 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 		etalaseThreshold := sot_threshold.EtalaseThreshold{
 			IdEtalase: Bke.IdEtalase,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.BarangKeEtalase); err != nil {
 			fmt.Println("Gagal decr count barang ke etalase ke threshold barang induk")
@@ -522,8 +472,6 @@ func HapusBarangDariEtalase(ctx context.Context, data PayloadHapusBarangDiEtalas
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_etalase_services_seller.ResponseHapusBarangKeEtalase{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-} // Tuned
+} // Passed

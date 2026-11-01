@@ -168,7 +168,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 	}
 
 	var id_user int64
-	if check_user := db.Read.WithContext(ctx).Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).Limit(1).Take(&id_user).Error; check_user != nil {
+	if check_user := db.Read.WithContext(ctx).Model(sot_models.Pengguna{}).Select("id").Where(sot_models.Pengguna{ID: data.IDPengguna}).Limit(1).Scan(&id_user).Error; check_user != nil {
 		log.Printf("[WARN] Pengguna tidak ditemukan untuk validasi OTP: %v", check_user)
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
@@ -210,7 +210,7 @@ func ValidateUbahPasswordPenggunaViaOtp(ctx context.Context, data PayloadValidat
 		var dataPengguna sot_models.Pengguna
 		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
-		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+		}).Limit(1).Scan(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
@@ -296,7 +296,7 @@ func ValidateUbahPasswordPenggunaViaPin(ctx context.Context, data PayloadValidat
 		var dataPengguna sot_models.Pengguna
 		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
-		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+		}).Limit(1).Scan(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
@@ -386,7 +386,7 @@ func MembuatSecretPinPengguna(ctx context.Context, data PayloadMembuatPinPenggun
 		var dataPengguna sot_models.Pengguna
 		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
-		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+		}).Limit(1).Scan(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}
@@ -476,7 +476,7 @@ func UpdateSecretPinPengguna(ctx context.Context, data PayloadUpdatePinPengguna,
 		var dataPengguna sot_models.Pengguna
 		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: Ip,
-		}).Limit(1).Take(&dataPengguna).Error; err != nil {
+		}).Limit(1).Scan(&dataPengguna).Error; err != nil {
 			fmt.Println("Gagal mengambil data pengguna")
 			return
 		}

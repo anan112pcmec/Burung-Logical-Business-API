@@ -101,7 +101,7 @@ func MasukanAlamatPengguna(ctx context.Context, data PayloadMasukanAlamatPenggun
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Select("id").Where(&sot_models.AlamatPengguna{
 		IDPengguna:      data.IdentitasPengguna.ID,
 		PanggilanAlamat: data.PanggilanAlamat,
-	}).Limit(1).Take(&id_data_alamat).Error; err != nil {
+	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -237,7 +237,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Select("id").Where(&sot_models.AlamatPengguna{
 		ID:         data.IdAlamatPengguna,
 		IDPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&id_alamat_pengguna).Error; err != nil {
+	}).Limit(1).Scan(&id_alamat_pengguna).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -260,7 +260,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		Select("id").
 		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, transaksi_enums.Selesai).
 		Limit(1).
-		Take(&idDataTransaksi).Error; err != nil {
+		Scan(&idDataTransaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -308,7 +308,7 @@ func EditAlamatPengguna(ctx context.Context, data PayloadEditAlamatPengguna, db 
 		ap := sot_models.AlamatPengguna{}
 		if err := Read.WithContext(konteks).Model(&sot_models.AlamatPengguna{}).Where(&sot_models.AlamatPengguna{
 			ID: idAlamat,
-		}).Limit(1).Take(&ap).Error; err != nil {
+		}).Limit(1).Scan(&ap).Error; err != nil {
 			fmt.Println("Gagal Mendapatkan alamat pengguna untuk publish")
 			return
 		}
@@ -354,7 +354,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatPengguna{}).Where(&sot_models.AlamatPengguna{
 		ID:         data.IdAlamatPengguna,
 		IDPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&alamat_pengguna).Error; err != nil {
+	}).Limit(1).Scan(&alamat_pengguna).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -377,7 +377,7 @@ func HapusAlamatPengguna(ctx context.Context, data PayloadHapusAlamatPengguna, d
 		Select("id").
 		Where("id_alamat_pengguna = ? AND status != ?", data.IdAlamatPengguna, transaksi_enums.Selesai).
 		Limit(1).
-		Take(&idDataTransaksi).Error; err != nil {
+		Scan(&idDataTransaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,

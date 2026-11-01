@@ -157,7 +157,7 @@ func ValidateUbahPasswordSeller(ctx context.Context, data PayloadValidateUbahPas
 		var dataSellerUpdated sot_models.Seller
 		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: IdSeller,
-		}).Limit(1).Take(&dataSellerUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataSellerUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data seller")
 			return
 		}

@@ -95,12 +95,13 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 		}
 
 		go func(Pp sot_models.MediaSellerProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-			defer cancel()
 
 			thresholdSeller := sot_threshold.SellerThreshold{
 				IdSeller: Pp.IdSeller,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.MediaSellerFotoProfil); err != nil {
 				fmt.Println("Gagal incr count media seller profil foto ke threshold seller")
@@ -135,7 +136,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 			var dataPhotoProfilUpdated sot_models.MediaSellerProfilFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaSellerProfilFoto{}).Where(&sot_models.MediaSellerProfilFoto{
 				ID: IdPp,
-			}).Limit(1).Take(&dataPhotoProfilUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataPhotoProfilUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data photo profil seller")
 			}
 
@@ -152,7 +153,7 @@ func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller,
 		UrlUpload: minIOUploadUrl,
 		Key:       keyz,
 	}
-}
+} // Passed
 
 func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusFotoProfilSeller"
@@ -201,7 +202,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaSellerProfilFoto{}).Where(&sot_models.MediaSellerProfilFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaSellerProfilFoto{}).Where(&sot_models.MediaSellerProfilFoto{
 		ID: data.IdMediaSellerProfilFoto,
 	}).Delete(&sot_models.MediaSellerProfilFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -212,12 +213,12 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 	}
 
 	go func(Dmfps sot_models.MediaSellerProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: Dmfps.IdSeller,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.MediaSellerFotoProfil); err != nil {
 			fmt.Println("Gagal decr photo profil foto ke treshold selller")
@@ -233,7 +234,7 @@ func HapusFotoProfilSeller(ctx context.Context, data PayloadHapusFotoProfilSelle
 		Status:   http.StatusOK,
 		Services: services,
 	}
-}
+} // Passed
 
 func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "UbahFotoBannerSeller"
@@ -296,12 +297,12 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 		}
 
 		go func(Bf sot_models.MediaSellerBannerFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-			defer cancel()
-
 			thresholdSeller := sot_threshold.SellerThreshold{
 				IdSeller: Bf.IdSeller,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := thresholdSeller.Increment(konteks, Trh, stsk_seller.MediaSellerBannerFoto); err != nil {
 				fmt.Println("Gagal incr count media seller banner foto ke threshold seller")
@@ -332,7 +333,7 @@ func UbahFotoBannerSeller(ctx context.Context, data PayloadUbahFotoBannerSeller,
 			var dataBannerFotoUpdated sot_models.MediaSellerBannerFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaSellerBannerFoto{}).Where(&sot_models.MediaSellerBannerFoto{
 				ID: IdBf,
-			}).Limit(1).Take(&dataBannerFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBannerFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data banner foto seller")
 			}
 
@@ -397,7 +398,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaSellerBannerFoto{}).Where(&sot_models.MediaSellerBannerFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaSellerBannerFoto{}).Where(&sot_models.MediaSellerBannerFoto{
 		ID: data.IdMediaBannerSellerFoto,
 	}).Delete(&sot_models.MediaSellerBannerFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -408,12 +409,12 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 	}
 
 	go func(Dmbfs sot_models.MediaSellerBannerFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		thresholdSeller := sot_threshold.SellerThreshold{
 			IdSeller: Dmbfs.IdSeller,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdSeller.Decrement(konteks, Trh, stsk_seller.MediaSellerBannerFoto); err != nil {
 			fmt.Println("Gagal decr banner foto ke threshold seller")
@@ -430,7 +431,7 @@ func HapusFotoBannerSeller(ctx context.Context, data PayloadHapusFotoBannerSelle
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} //Passed
 
 func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFotoTokoFisikSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahkanFotoTokoFisikSeller"
@@ -498,25 +499,29 @@ func TambahkanFotoTokoFisikSeller(ctx context.Context, data PayloadTambahkanFoto
 	}
 
 	go func(Tffs []sot_models.MediaSellerTokoFisikFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdSeller := sot_threshold.SellerThreshold{
+			IdSeller: int64(Tffs[0].IdSeller),
+		}
+
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		if len(Tffs) > 0 {
-			thresholdSeller := sot_threshold.SellerThreshold{
-				IdSeller: int64(Tffs[0].IdSeller),
-			}
+		if err := thresholdSeller.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_seller.MediaSellerTokoFisikFoto,
+				Count:     len(Tffs),
+			},
+		}); err != nil {
+			fmt.Println("Gagal incr count media seller toko fisik foto ke threshold seller")
+		}
 
-			if err := thresholdSeller.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{sot_threshold.CustomCounter{FieldName: stsk_seller.MediaSellerTokoFisikFoto, Count: len(Tffs)}}); err != nil {
-				fmt.Println("Gagal incr count media seller toko fisik foto ke threshold seller")
-			}
-
-			for _, foto := range Tffs {
-				tokoFisikFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
-				if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, tokoFisikFotoCreatePublish); err != nil {
-					fmt.Println("Gagal publish toko fisik foto create ke message broker")
-				}
+		for _, foto := range Tffs {
+			tokoFisikFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, tokoFisikFotoCreatePublish); err != nil {
+				fmt.Println("Gagal publish toko fisik foto create ke message broker")
 			}
 		}
+
 	}(DataFotoSave, db.Write, cud_publisher)
 
 	return &response.ResponseMediaUpload{
@@ -617,23 +622,27 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 	}
 
 	go func(Dtfh []sot_models.MediaSellerTokoFisikFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+
+		thresholdSeller := sot_threshold.SellerThreshold{
+			IdSeller: int64(Dtfh[0].IdSeller),
+		}
+
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		if len(Dtfh) > 0 {
-			thresholdSeller := sot_threshold.SellerThreshold{
-				IdSeller: int64(Dtfh[0].IdSeller),
-			}
+		if err := thresholdSeller.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{FieldName: stsk_seller.MediaSellerTokoFisikFoto,
+				Count: len(Dtfh),
+			},
+		},
+		); err != nil {
+			fmt.Println("Gagal decr foto toko fisik ke threshold seller")
+		}
 
-			if err := thresholdSeller.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{sot_threshold.CustomCounter{FieldName: stsk_seller.MediaSellerTokoFisikFoto, Count: len(Dtfh)}}); err != nil {
-				fmt.Println("Gagal decr foto toko fisik ke threshold seller")
-			}
-
-			for _, foto := range Dtfh {
-				tokoFisikFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
-				if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, tokoFisikFotoDeletePublish); err != nil {
-					fmt.Println("Gagal publish delete foto toko fisik seller ke message broker")
-				}
+		for _, foto := range Dtfh {
+			tokoFisikFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(foto).SetTableName(foto.TableName()).SetRole(mb_cud_seeders.Seller)
+			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, tokoFisikFotoDeletePublish); err != nil {
+				fmt.Println("Gagal publish delete foto toko fisik seller ke message broker")
 			}
 		}
 	}(dataFotoHapus, db.Write, cud_publisher)
@@ -643,7 +652,7 @@ func HapusFotoTokoFisikSeller(ctx context.Context, data PayloadHapusFotoTokoFisi
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "UbahFotoEtalaseSeller"
@@ -673,7 +682,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Etalase{}).Select("id").Where(&sot_models.Etalase{
 		ID:       data.IdEtalase,
 		SellerID: int64(data.IdentitasSeller.IdSeller),
-	}).Limit(1).Take(&id_data_etalase).Error; err != nil {
+	}).Limit(1).Scan(&id_data_etalase).Error; err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -715,15 +724,24 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 			}
 		}
 
-		go func(Ef sot_models.MediaEtalaseFoto, publisher *mb_cud_publisher.Publisher) {
+		go func(Ef sot_models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+
+			thresholdEtalase := sot_threshold.EtalaseThreshold{
+				ID: Ef.IdEtalase,
+			}
+
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
+
+			if err := thresholdEtalase.Increment(konteks, Trh, stsk_etalase.MediaEtalaseFoto); err != nil {
+				fmt.Println("gagal increment data threshold etalase seller", err)
+			}
 
 			etalaseFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Ef).SetTableName(Ef.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoCreatePublish); err != nil {
 				fmt.Println("Gagal publish etalase foto create ke message broker")
 			}
-		}(newEtalaseFoto, cud_publisher)
+		}(newEtalaseFoto, db.Write, cud_publisher)
 	} else {
 		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaEtalaseFoto{}).Where(&sot_models.MediaEtalaseFoto{
 			ID: id_data_media_etalase_foto,
@@ -737,30 +755,22 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 			}
 		}
 
-		go func(IdEf int64, Trh *gorm.DB, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		go func(IdEf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataEtalaseFotoUpdated sot_models.MediaEtalaseFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaEtalaseFoto{}).Where(&sot_models.MediaEtalaseFoto{
 				ID: IdEf,
-			}).Limit(1).Take(&dataEtalaseFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataEtalaseFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data etalase foto")
-			}
-
-			var ThresEtalase sot_threshold.EtalaseThreshold = sot_threshold.EtalaseThreshold{
-				ID: dataEtalaseFotoUpdated.IdEtalase,
-			}
-
-			if err := ThresEtalase.Increment(konteks, Trh, stsk_etalase.MediaEtalaseFoto); err != nil {
-				fmt.Println("gagal increment data threshold etalase seller", err)
 			}
 
 			etalaseFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataEtalaseFotoUpdated).SetTableName(dataEtalaseFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
 			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, etalaseFotoUpdatedPublish); err != nil {
 				fmt.Println("Gagal publish update etalase foto ke message broker")
 			}
-		}(id_data_media_etalase_foto, db.Write, db.Read, cud_publisher)
+		}(id_data_media_etalase_foto, db.Read, cud_publisher)
 	}
 
 	return &response.ResponseMediaUpload{
@@ -772,7 +782,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 }
 
 func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusFotoEtalaseSeller"
+	const services string = "HapusFotoEtalaseSeller"
 
 	if data.IdMediaEtalaseFoto <= 0 {
 		return &response.ResponseForm{
@@ -829,14 +839,14 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 	}
 
 	go func(Dmef sot_models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
-		var ThresEtalase sot_threshold.EtalaseThreshold = sot_threshold.EtalaseThreshold{
+		var thresholdEtalase sot_threshold.EtalaseThreshold = sot_threshold.EtalaseThreshold{
 			ID: Dmef.IdEtalase,
 		}
 
-		if err := ThresEtalase.Decrement(konteks, Trh, stsk_etalase.MediaEtalaseFoto); err != nil {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		if err := thresholdEtalase.Decrement(konteks, Trh, stsk_etalase.MediaEtalaseFoto); err != nil {
 			fmt.Println("gagall decrement threshold etalase", err)
 		}
 
@@ -851,7 +861,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarangIndukFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahkanMediaBarangIndukFoto"
@@ -966,12 +976,13 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 	}
 
 	go func(Mbif []sot_models.MediaBarangIndukFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: Mbif[0].IdBarangInduk,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdBarangInduk.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{sot_threshold.CustomCounter{
 			FieldName: stsk_baranginduk.MediaBarangIndukFoto,
@@ -993,7 +1004,7 @@ func TambahkanMediaBarangIndukFoto(ctx context.Context, data PayloadTambahBarang
 		Services:  services,
 		UrlAndKey: DataUrlAndKeyUpload,
 	}
-}
+} // Passed
 
 func HapusMediaBarangIndukFoto(ctx context.Context, data PayloadHapusBarangIndukFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusMediaBarangIndukFoto"
@@ -1219,7 +1230,7 @@ func UbahBarangIndukVideo(ctx context.Context, data PayloadUbahVideoBarangInduk,
 			var dataBarangIndukVideoUpdated sot_models.MediaBarangIndukVideo
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBarangIndukVideo{}).Where(&sot_models.MediaBarangIndukVideo{
 				ID: IdBiv,
-			}).Limit(1).Take(&dataBarangIndukVideoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBarangIndukVideoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data barang induk video")
 			}
 
@@ -1462,7 +1473,7 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 			var dataKategoriBarangFotoUpdated sot_models.MediaKategoriBarangFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaKategoriBarangFoto{}).Where(&sot_models.MediaKategoriBarangFoto{
 				ID: IdMkbf,
-			}).Limit(1).Take(&dataKategoriBarangFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataKategoriBarangFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data kategori barang foto")
 			}
 
@@ -1675,7 +1686,7 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 			var dataDistributorDataDokumenUpdated sot_models.MediaDistributorDataDokumen
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaDistributorDataDokumen{}).Where(&sot_models.MediaDistributorDataDokumen{
 				ID: IdMddd,
-			}).Limit(1).Take(&dataDistributorDataDokumenUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataDistributorDataDokumenUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data distributor data dokumen")
 			}
 
@@ -1924,7 +1935,7 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 			var dataDistributorDataNPWPFotoUpdated sot_models.MediaDistributorDataNPWPFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaDistributorDataNPWPFoto{}).Where(&sot_models.MediaDistributorDataNPWPFoto{
 				ID: IdMddnf,
-			}).Limit(1).Take(&dataDistributorDataNPWPFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataDistributorDataNPWPFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data distributor data npwp foto")
 			}
 
@@ -2174,7 +2185,7 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 			var dataDistributorDataNIBFotoUpdated sot_models.MediaDistributorDataNIBFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaDistributorDataNIBFoto{}).Where(&sot_models.MediaDistributorDataNIBFoto{
 				ID: IdMddnibf,
-			}).Limit(1).Take(&dataDistributorDataNIBFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataDistributorDataNIBFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data distributor data nib foto")
 			}
 			distributorDataNIBFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataDistributorDataNIBFotoUpdated).SetTableName(dataDistributorDataNIBFotoUpdated.TableName()).SetRole(mb_cud_seeders.Seller)
@@ -2423,7 +2434,7 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 			var dataDistributorDataSuratKerjasamaDokumenUpdated sot_models.MediaDistributorDataSuratKerjasamaDokumen
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{}).Where(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{
 				ID: IdMddskd,
-			}).Limit(1).Take(&dataDistributorDataSuratKerjasamaDokumenUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataDistributorDataSuratKerjasamaDokumenUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data distributor data surat kerjasama dokumen")
 			}
 
@@ -2673,7 +2684,7 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 			var dataBrandDataPerwakilanDokumenUpdated sot_models.MediaBrandDataPerwakilanDokumen
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBrandDataPerwakilanDokumen{}).Where(&sot_models.MediaBrandDataPerwakilanDokumen{
 				ID: IdMbdpd,
-			}).Limit(1).Take(&dataBrandDataPerwakilanDokumenUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBrandDataPerwakilanDokumenUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data brand data perwakilan dokumen")
 			}
 
@@ -2924,7 +2935,7 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 			var dataBrandDataSertifikatFotoUpdated sot_models.MediaBrandDataSertifikatFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBrandDataSertifikatFoto{}).Where(&sot_models.MediaBrandDataSertifikatFoto{
 				ID: IdMbdsf,
-			}).Limit(1).Take(&dataBrandDataSertifikatFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBrandDataSertifikatFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data brand data sertifikat foto")
 			}
 
@@ -3175,7 +3186,7 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 			var dataBrandDataNIBFotoUpdated sot_models.MediaBrandDataNIBFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBrandDataNIBFoto{}).Where(&sot_models.MediaBrandDataNIBFoto{
 				ID: IdMbdnibf,
-			}).Limit(1).Take(&dataBrandDataNIBFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBrandDataNIBFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data brand data nib foto")
 			}
 
@@ -3428,7 +3439,7 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 			var dataBrandDataNPWPFotoUpdated sot_models.MediaBrandDataNPWPFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBrandDataNPWPFoto{}).Where(&sot_models.MediaBrandDataNPWPFoto{
 				ID: IdMbdnf,
-			}).Limit(1).Take(&dataBrandDataNPWPFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBrandDataNPWPFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data brand data npwp foto")
 			}
 
@@ -3679,7 +3690,7 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 			var dataBrandDataLogoFotoUpdated sot_models.MediaBrandDataLogoFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBrandDataLogoFoto{}).Where(&sot_models.MediaBrandDataLogoFoto{
 				ID: IdMbdlf,
-			}).Limit(1).Take(&dataBrandDataLogoFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBrandDataLogoFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data brand data logo foto")
 			}
 
@@ -3931,7 +3942,7 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 			var dataBrandDataSuratKerjasamaDokumenUpdated sot_models.MediaBrandDataSuratKerjasamaDokumen
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&sot_models.MediaBrandDataSuratKerjasamaDokumen{
 				ID: IdMbdskd,
-			}).Limit(1).Take(&dataBrandDataSuratKerjasamaDokumenUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataBrandDataSuratKerjasamaDokumenUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data brand data surat kerjasama dokumen")
 			}
 

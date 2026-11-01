@@ -74,7 +74,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 			NomorRekening: data.NomorRekening,
 		}).
 		Limit(1).
-		Take(&id_rekening).Error; err_check_rekening == nil && id_rekening != 0 {
+		Scan(&id_rekening).Error; err_check_rekening == nil && id_rekening != 0 {
 		log.Printf("[WARN] Rekening sudah ada untuk seller ID %d: %s - %s",
 			data.IdentitasSeller.IdSeller, data.NamaBank, data.NomorRekening)
 		return &response.ResponseForm{
@@ -101,7 +101,7 @@ func TambahRekeningSeller(ctx context.Context, data PayloadTambahkanNorekSeller,
 			IDSeller: data.IdentitasSeller.IdSeller,
 		}).
 		Limit(1).
-		Take(&id_data_rekening).Error; err != nil {
+		Scan(&id_data_rekening).Error; err != nil {
 		log.Printf("[ERROR] Gagal cek rekening seller ID %d: %v", data.IdentitasSeller.IdSeller, err)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -220,7 +220,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekening,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_data_rekening).Error; err != nil {
+	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -257,7 +257,7 @@ func EditRekeningSeller(ctx context.Context, data PayloadEditNorekSeler, db *env
 		var updatedRekeningSeller sot_models.RekeningSeller
 		if err := Read.WithContext(konteks).Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 			ID: Ir,
-		}).Limit(1).Take(&updatedRekeningSeller).Error; err != nil {
+		}).Limit(1).Scan(&updatedRekeningSeller).Error; err != nil {
 			fmt.Println("Gagal mengambil data rekening seller")
 			return
 		}
@@ -303,7 +303,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 	if err := db.Read.WithContext(ctx).Model(&sot_models.RekeningSeller{}).Select("id").Where(&sot_models.RekeningSeller{
 		ID:       data.IdRekening,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_data_rekening).Error; err != nil {
+	}).Limit(1).Scan(&id_data_rekening).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -350,7 +350,7 @@ func SetDefaultRekeningSeller(ctx context.Context, data PayloadSetDefaultRekenin
 		var updatedRekeningSeller sot_models.RekeningSeller
 		if err := Read.WithContext(konteks).Model(&sot_models.RekeningSeller{}).Where(&sot_models.RekeningSeller{
 			ID: Ir,
-		}).Limit(1).Take(&updatedRekeningSeller).Error; err != nil {
+		}).Limit(1).Scan(&updatedRekeningSeller).Error; err != nil {
 			fmt.Println("Gagal mengambil data rekening seller")
 			return
 		}
@@ -411,7 +411,7 @@ func HapusRekeningSeller(ctx context.Context, data PayloadHapusNorekSeller, db *
 			NomorRekening: data.NomorRekening,
 		}).
 		Limit(1).
-		Take(&data_rekening).Error; err != nil {
+		Scan(&data_rekening).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,

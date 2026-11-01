@@ -160,7 +160,7 @@ func UbahFotoProfilPengguna(ctx context.Context, data PayloadUbahFotoProfilPengg
 			var dataPhotoProfil sot_models.MediaPenggunaProfilFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaPenggunaProfilFoto{}).Where(&sot_models.MediaPenggunaProfilFoto{
 				ID: idMppf,
-			}).Limit(1).Take(&dataPhotoProfil).Error; err != nil {
+			}).Limit(1).Scan(&dataPhotoProfil).Error; err != nil {
 				fmt.Println("Gagal mendapatkan data photo profil")
 				return
 			}
@@ -211,7 +211,7 @@ func HapusFotoProfilPengguna(ctx context.Context, data PayloadHapusFotoProfilPen
 		ID:         data.IdMediaDataPengguna,
 		IdPengguna: data.IdentitasPengguna.ID,
 		Key:        data.KeyFoto,
-	}).Limit(1).Take(&data_media_foto).Error; err != nil {
+	}).Limit(1).Scan(&data_media_foto).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -430,7 +430,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Review{}).Select("id").Where(&sot_models.Review{
 		ID:         data.IdReviewData,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&id_data_review_produk).Error; err != nil {
+	}).Limit(1).Scan(&id_data_review_produk).Error; err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -447,7 +447,7 @@ func TambahMediaReviewVideo(ctx context.Context, data PayloadTambahMediaReviewVi
 	var id_media_review_video int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaReviewVideo{}).Select("id").Where(&sot_models.MediaReviewVideo{
 		IdReview: id_data_review_produk,
-	}).Limit(1).Take(&id_media_review_video).Error; err != nil {
+	}).Limit(1).Scan(&id_media_review_video).Error; err != nil {
 		return &response.ResponseMediaUpload{
 			Status:   http.StatusInternalServerError,
 			Services: services,

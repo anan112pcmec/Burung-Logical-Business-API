@@ -72,7 +72,7 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 		var uptodateSellerData sot_models.Seller
 		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: BSeller.ID,
-		}).Limit(1).Take(&uptodateSellerData); err != nil {
+		}).Limit(1).Scan(&uptodateSellerData); err != nil {
 			fmt.Println("Gagal mengambil data seller terbaru")
 			return
 		}
@@ -159,7 +159,7 @@ func UpdateInfoGeneralPublic(ctx context.Context, db *environment.InternalDBRead
 		var dataUpdatedSeller sot_models.Seller
 		if err := Read.WithContext(konteks).Model(&sot_models.Seller{}).Where(&sot_models.Seller{
 			ID: IdS,
-		}).Limit(1).Take(&dataUpdatedSeller).Error; err != nil {
+		}).Limit(1).Scan(&dataUpdatedSeller).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")
 			return
 		}

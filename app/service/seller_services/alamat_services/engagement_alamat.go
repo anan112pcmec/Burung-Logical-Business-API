@@ -80,7 +80,7 @@ func TambahAlamatGudang(ctx context.Context, data PayloadTambahAlamatGudang, db 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Select("id").Where(&sot_models.AlamatGudang{
 		IDSeller:   data.IdentitasSeller.IdSeller,
 		NamaAlamat: data.NamaAlamat,
-	}).Limit(1).Take(&id_data_alamat).Error; err != nil {
+	}).Limit(1).Scan(&id_data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -239,7 +239,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 		Select("id").
 		Where("id_alamat_gudang = ? AND status != ?", data.IdAlamatGudang, transaksi_enums.Selesai).
 		Limit(1).
-		Take(&idDataTransaksi).Error; err != nil {
+		Scan(&idDataTransaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -288,7 +288,7 @@ func EditAlamatGudang(ctx context.Context, data PayloadEditAlamatGudang, db *env
 		var dataUpdatedAlamatGudang sot_models.AlamatGudang
 		if err := Read.WithContext(konteks).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 			ID: IdAlamatGudang,
-		}).Limit(1).Take(&dataUpdatedAlamatGudang).Error; err != nil {
+		}).Limit(1).Scan(&dataUpdatedAlamatGudang).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data alamat gudang terbaru")
 		}
 
@@ -338,7 +338,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 		ID:       data.IdGudang,
 		IDSeller: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&data_alamat).Error; err != nil {
+	}).Limit(1).Scan(&data_alamat).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -357,7 +357,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 	var kategori_masih_menggunakan int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id").Where(&sot_models.KategoriBarang{
 		IDAlamat: data.IdGudang,
-	}).Limit(1).Take(&kategori_masih_menggunakan).Error; err != nil {
+	}).Limit(1).Scan(&kategori_masih_menggunakan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -379,7 +379,7 @@ func HapusAlamatGudang(ctx context.Context, data PayloadHapusAlamatGudang, db *e
 		Select("id").
 		Where("id_alamat_gudang = ? AND status != ?", data.IdGudang, transaksi_enums.Selesai).
 		Limit(1).
-		Take(&id_data_transaksi).Error; err != nil {
+		Scan(&id_data_transaksi).Error; err != nil {
 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,

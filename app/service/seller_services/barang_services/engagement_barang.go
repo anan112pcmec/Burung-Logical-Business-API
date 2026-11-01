@@ -297,7 +297,7 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 			var dataBarangIndukNew sot_models.BarangInduk
 			if err := Trh.Read.WithContext(konteks).Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
 				ID: Bi.ID,
-			}).Limit(1).Take(&dataBarangIndukNew).Error; err != nil {
+			}).Limit(1).Scan(&dataBarangIndukNew).Error; err != nil {
 				fmt.Println("Gagal mendapatkan data barang induk", err)
 			}
 
@@ -449,7 +449,7 @@ func EditBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSys
 		var updatedBarangInduk sot_models.BarangInduk
 		if err := Read.WithContext(konteks).Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
 			ID: int32(IdBarangInduk),
-		}).Limit(1).Take(&updatedBarangInduk).Error; err != nil {
+		}).Limit(1).Scan(&updatedBarangInduk).Error; err != nil {
 			fmt.Println("Gagal mengambil data terbaru barang induk")
 			return
 		}
@@ -1123,7 +1123,7 @@ func EditKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
 		if err := Read.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IdKb,
-		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKategoriBarangUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
@@ -1330,7 +1330,7 @@ func SetAsOriginKategoriBarang(ctx context.Context, db *environment.InternalDBRe
 		ID:            data.IdKategoriBarang,
 		IdBarangInduk: data.IdBarangInduk,
 		SellerID:      data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_kategori).Error; err != nil {
+	}).Limit(1).Scan(&id_kategori).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -1350,7 +1350,7 @@ func SetAsOriginKategoriBarang(ctx context.Context, db *environment.InternalDBRe
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("original_kategori").Where(&sot_models.BarangInduk{
 		ID:       data.IdBarangInduk,
 		SellerID: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_original_kategori).Error; err != nil {
+	}).Limit(1).Scan(&id_original_kategori).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -1409,7 +1409,7 @@ func SetAsOriginKategoriBarang(ctx context.Context, db *environment.InternalDBRe
 		var updatedBarangIndukOriginal sot_models.BarangInduk = sot_models.BarangInduk{}
 		if err := Trh.WithContext(konteks).Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
 			ID: IDB,
-		}).Limit(1).Take(&updatedBarangIndukOriginal).Error; err != nil {
+		}).Limit(1).Scan(&updatedBarangIndukOriginal).Error; err != nil {
 			fmt.Println("Gagal mengambil data barang induk")
 		}
 
@@ -1421,7 +1421,7 @@ func SetAsOriginKategoriBarang(ctx context.Context, db *environment.InternalDBRe
 		var kategoriOriginalSebelum sot_models.KategoriBarang = sot_models.KategoriBarang{}
 		if err := Trh.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IDKOS,
-		}).Limit(1).Take(&kategoriOriginalSebelum).Error; err != nil {
+		}).Limit(1).Scan(&kategoriOriginalSebelum).Error; err != nil {
 			fmt.Println("Gagal mengambil data Kategori Original sebelum")
 		}
 
@@ -1433,7 +1433,7 @@ func SetAsOriginKategoriBarang(ctx context.Context, db *environment.InternalDBRe
 		var kategoriOriginalBaru sot_models.KategoriBarang = sot_models.KategoriBarang{}
 		if err := Trh.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IDKOB,
-		}).Limit(1).Take(&kategoriOriginalBaru).Error; err != nil {
+		}).Limit(1).Scan(&kategoriOriginalBaru).Error; err != nil {
 			fmt.Println("Gagal mengambil data Kategori Original sebelum")
 		}
 
@@ -1544,7 +1544,7 @@ func UbahHargaKategoriBarang(ctx context.Context, db *environment.InternalDBRead
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
 		if err := Read.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IdKb,
-		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKategoriBarangUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kategori barang untuk publish")
 			return
 		}
@@ -1770,7 +1770,7 @@ func EditStokKategoriBarang(ctx context.Context, db *environment.InternalDBReadW
 		var dataKategoriBarangupdated sot_models.KategoriBarang
 		if err := Write.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IdKb,
-		}).Limit(1).Take(&dataKategoriBarangupdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKategoriBarangupdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data kategori barang")
 			return
 		}
@@ -1859,7 +1859,7 @@ func DownStokBarangInduk(ctx context.Context, db *environment.InternalDBReadWrit
 		var thresholdBarangIndukFieldKategoriBarang int64 = 0
 		if err := Read.WithContext(konteks).Model(&sot_threshold.BarangIndukThreshold{}).Select(stsk_baranginduk.KategoriBarang).Where(&sot_threshold.BarangIndukThreshold{
 			IdBarangInduk: int64(IdBi),
-		}).Limit(1).Take(&thresholdBarangIndukFieldKategoriBarang).Error; err != nil {
+		}).Limit(1).Scan(&thresholdBarangIndukFieldKategoriBarang).Error; err != nil {
 			fmt.Println("Gagal mengambil threshold barang induk")
 		}
 
@@ -1979,7 +1979,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 	if data.Jumlah == 0 {
 		if err := db.Read.WithContext(ctx).Model(&sot_threshold.KategoriBarangThreshold{}).Select(stsk_kategori_barang.Ready).Where(&sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: data.IdKategoriBarang,
-		}).Limit(1).Take(&limit_varian).Error; err != nil {
+		}).Limit(1).Scan(&limit_varian).Error; err != nil {
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -2052,7 +2052,7 @@ func DownKategoriBarang(ctx context.Context, db *environment.InternalDBReadWrite
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
 		if err := Read.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IdKb,
-		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKategoriBarangUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
@@ -2093,7 +2093,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("id").Where(&sot_models.BarangInduk{
 		ID:       data.IdBarangInduk,
 		SellerID: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_barang_induk).Error; err != nil {
+	}).Limit(1).Scan(&id_barang_induk).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -2112,7 +2112,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 	var thresholdBarangIndukFieldKategoriBarang int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_threshold.BarangIndukThreshold{}).Select(stsk_baranginduk.KategoriBarang).Where(&sot_threshold.BarangIndukThreshold{
 		IdBarangInduk: int64(data.IdBarangInduk),
-	}).Limit(1).Take(&thresholdBarangIndukFieldKategoriBarang).Error; err != nil {
+	}).Limit(1).Scan(&thresholdBarangIndukFieldKategoriBarang).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -2175,7 +2175,7 @@ func UpBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSyste
 			var countDown int32 = 0
 			if err := Read.WithContext(konteks).Model(&sot_threshold.KategoriBarangThreshold{}).Select(stsk_kategori_barang.Down).Where(&sot_threshold.KategoriBarangThreshold{
 				IdKategoriBarang: ik,
-			}).Limit(1).Take(&countDown).Error; err != nil {
+			}).Limit(1).Scan(&countDown).Error; err != nil {
 				fmt.Println("Gagal mengambil Countdown")
 			}
 
@@ -2274,7 +2274,7 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 	if data.Jumlah == 0 {
 		if err := db.Read.WithContext(ctx).Model(&sot_threshold.KategoriBarangThreshold{}).Select(stsk_kategori_barang.Down).Where(&sot_threshold.KategoriBarangThreshold{
 			IdKategoriBarang: data.IdKategoriBarang,
-		}).Limit(1).Take(&limit_varian).Error; err != nil {
+		}).Limit(1).Scan(&limit_varian).Error; err != nil {
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -2362,7 +2362,7 @@ func UpKategoriBarang(ctx context.Context, db *environment.InternalDBReadWriteSy
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
 		if err := Read.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IdKb,
-		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKategoriBarangUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
@@ -2450,7 +2450,7 @@ func EditRekeningBarangInduk(ctx context.Context, data PayloadEditRekeningBarang
 	var id_rekening_sebelum int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id_rekening").Where(&sot_models.KategoriBarang{
 		IdBarangInduk: data.IdBarangInduk,
-	}).Limit(1).Take(&id_rekening_sebelum).Error; err != nil {
+	}).Limit(1).Scan(&id_rekening_sebelum).Error; err != nil {
 		fmt.Println("Gagal id rekening sebelum tidak ditemukan", err)
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -2787,7 +2787,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 	if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("id_alamat_gudang").Where(&sot_models.KategoriBarang{
 		ID:            data.IdKategoriBarang,
 		IdBarangInduk: data.IdBarangInduk,
-	}).Limit(1).Take(&id_alamat_gudang_sebelum).Error; err != nil {
+	}).Limit(1).Scan(&id_alamat_gudang_sebelum).Error; err != nil {
 		fmt.Println("Gagal id rekening sebelum tidak ditemukan", err)
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -2815,7 +2815,7 @@ func EditAlamatGudangBarangKategori(ctx context.Context, data PayloadEditAlamatB
 		var dataKategoriBarangUpdated sot_models.KategoriBarang
 		if err := Read.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where(&sot_models.KategoriBarang{
 			ID: IdKb,
-		}).Limit(1).Take(&dataKategoriBarangUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKategoriBarangUpdated).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data kategori barang")
 		}
 
@@ -2871,10 +2871,10 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 	}
 
 	is_seller := false
-	var id_seller_take int64 = 0
+	var id_seller_Scan int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("id_seller").Where(&sot_models.BarangInduk{
 		ID: data.IdBarangInduk,
-	}).Limit(1).Scan(&id_seller_take).Error; err != nil {
+	}).Limit(1).Scan(&id_seller_Scan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -2882,7 +2882,7 @@ func MasukanKomentarBarang(ctx context.Context, data PayloadMasukanKomentarBaran
 		}
 	}
 
-	if id_seller_take == int64(data.IdentitasSeller.IdSeller) {
+	if id_seller_Scan == int64(data.IdentitasSeller.IdSeller) {
 		is_seller = true
 	}
 
@@ -2992,7 +2992,7 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 		komentarData := sot_models.Komentar{}
 		if err := Read.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
 			ID: idKomen,
-		}).Limit(1).Take(&komentarData); err != nil {
+		}).Limit(1).Scan(&komentarData); err != nil {
 			return
 		}
 
@@ -3124,10 +3124,10 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 
 	is_seller := false
 
-	var id_seller_take int64 = 0
+	var id_seller_Scan int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("id_seller").Where(&sot_models.BarangInduk{
 		ID: data.IdBarangInduk,
-	}).Limit(1).Take(&id_seller_take).Error; err != nil {
+	}).Limit(1).Scan(&id_seller_Scan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -3135,7 +3135,7 @@ func MasukanChildKomentar(ctx context.Context, data PayloadMasukanChildKomentar,
 		}
 	}
 
-	if id_seller_take == int64(data.IdentitasSeller.IdSeller) {
+	if id_seller_Scan == int64(data.IdentitasSeller.IdSeller) {
 		is_seller = true
 	}
 
@@ -3224,10 +3224,10 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 
 	is_seller := false
 
-	var id_seller_take int64 = 0
+	var id_seller_Scan int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("id_seller").Where(&sot_models.BarangInduk{
 		ID: data.IdBarangInduk,
-	}).Limit(1).Take(&id_seller_take).Error; err != nil {
+	}).Limit(1).Scan(&id_seller_Scan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -3235,7 +3235,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		}
 	}
 
-	if id_seller_take == int64(data.IdentitasSeller.IdSeller) {
+	if id_seller_Scan == int64(data.IdentitasSeller.IdSeller) {
 		is_seller = true
 	}
 
@@ -3340,7 +3340,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 		var dataKomentarChild sot_models.KomentarChild
 		if err := Read.WithContext(konteks).Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
 			ID: IdKc,
-		}).Limit(1).Take(&dataKomentarChild).Error; err != nil {
+		}).Limit(1).Scan(&dataKomentarChild).Error; err != nil {
 			return
 		}
 

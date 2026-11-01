@@ -85,7 +85,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		var uptodatePenggunaData sot_models.Pengguna
 		if err := Read.WithContext(konteks).Model(&sot_models.Pengguna{}).Where(&sot_models.Pengguna{
 			ID: IP.ID,
-		}).Limit(1).Take(&uptodatePenggunaData); err != nil {
+		}).Limit(1).Scan(&uptodatePenggunaData); err != nil {
 			fmt.Println("Gagal mengambil data pengguna terbaru")
 			return
 		}

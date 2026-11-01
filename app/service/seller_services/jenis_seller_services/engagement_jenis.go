@@ -72,7 +72,7 @@ func MasukanDataDistributor(ctx context.Context, data PayloadMasukanDataDistribu
 	var id_data_distributor int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.DistributorData{}).Select("id").Where(&sot_models.DistributorData{
 		SellerId: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_data_distributor).Error; err != nil {
+	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -206,7 +206,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 		ID:       data.IdDistributorData,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
-	}).Limit(1).Take(&id_data_distributor).Error; err != nil {
+	}).Limit(1).Scan(&id_data_distributor).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -251,7 +251,7 @@ func EditDataDistributor(ctx context.Context, data PayloadEditDataDistributor, d
 		var distributorDataUpdated sot_models.DistributorData
 		if err := Read.WithContext(konteks).Model(&sot_models.DistributorData{}).Where(&sot_models.DistributorData{
 			ID: IdD,
-		}).Limit(1).Take(&distributorDataUpdated).Error; err != nil {
+		}).Limit(1).Scan(&distributorDataUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil distributor data updated")
 			return
 		}
@@ -445,7 +445,7 @@ func MasukanDataBrand(ctx context.Context, data PayloadMasukanDataBrand, db *env
 	var id_data_brand int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.BrandData{}).Select("id").Where(&sot_models.BrandData{
 		SellerId: data.IdentitasSeller.IdSeller,
-	}).Limit(1).Take(&id_data_brand).Error; err != nil {
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -616,7 +616,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 		ID:       data.IdDataBrand,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
-	}).Limit(1).Take(&id_data_brand).Error; err != nil {
+	}).Limit(1).Scan(&id_data_brand).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -665,7 +665,7 @@ func EditDataBrand(ctx context.Context, data PayloadEditDataBrand, db *environme
 		var brandDataUpdated sot_models.BrandData
 		if err := Read.WithContext(konteks).Model(&sot_models.BrandData{}).Where(&sot_models.BrandData{
 			ID: IdB,
-		}).Limit(1).Take(&brandDataUpdated).Error; err != nil {
+		}).Limit(1).Scan(&brandDataUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data brand data")
 			return
 		}
@@ -711,7 +711,7 @@ func HapusDataBrand(ctx context.Context, data PayloadHapusDataBrand, db *environ
 		ID:       data.IdDataBrand,
 		SellerId: data.IdentitasSeller.IdSeller,
 		Status:   "Pending",
-	}).Limit(1).Take(&data_brand).Error; err != nil {
+	}).Limit(1).Scan(&data_brand).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,

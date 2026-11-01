@@ -18,6 +18,7 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	response_social_media_seller "github.com/anan112pcmec/Burung-backend-1/app/service/seller_services/social_media_services/response_social_media_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +76,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 				var Udesm sot_models.EntitySocialMedia
 				if err := Read.WithContext(konteks).Model(sot_models.EntitySocialMedia{}).Where(sot_models.EntitySocialMedia{
 					ID: IdEsm,
-				}).Limit(1).Take(&Udesm).Error; err != nil {
+				}).Limit(1).Scan(&Udesm).Error; err != nil {
 					fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")
 					return
 				}
@@ -122,7 +123,7 @@ func EngageSocialMediaSeller(ctx context.Context, data PayloadEngageSocialMedia,
 			var Udesm sot_models.EntitySocialMedia
 			if err := Read.WithContext(konteks).Model(sot_models.EntitySocialMedia{}).Where(sot_models.EntitySocialMedia{
 				ID: IdEsm,
-			}).Limit(1).Take(&Udesm).Error; err != nil {
+			}).Limit(1).Scan(&Udesm).Error; err != nil {
 				fmt.Println("Gagal mendapatkan data perubahan seller pembaruan sesi dibatalkan")
 				return
 			}
