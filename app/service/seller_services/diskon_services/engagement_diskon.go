@@ -243,7 +243,7 @@ func EditDiskonProduk(ctx context.Context, data PayloadEditDiskonProduk, db *env
 		var dataUpdatedDiskonProduk sot_models.DiskonProduk
 		if err := Read.WithContext(konteks).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
 			ID: IdDp,
-		}).Limit(1).Scan(&data.IdDiskonProduk).Error; err != nil {
+		}).Limit(1).Scan(&dataUpdatedDiskonProduk).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data updated diskon produk")
 			return
 		}
