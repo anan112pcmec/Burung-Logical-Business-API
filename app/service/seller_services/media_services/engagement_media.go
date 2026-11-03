@@ -31,6 +31,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -727,7 +728,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 		go func(Ef sot_models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 
 			thresholdEtalase := sot_threshold.EtalaseThreshold{
-				ID: Ef.IdEtalase,
+				IdEtalase: Ef.IdEtalase,
 			}
 
 			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
@@ -761,7 +762,7 @@ func UbahFotoEtalaseSeller(ctx context.Context, data PayloadUbahFotoEtalase, db 
 
 			var dataEtalaseFotoUpdated sot_models.MediaEtalaseFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaEtalaseFoto{}).Where(&sot_models.MediaEtalaseFoto{
-				ID: IdEf,
+				IdEtalase: IdEf,
 			}).Limit(1).Scan(&dataEtalaseFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data etalase foto")
 			}
@@ -840,7 +841,7 @@ func HapusFotoEtalaseSeller(ctx context.Context, data PayloadHapusFotoEtalase, d
 
 	go func(Dmef sot_models.MediaEtalaseFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		var thresholdEtalase sot_threshold.EtalaseThreshold = sot_threshold.EtalaseThreshold{
-			ID: Dmef.IdEtalase,
+			IdEtalase: Dmef.IdEtalase,
 		}
 
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
