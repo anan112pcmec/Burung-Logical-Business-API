@@ -31,7 +31,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 func UbahFotoProfilSeller(ctx context.Context, data PayloadUbahFotoProfilSeller, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -1438,7 +1437,6 @@ func UbahKategoriBarangFoto(ctx context.Context, data PayloadUbahKategoriBarangF
 		}
 
 		go func(Mkbf sot_models.MediaKategoriBarangFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-
 			thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
 				IdKategoriBarang: Mkbf.IdKategoriBarang,
 			}
@@ -1669,12 +1667,36 @@ func TambahDistributorDataDokumen(ctx context.Context, data PayloadMediaDistribu
 			}
 		}(newDistributorDataDokumen, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataDokumen{}).Where(&sot_models.MediaDistributorDataDokumen{
+		var key_dokumen_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaDistributorDataDokumen{}).Select("key").Where(&sot_models.MediaDistributorDataDokumen{
 			ID: id_media_distributor_data_dokumen,
-		}).Updates(&sot_models.MediaDistributorDataDokumen{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_dokumen_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_dokumen_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, key_dokumen_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataDokumen{}).Where(&sot_models.MediaDistributorDataDokumen{
+				ID: id_media_distributor_data_dokumen,
+			}).Updates(&sot_models.MediaDistributorDataDokumen{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -1726,7 +1748,7 @@ func HapusMediaDistributorDataDokumen(ctx context.Context, data PayloadHapusMedi
 		}
 	}
 
-	if data.KeyDokumen == "" || data.KeyDokumen == " " {
+	if strings.TrimSpace(data.KeyDokumen) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -1918,12 +1940,37 @@ func TambahMediaDistributorDataNPWPFoto(ctx context.Context, data PayloadTambahM
 			}
 		}(newDistributorDataNPWPFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataNPWPFoto{}).Where(&sot_models.MediaDistributorDataNPWPFoto{
+
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaDistributorDataNPWPFoto{}).Select("key").Where(&sot_models.MediaDistributorDataNPWPFoto{
 			ID: id_media_distributor_data_npwp_foto,
-		}).Updates(&sot_models.MediaDistributorDataNPWPFoto{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataNPWPFoto{}).Where(&sot_models.MediaDistributorDataNPWPFoto{
+				ID: id_media_distributor_data_npwp_foto,
+			}).Updates(&sot_models.MediaDistributorDataNPWPFoto{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -2168,12 +2215,36 @@ func TambahDistributorDataNIBFoto(ctx context.Context, data PayloadTambahDistrib
 			}
 		}(newDistributorDataNIBFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataNIBFoto{}).Where(&sot_models.MediaDistributorDataNIBFoto{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaDistributorDataNIBFoto{}).Select("key").Where(&sot_models.MediaDistributorDataNIBFoto{
 			ID: id_media_distributor_data_nib_foto,
-		}).Updates(&sot_models.MediaDistributorDataNIBFoto{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataNIBFoto{}).Where(&sot_models.MediaDistributorDataNIBFoto{
+				ID: id_media_distributor_data_nib_foto,
+			}).Updates(&sot_models.MediaDistributorDataNIBFoto{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -2417,12 +2488,36 @@ func TambahDistributorDataSuratKerjasamaDokumen(ctx context.Context, data Payloa
 			}
 		}(newDistributorDataSuratKerjasamaDokumen, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{}).Where(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{}).Select("key").Where(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{
 			ID: id_media_distributor_data_surat_kerjasama_dokumen,
-		}).Updates(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{}).Where(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{
+				ID: id_media_distributor_data_surat_kerjasama_dokumen,
+			}).Updates(&sot_models.MediaDistributorDataSuratKerjasamaDokumen{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -2667,12 +2762,36 @@ func TambahBrandDataPerwakilanDokumen(ctx context.Context, data PayloadTambahBra
 			}
 		}(newBrandDataPerwakilanDokumen, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataPerwakilanDokumen{}).Where(&sot_models.MediaBrandDataPerwakilanDokumen{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaBrandDataPerwakilanDokumen{}).Select("key").Where(&sot_models.MediaBrandDataPerwakilanDokumen{
 			ID: id_media_brand_data_perwakilan_dokumen,
-		}).Updates(&sot_models.MediaBrandDataPerwakilanDokumen{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataPerwakilanDokumen{}).Where(&sot_models.MediaBrandDataPerwakilanDokumen{
+				ID: id_media_brand_data_perwakilan_dokumen,
+			}).Updates(&sot_models.MediaBrandDataPerwakilanDokumen{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -2918,12 +3037,37 @@ func TambahMediaBrandDataSertifikatFoto(ctx context.Context, data PayloadTambahB
 			}
 		}(newBrandDataSertifikatFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataSertifikatFoto{}).Where(&sot_models.MediaBrandDataSertifikatFoto{
+
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaBrandDataSertifikatFoto{}).Select("key").Where(&sot_models.MediaBrandDataSertifikatFoto{
 			ID: id_media_brand_data_sertifikat_foto,
-		}).Updates(&sot_models.MediaBrandDataSertifikatFoto{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataSertifikatFoto{}).Where(&sot_models.MediaBrandDataSertifikatFoto{
+				ID: id_media_brand_data_sertifikat_foto,
+			}).Updates(&sot_models.MediaBrandDataSertifikatFoto{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -3169,12 +3313,36 @@ func TambahMediaBrandDataNIBFoto(ctx context.Context, data PayloadTambahMediaBra
 			}
 		}(newBrandDataNIBFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataNIBFoto{}).Where(&sot_models.MediaBrandDataNIBFoto{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaBrandDataNIBFoto{}).Select("key").Where(&sot_models.MediaBrandDataNIBFoto{
 			ID: id_media_brand_data_nib_foto,
-		}).Updates(&sot_models.MediaBrandDataNIBFoto{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataNIBFoto{}).Where(&sot_models.MediaBrandDataNIBFoto{
+				ID: id_media_brand_data_nib_foto,
+			}).Updates(&sot_models.MediaBrandDataNIBFoto{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -3421,12 +3589,36 @@ func TambahMediaBrandNPWPFoto(ctx context.Context, data PayloadTambahMediaBrandD
 			}
 		}(newBrandDataNPWPFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataNPWPFoto{}).Where(&sot_models.MediaBrandDataNPWPFoto{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaBrandDataNPWPFoto{}).Select("key").Where(&sot_models.MediaBrandDataNPWPFoto{
 			ID: id_media_brand_data_npwp_foto,
-		}).Updates(&sot_models.MediaBrandDataNPWPFoto{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataNPWPFoto{}).Where(&sot_models.MediaBrandDataNPWPFoto{
+				ID: id_media_brand_data_npwp_foto,
+			}).Updates(&sot_models.MediaBrandDataNPWPFoto{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -3672,12 +3864,36 @@ func TambahMediaBrandDataLogoFoto(ctx context.Context, data PayloadTambahMediaBr
 			}
 		}(newBrandDataLogoFoto, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataLogoFoto{}).Where(&sot_models.MediaBrandDataLogoFoto{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaBrandDataLogoFoto{}).Select("key").Where(&sot_models.MediaBrandDataLogoFoto{
 			ID: id_media_brand_data_logo_foto,
-		}).Updates(&sot_models.MediaBrandDataLogoFoto{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataLogoFoto{}).Where(&sot_models.MediaBrandDataLogoFoto{
+				ID: id_media_brand_data_logo_foto,
+			}).Updates(&sot_models.MediaBrandDataLogoFoto{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -3924,12 +4140,36 @@ func TambahBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadTamba
 			}
 		}(newBrandDataSuratKerjasamaDokumen, db.Write, cud_publisher)
 	} else {
-		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&sot_models.MediaBrandDataSuratKerjasamaDokumen{
+		var key_sebelum string = ""
+		if err := db.Read.WithContext(ctx).Model(&sot_models.MediaBrandDataSuratKerjasamaDokumen{}).Select("key").Where(&sot_models.MediaBrandDataSuratKerjasamaDokumen{
 			ID: id_media_brand_data_surat_kerjasama_dokumen,
-		}).Updates(&sot_models.MediaBrandDataSuratKerjasamaDokumen{
-			Key:    keyz,
-			Format: data.Ekstensi,
-		}).Error; err != nil {
+		}).Limit(1).Scan(&key_sebelum).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+		if strings.TrimSpace(key_sebelum) == "" {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketDokumenName, key_sebelum, minio.RemoveObjectOptions{}); err != nil {
+				return err
+			}
+			if err := db.Write.WithContext(ctx).Model(&sot_models.MediaBrandDataSuratKerjasamaDokumen{}).Where(&sot_models.MediaBrandDataSuratKerjasamaDokumen{
+				ID: id_media_brand_data_surat_kerjasama_dokumen,
+			}).Updates(&sot_models.MediaBrandDataSuratKerjasamaDokumen{
+				Key:    keyz,
+				Format: data.Ekstensi,
+			}).Error; err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return &response.ResponseMediaUpload{
 				Status:   http.StatusInternalServerError,
 				Services: services,
