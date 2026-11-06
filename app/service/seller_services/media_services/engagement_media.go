@@ -4221,7 +4221,7 @@ func HapusBrandDataSuratKerjasamaDokumen(ctx context.Context, data PayloadHapusB
 		}
 	}
 
-	if data.KeyDokumen == "" || data.KeyDokumen == " " {
+	if strings.TrimSpace(data.KeyDokumen) == "" {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
