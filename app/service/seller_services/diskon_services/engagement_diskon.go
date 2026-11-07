@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
 	seller_enum "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
+	seller_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/seller"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
@@ -154,8 +156,34 @@ func TambahDiskonProduk(ctx context.Context, data PayloadTambahDiskonProduk, db 
 		if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, diskonProdukCreatePublish); err != nil {
 			fmt.Println("Gagal publish create diskon produk ke message broker")
 		}
-
 	}(newDiskonProduk, db.Write, cud_publisher)
+
+	go func(IDP int64, DalamKurun time.Duration, Write *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		_ = <-time.After(DalamKurun)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		if err := Write.WithContext(konteks).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
+			ID: IDP,
+		}).Updates(&sot_models.DiskonProduk{
+			Status: seller_enums.Aktif,
+		}).Error; err != nil {
+			println("Gagal update diskon produk")
+		}
+
+		var Dp sot_models.DiskonProduk
+		if err := Write.WithContext(konteks).Model(&sot_models.DiskonProduk{}).Where(&sot_models.DiskonProduk{
+			ID: IDP,
+		}).Limit(1).Scan(&Dp).Error; err != nil {
+			fmt.Println("Gagal mengambil data diskon produk baru")
+		}
+
+		diskonProdukUpdatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dp).SetTableName(Dp.TableName() + "_Aktif").SetRole(mb_cud_seeders.Seller)
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, diskonProdukUpdatePublish); err != nil {
+			fmt.Println("Gagal publish create diskon produk ke message broker")
+		}
+	}(newDiskonProduk.ID, time.Until(data.BerlakuMulai), db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
