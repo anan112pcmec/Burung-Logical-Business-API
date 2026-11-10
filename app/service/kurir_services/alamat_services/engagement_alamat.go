@@ -19,12 +19,11 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/alamat_services/response_alamat_service_kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
 func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "MasukanAlamatKurir"
+	const services string = "MasukanAlamatKurir"
 
 	if !helper.NomorTelephoneValidation(data.NomorTelephone) {
 		return &response.ResponseForm{
@@ -72,9 +71,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-				Message: "Gagal: Data kurir tidak valid",
-			},
+			Message:  "Gagal: Data kurir tidak valid",
 		}
 	}
 
@@ -85,9 +82,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-				Message: "Gagal: Server sedang sibuk, coba lagi lain waktu",
-			},
+			Message:  "Gagal: Server sedang sibuk, coba lagi lain waktu",
 		}
 	}
 
@@ -95,9 +90,7 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-				Message: "Gagal: Kamu sudah memasukan data alamat",
-			},
+			Message:  "Gagal: Kamu sudah memasukan data alamat",
 		}
 	}
 
@@ -122,15 +115,12 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-				Message: "Gagal: Tidak dapat menyimpan data alamat, coba lagi lain waktu",
-			},
+			Message:  "Gagal: Tidak dapat menyimpan data alamat, coba lagi lain waktu",
 		}
 	}
 
 	go func(Ak sot_models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{
@@ -151,14 +141,12 @@ func MasukanAlamatKurir(ctx context.Context, data PayloadMasukanAlamatKurir, db 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditAlamatKurir"
+	const services string = "EditAlamatKurir"
 
 	if data.IDAlamatKurir <= 0 {
 		return &response.ResponseForm{
@@ -214,9 +202,7 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseMasukanAlamatKurir{
-				Message: "Gagal: Data kurir tidak valid",
-			},
+			Message:  "Gagal: Data kurir tidak valid",
 		}
 	}
 
@@ -229,9 +215,7 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseEditAlamatKurir{
-				Message: "Gagal Data Alamat Tidak Valid",
-			},
+			Message:  "Gagal Data Alamat Tidak Valid",
 		}
 	}
 
@@ -239,9 +223,7 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseEditAlamatKurir{
-				Message: "Gagal: Data alamat tidak ditemukan",
-			},
+			Message:  "Gagal: Data alamat tidak ditemukan",
 		}
 	}
 
@@ -264,15 +246,12 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseEditAlamatKurir{
-				Message: "Gagal: Mengubah data alamat, coba lagi nanti",
-			},
+			Message:  "Gagal: Mengubah data alamat, coba lagi nanti",
 		}
 	}
 
 	go func(IdAk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var alamatKurirUpdated sot_models.AlamatKurir
@@ -293,14 +272,12 @@ func EditAlamatKurir(ctx context.Context, data PayloadEditAlamatKurir, db *envir
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_alamat_service_kurir.ResponseEditAlamatKurir{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "HapusAlamatKurir"
+	const services string = "HapusAlamatKurir"
 
 	if data.IdAlamatKurir <= 0 {
 		return &response.ResponseForm{
@@ -316,9 +293,7 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseHapusAlamatKurir{
-				Message: "Gagal: Data kurir tidak valid",
-			},
+			Message:  "Gagal: Data kurir tidak valid",
 		}
 	}
 
@@ -331,9 +306,7 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseHapusAlamatKurir{
-				Message: "Gagal Data Alamat Tidak Valid",
-			},
+			Message:  "Gagal Data Alamat Tidak Valid",
 		}
 	}
 
@@ -341,9 +314,7 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseHapusAlamatKurir{
-				Message: "Gagal: Data alamat tidak ditemukan",
-			},
+			Message:  "Gagal: Data alamat tidak ditemukan",
 		}
 	}
 
@@ -358,15 +329,12 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_alamat_service_kurir.ResponseHapusAlamatKurir{
-				Message: "Gagal: Server sedang sibuk, coba lagi lain waktu",
-			},
+			Message:  "Gagal: Server sedang sibuk, coba lagi lain waktu",
 		}
 	}
 
 	go func(Ak sot_models.AlamatKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		kurirThreshold := sot_threshold.KurirThreshold{
@@ -387,8 +355,6 @@ func HapusAlamatKurir(ctx context.Context, data PayloadHapusAlamatKurir, db *env
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_alamat_service_kurir.ResponseHapusAlamatKurir{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-}
+} // passed

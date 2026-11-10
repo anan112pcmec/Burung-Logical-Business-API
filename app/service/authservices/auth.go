@@ -233,7 +233,6 @@ func SellerLogin(ctx context.Context, db *environment.InternalDBReadWriteSystem,
 				},
 			}
 		}
-
 	}
 
 	go func(u sot_models.Seller, rds_pass *redis.Client) {
@@ -639,7 +638,7 @@ func PreKurirRegistration(ctx context.Context, db *environment.InternalDBReadWri
 			Message: "Silahkan Masukan Kode OTP yang sudah dikirimkan ke Gmail Anda",
 		},
 	}
-} // Tuned
+} // Passed
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ValidateRegistration
@@ -945,4 +944,4 @@ func ValidateKurirRegistration(ctx context.Context, db *environment.InternalDBRe
 			Message: "Berhasil, Akun mu sudah terdaftar dan Kamu Siap Menjadi Bagian Dari Kami",
 		},
 	}
-} // Tuned
+} // Passed

@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+
 	cache_db_entity_sessioning_seeders "github.com/anan112pcmec/Burung-backend-1/app/database/cache_database/entity_sessioning/seeders"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	"github.com/anan112pcmec/Burung-backend-1/app/environment"
@@ -16,15 +20,35 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/service/emailservices"
-	response_credential_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/credential_services/response_credential_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-	"github.com/redis/go-redis/v9"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client) *response.ResponseForm {
-	services := "PreUbahPasswordKurir"
+	const services string = "PreUbahPasswordKurir"
+
+	if !helper.PasswordValidation(data.PasswordLama) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal password lama tidak valid",
+		}
+	}
+
+	if !helper.PasswordValidation(data.PasswordBaru) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal password baru tidak valid",
+		}
+	}
+
+	if data.PasswordBaru == data.PasswordLama {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, Ubah password baru karna sama saja dengan password lama",
+		}
+	}
 
 	kurir, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session)
 
@@ -33,20 +57,7 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_kurir.ResponsePreUbahPassword{
-				Message: "Gagal, identitas kurir tidak valid.",
-			},
-		}
-	}
-
-	if data.PasswordBaru == "" || data.PasswordLama == "" {
-		log.Println("[WARN] Password lama atau baru kosong pada permintaan ubah password kurir.")
-		return &response.ResponseForm{
-			Status:   http.StatusBadRequest,
-			Services: services,
-			Payload: response_credential_kurir.ResponsePreUbahPassword{
-				Message: "Gagal, isi password lama dan baru dengan benar.",
-			},
+			Message:  "Gagal, identitas kurir tidak valid.",
 		}
 	}
 
@@ -55,9 +66,7 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_kurir.ResponsePreUbahPassword{
-				Message: "Gagal, password lama yang dimasukkan salah.",
-			},
+			Message:  "Gagal, password lama yang dimasukkan salah.",
 		}
 	}
 
@@ -67,9 +76,7 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_kurir.ResponsePreUbahPassword{
-				Message: "Gagal, server sedang sibuk. Coba lagi lain waktu.",
-			},
+			Message:  "Gagal, server sedang sibuk. Coba lagi lain waktu.",
 		}
 	}
 
@@ -110,14 +117,20 @@ func PreUbahPasswordKurir(ctx context.Context, data PayloadPreUbahPassword, db *
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_kurir.ResponsePreUbahPassword{
-			Message: fmt.Sprintf("Berhasil, silakan input kode OTP yang dikirim ke email Anda: %s", data.DataIdentitas.EmailKurir),
-		},
+		Message:  fmt.Sprintf("Berhasil, silakan input kode OTP yang dikirim ke email Anda: %s", data.DataIdentitas.EmailKurir),
 	}
 }
 
 func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPassword, db *environment.InternalDBReadWriteSystem, rds *redis.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "ValidateUbahPasswordKurir"
+	const services string = "ValidateUbahPasswordKurir"
+
+	if !helper.OtpValidation(data.OtpKey) {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, otp tidak valid",
+		}
+	}
 
 	_, status := data.DataIdentitas.Validating(ctx, db.Read, rds_session)
 
@@ -126,9 +139,7 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_kurir.ResponseValidateUbahPassword{
-				Message: "Gagal, identitas kurir tidak valid.",
-			},
+			Message:  "Gagal, identitas kurir tidak valid.",
 		}
 	}
 
@@ -141,9 +152,7 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_credential_kurir.ResponseValidateUbahPassword{
-				Message: "OTP tidak valid atau sudah kadaluarsa.",
-			},
+			Message:  "OTP tidak valid atau sudah kadaluarsa.",
 		}
 	}
 
@@ -160,21 +169,18 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_credential_kurir.ResponseValidateUbahPassword{
-				Message: "Terjadi kesalahan pada server saat mengubah password.",
-			},
+			Message:  "Terjadi kesalahan pada server saat mengubah password.",
 		}
 	}
 
 	go func(IdKurir int64, Read *gorm.DB, RdsSession *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataKurirUpdated sot_models.Kurir
 		if err := Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
 			ID: IdKurir,
-		}).Limit(1).Take(&dataKurirUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataKurirUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data kurir")
 			return
 		}
@@ -193,8 +199,6 @@ func ValidateUbahPasswordKurir(ctx context.Context, data PayloadValidateUbahPass
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_credential_kurir.ResponseValidateUbahPassword{
-			Message: "Password berhasil diubah.",
-		},
+		Message:  "Password berhasil diubah.",
 	}
 }
