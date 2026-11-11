@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	kurir_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity/kurir"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_kurir "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/kurir"
@@ -20,7 +21,6 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	response_informasi_services_kurir "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/informasi_services/response_informasi_services"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
@@ -56,9 +56,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKendaraan{
-				Message: "Gagal, kredensial tidak valid.",
-			},
+			Message:  "Gagal, kredensial tidak valid.",
 		}
 	}
 
@@ -69,9 +67,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKendaraan{
-				Message: "Gagal, Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -79,9 +75,7 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKendaraan{
-				Message: "Gagal, Kamu sudah membuat pengajuan",
-			},
+			Message:  "Gagal, Kamu sudah membuat pengajuan",
 		}
 	}
 
@@ -94,24 +88,18 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		BPKB:           data.InformasiBpkb,
 		NoRangka:       data.NomorRangka,
 		NoMesin:        data.NomorMesin,
-		Status:         "Pending",
+		Status:         kurir_enums.Pending,
 	}
 
 	if err := db.Write.WithContext(ctx).Create(&newInformasiKendaraan).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKendaraan{
-				Message: "Gagal, server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Ikk sot_models.InformasiKendaraanKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		thresholdKurir := sot_threshold.KurirThreshold{
 			IdKurir: Ikk.IDkurir,
 		}
@@ -119,6 +107,9 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 		thresholdInformasiKendaraan := sot_threshold.InformasiKendaraanKurirThreshold{
 			IdInformasiKendaraanKurir: Ikk.ID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdKurir.Increment(konteks, Trh, stsk_kurir.InformasiKendaraanKurir); err != nil {
 			fmt.Println("Gagal incr count informasi kendaraan kurir ke threshold kurir")
@@ -138,14 +129,12 @@ func AjukanInformasiKendaraan(ctx context.Context, data PayloadInformasiDataKend
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_informasi_services_kurir.ResponseAjukanInformasiKendaraan{
-			Message: "Berhasil.",
-		},
+		Message:  "Berhasil.",
 	}
-}
+} // passed
 
 func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditInformasiKendaraanKurir"
+	const services string = "EditInformasiKendaraanKurir"
 
 	if data.IdInformasiKendaraan <= 0 {
 		return &response.ResponseForm{
@@ -179,16 +168,12 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 		}
 	}
 
-	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
-
-	if !status {
+	if _, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial kurir tidak valid untuk ID %d", data.DataIdentitasKurir.IdKurir)
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKendaraan{
-				Message: "Gagal, kredensial tidak valid.",
-			},
+			Message:  "Gagal, kredensial tidak valid.",
 		}
 	}
 
@@ -200,9 +185,7 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKendaraan{
-				Message: "Gagal, Server Sedang Sibuk Coba Lagi Lain Waktu",
-			},
+			Message:  "Gagal, Server Sedang Sibuk Coba Lagi Lain Waktu",
 		}
 	}
 
@@ -210,9 +193,7 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKendaraan{
-				Message: "Gagal, Data Tidak Valid",
-			},
+			Message:  "Gagal, Data Tidak Valid",
 		}
 	}
 
@@ -230,21 +211,18 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKendaraan{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(IdIkk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataInformasiKendaraanUpdated sot_models.InformasiKendaraanKurir
 		if err := Read.WithContext(konteks).Model(&sot_models.InformasiKendaraanKurir{}).Where(&sot_models.InformasiKendaraanKurir{
 			ID: IdIkk,
-		}).Limit(1).Take(&dataInformasiKendaraanUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataInformasiKendaraanUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data informasi kendaraan kurir")
 			return
 		}
@@ -259,36 +237,29 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_informasi_services_kurir.ResponseEditInformasiKendaraan{
-			Message: "Berhasil.",
-		},
+		Message:  "Berhasil.",
 	}
-}
+} // passed
 
 func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "AjukanInformasiKurir"
+	const services string = "AjukanInformasiKurir"
 
-	parsedTime, err := time.Parse("2006-01-02 15:04:05", data.TanggalLahir)
-	if err != nil {
+	if parsedTime, err := time.Parse("2006-01-02", data.TanggalLahir); err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 			Message:  "Gagal, data tanggal lahir tidak berupa tanggal valid",
 		}
+	} else {
+		data.TanggalLahir = parsedTime.Format("2006-01-02")
 	}
 
-	data.TanggalLahir = parsedTime.Format("YYYY-MM-DD")
-
-	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
-
-	if !status {
+	if _, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
 		log.Printf("[WARN] Kredensial kurir tidak valid untuk ID %d", data.DataIdentitasKurir.IdKurir)
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKurir{
-				Message: "Gagal, kredensial tidak valid.",
-			},
+			Message:  "Gagal, kredensial tidak valid.",
 		}
 	}
 
@@ -308,9 +279,7 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 		return &response.ResponseForm{
 			Status:   http.StatusConflict,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKurir{
-				Message: "Gagal, tunggu pengajuan sebelumnya ditindak kami.",
-			},
+			Message:  "Gagal, tunggu pengajuan sebelumnya ditindak kami.",
 		}
 	}
 
@@ -320,24 +289,18 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 		Alasan:       data.Alasan,
 		Ktp:          data.InformasiKtp,
 		InformasiSim: data.InformasiSim,
-		Status:       "Pending",
+		Status:       kurir_enums.Pending,
 	}
 
 	if err := db.Write.WithContext(ctx).Create(&newInformasiKurir).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseAjukanInformasiKurir{
-				Message: "Gagal Server Sedang Sibuk Coba Lagi Lain Waktu",
-			},
+			Message:  "Gagal Server Sedang Sibuk Coba Lagi Lain Waktu",
 		}
 	}
 
 	go func(Ik sot_models.InformasiKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		thresholdKurir := sot_threshold.KurirThreshold{
 			IdKurir: Ik.IDkurir,
 		}
@@ -345,6 +308,9 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 		thresholdInformasiKurir := sot_threshold.InformasiKurirThreshold{
 			IdInformasiKurir: Ik.ID,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdKurir.Increment(konteks, Trh, stsk_kurir.InformasiKurir); err != nil {
 			fmt.Println("Gagal incr count informasi kurir ke threshold kurir")
@@ -364,25 +330,22 @@ func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, d
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_informasi_services_kurir.ResponseAjukanInformasiKurir{
-			Message: "Berhasil.",
-		},
+		Message:  "Berhasil.",
 	}
-}
+} // passed
 
 func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
-	services := "EditInformasiKurir"
+	const services string = "EditInformasiKurir"
 
-	parsedTime, err := time.Parse("2006-01-02 15:04:05", data.TanggalLahir)
-	if err != nil {
+	if parsedTime, err := time.Parse("2006-01-02", data.TanggalLahir); err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
 			Message:  "Gagal, data tanggal lahir tidak berupa tanggal valid",
 		}
+	} else {
+		data.TanggalLahir = parsedTime.Format("2006-01-02")
 	}
-
-	data.TanggalLahir = parsedTime.Format("YYYY-MM-DD")
 
 	_, status := data.DataIdentitasKurir.Validating(ctx, db.Read, rds_session)
 
@@ -391,9 +354,7 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKurir{
-				Message: "Gagal, kredensial tidak valid.",
-			},
+			Message:  "Gagal, kredensial tidak valid.",
 		}
 	}
 
@@ -405,9 +366,7 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKurir{
-				Message: "Gagal, server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
@@ -415,9 +374,7 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKurir{
-				Message: "Gagal, data Tidak valid",
-			},
+			Message:  "Gagal, data Tidak valid",
 		}
 	}
 
@@ -432,21 +389,18 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_informasi_services_kurir.ResponseEditInformasiKurir{
-				Message: "Gagal Server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal Server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(IdIk int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataInformasiKurirUpdated sot_models.InformasiKurir
 		if err := Read.WithContext(konteks).Model(&sot_models.InformasiKurir{}).Where(&sot_models.InformasiKurir{
 			ID: IdIk,
-		}).Limit(1).Take(&dataInformasiKurirUpdated).Error; err != nil {
+		}).Limit(1).Scan(&dataInformasiKurirUpdated).Error; err != nil {
 			fmt.Println("Gagal mengambil data informasi kurir")
 			return
 		}
@@ -461,8 +415,6 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_informasi_services_kurir.ResponseEditInformasiKurir{
-			Message: "Berhasil.",
-		},
+		Message:  "Berhasil.",
 	}
-}
+} // passed

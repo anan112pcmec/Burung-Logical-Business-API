@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/redis/go-redis/v9"
@@ -51,7 +52,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		}
 	}
 
-	if data.EmailUpdate != "" && data.EmailUpdate != pengguna.Email && data.EmailUpdate != "BLANK" {
+	if strings.TrimSpace(data.EmailUpdate) != "" && data.EmailUpdate != pengguna.Email && data.EmailUpdate != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -59,7 +60,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		}()
 	}
 
-	if data.UsernameUpdate != "" && data.UsernameUpdate != pengguna.Username && data.UsernameUpdate != "BLANK" {
+	if strings.TrimSpace(data.UsernameUpdate) != "" && data.UsernameUpdate != pengguna.Username && data.UsernameUpdate != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -67,7 +68,7 @@ func UbahPersonalProfilingPengguna(ctx context.Context, data PayloadPersonalProf
 		}()
 	}
 
-	if data.NamaUpdate != "" && data.NamaUpdate != pengguna.Nama && data.NamaUpdate != "BLANK" {
+	if strings.TrimSpace(data.NamaUpdate) != "" && data.NamaUpdate != pengguna.Nama && data.NamaUpdate != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

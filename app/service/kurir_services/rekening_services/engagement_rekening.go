@@ -18,7 +18,6 @@ import (
 	mb_cud_seeders "github.com/anan112pcmec/Burung-backend-1/app/message_broker/seeders/cud_exchange"
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
-	"github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services/response_rekening_services_kurir"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
@@ -53,9 +52,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Gagal Data Kurir Tidak Valid",
-			},
+			Message:  "Gagal Data Kurir Tidak Valid",
 		}
 	}
 
@@ -70,9 +67,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Gagal, server sedang sibuk coba lagi nanti",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi nanti",
 		}
 	}
 
@@ -80,9 +75,7 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Maksimal hanya memasukan 1 rekening",
-			},
+			Message:  "Maksimal hanya memasukan 1 rekening",
 		}
 	}
 
@@ -97,20 +90,17 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Gagal, server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Rk sot_models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		kurirThreshold := sot_threshold.KurirThreshold{
 			IdKurir: Rk.IdKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := kurirThreshold.Increment(konteks, Trh, stsk_kurir.RekeningKurir); err != nil {
 			fmt.Println("Gagal incr count rekening kurir ke threshold seller")
@@ -125,11 +115,9 @@ func MasukanRekeningKurir(ctx context.Context, data PayloadMasukanRekeningKurir,
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-}
+} // passed
 
 func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditRekeningKurir"
@@ -170,9 +158,7 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseEditRekeningKurir{
-				Message: "Gagal menemukan data kurir",
-			},
+			Message:  "Gagal menemukan data kurir",
 		}
 	}
 
@@ -187,9 +173,7 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Gagal, server sedang sibuk coba lagi nanti",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi nanti",
 		}
 	}
 
@@ -197,9 +181,7 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Maksimal hanya memasukan 1 rekening",
-			},
+			Message:  "Maksimal hanya memasukan 1 rekening",
 		}
 	}
 
@@ -213,15 +195,12 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseEditRekeningKurir{
-				Message: "Gagal, server sedang sibuk, coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk, coba lagi lain waktu",
 		}
 	}
 
 	go func(IdRk int64, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var rekeningKurirUpdated sot_models.RekeningKurir
@@ -241,11 +220,9 @@ func EditRekeningKurir(ctx context.Context, data PayloadEditRekeningKurir, db *e
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_rekening_services_kurir.ResponseEditRekeningKurir{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-}
+} // passed
 
 func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusRekeningKurir"
@@ -262,16 +239,13 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseHapusRekeningKurir{
-				Message: "Gagal menemukan data kurir",
-			},
+			Message:  "Gagal menemukan data kurir",
 		}
 	}
 
 	var data_rekening sot_models.RekeningKurir
 	if err := db.Read.WithContext(ctx).
 		Model(&sot_models.RekeningKurir{}).
-		Select("id").
 		Where(&sot_models.RekeningKurir{ID: data.IdRekening, IdKurir: data.IdentitasKurir.IdKurir}).
 		Limit(1).
 		Scan(&data_rekening).Error; err != nil {
@@ -279,9 +253,7 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Gagal, server sedang sibuk coba lagi nanti",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi nanti",
 		}
 	}
 
@@ -289,33 +261,28 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseMasukanRekeningKurir{
-				Message: "Data Rekening Tidak Ditemukan",
-			},
+			Message:  "Data Rekening Tidak Ditemukan",
 		}
 	}
 
-	if err := db.Write.Model(&sot_models.RekeningKurir{}).Where(&sot_models.RekeningKurir{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.RekeningKurir{}).Where(&sot_models.RekeningKurir{
 		ID:      data.IdRekening,
 		IdKurir: data.IdentitasKurir.IdKurir,
 	}).Delete(&sot_models.RekeningKurir{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Payload: response_rekening_services_kurir.ResponseHapusRekeningKurir{
-				Message: "Gagal, server sedang sibuk coba lagi lain waktu",
-			},
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
 
 	go func(Rk sot_models.RekeningKurir, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		kurirThreshold := sot_threshold.KurirThreshold{
 			IdKurir: Rk.IdKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := kurirThreshold.Decrement(konteks, Trh, stsk_kurir.RekeningKurir); err != nil {
 			fmt.Println("Gagal decr count rekening kurir ke threshold seller")
@@ -330,8 +297,6 @@ func HapusRekeningKurir(ctx context.Context, data PayloadHapusRekeningKurir, db 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
 		Services: services,
-		Payload: response_rekening_services_kurir.ResponseHapusRekeningKurir{
-			Message: "Berhasil",
-		},
+		Message:  "Berhasil",
 	}
-}
+} // passed

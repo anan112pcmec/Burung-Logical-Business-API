@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -47,20 +48,22 @@ func UpdatePersonalSeller(ctx context.Context, db *environment.InternalDBReadWri
 		}
 	}
 
-	if data.Username == "BLANK" {
-		log.Println("[INFO] Username kosong, tidak diupdate.")
+	// && data.EmailUpdate != pengguna.Email && data.EmailUpdate != "BLANK"
+
+	if data.Username == "BLANK" || data.Username == seller.Email || strings.TrimSpace(data.Username) == "" {
+		log.Println("[INFO] Username tidak diupdate.")
 	} else {
 		hasil_update_username = seller_particular_profiling.UbahUsernameSeller(ctx, data.IdentitasSeller.IdSeller, data.Username, db)
 	}
 
-	if data.Nama == "BLANK" {
-		log.Println("[INFO] Nama kosong, tidak diupdate.")
+	if data.Nama == "BLANK" || data.Nama == seller.Nama || strings.TrimSpace(data.Nama) == "" {
+		log.Println("[INFO] Nama tidak diupdate.")
 	} else {
 		hasil_update_nama = seller_particular_profiling.UbahNamaSeller(ctx, data.IdentitasSeller.IdSeller, data.Nama, db)
 	}
 
-	if data.Email == "BLANK" {
-		log.Println("[INFO] Email kosong, tidak diupdate.")
+	if data.Email == "BLANK" || data.Email == seller.Email || strings.TrimSpace(data.Email) == "" {
+		log.Println("[INFO] Email tidak diupdate.")
 	} else {
 		hasil_update_gmail = seller_particular_profiling.UbahEmailSeller(ctx, data.IdentitasSeller.IdSeller, data.Email, db)
 	}

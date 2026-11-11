@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/redis/go-redis/v9"
@@ -24,7 +25,7 @@ import (
 
 func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	var wg sync.WaitGroup
-	services := "GeneralProfilingKurir"
+	const services string = "GeneralProfilingKurir"
 
 	if !helper.Contains(data.Email, []string{"@gmail.com"}) || !helper.Contains(data.Username, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}) || !helper.Contains(data.Username, []string{"_"}) {
 		return &response.ResponseForm{
@@ -34,7 +35,9 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 		}
 	}
 
-	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
+	kurir, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
+
+	if !status {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -46,7 +49,7 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 	var hasilresponseusername particular_profiling_kurir.ResponseUbahUsername
 	var hasilresponseemail particular_profiling_kurir.ResponseUbahGmail
 
-	if data.Nama != "" {
+	if strings.TrimSpace(data.Nama) != "" && data.Nama != kurir.Nama && data.Nama != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -54,7 +57,7 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 		}()
 	}
 
-	if data.Username != "" {
+	if strings.TrimSpace(data.Username) != "" && data.Username != kurir.Username && data.Username != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -62,7 +65,7 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 		}()
 	}
 
-	if data.Email != "" {
+	if strings.TrimSpace(data.Email) != "" && data.Email != kurir.Email && data.Email != "BLANK" {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -73,14 +76,13 @@ func PersonalProfilingKurir(ctx context.Context, data PayloadPersonalProfilingKu
 	wg.Wait()
 
 	go func(IdKurir int64, Read *gorm.DB, rds_sesi *redis.Client, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
 		var dataUpdatedKurir sot_models.Kurir
 		if err := Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
 			ID: IdKurir,
-		}).Limit(1).Take(&dataUpdatedKurir).Error; err != nil {
+		}).Limit(1).Scan(&dataUpdatedKurir).Error; err != nil {
 			fmt.Println("Gagal mendapatakan data updated kurir")
 			return
 		}
