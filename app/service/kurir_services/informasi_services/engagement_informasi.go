@@ -241,6 +241,125 @@ func EditInformasiKendaraan(ctx context.Context, data PayloadEditInformasiDataKe
 	}
 } // passed
 
+func HapusInformasiKendaraan(ctx context.Context, data PayloadHapusInformasiDataKendaraan, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "HapusInformasiKendaraan"
+
+	if data.IdInformasiKendaraan <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id informasi kendaraan tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	kurir, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
+	if !status {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal kredensial kurir tidak valid",
+		}
+	}
+
+	var ubah_verified bool = kurir.VerifiedKurir
+
+	var data_informasi_kendaraan_kurir sot_models.InformasiKendaraanKurir
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKendaraanKurir{}).Where(&sot_models.InformasiKendaraanKurir{
+		ID:      data.IdInformasiKendaraan,
+		IDkurir: data.IdentitasKurir.IdKurir,
+	}).Limit(1).Scan(&data_informasi_kendaraan_kurir).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if data_informasi_kendaraan_kurir.ID == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data informasi kendaraan kurir tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&sot_models.InformasiKendaraanKurir{}).Where(&sot_models.InformasiKendaraanKurir{
+			ID: data.IdInformasiKendaraan,
+		}).Delete(&sot_models.InformasiKendaraanKurir{}).Error; err != nil {
+			return err
+		}
+
+		if ubah_verified {
+			if err := tx.Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
+				ID: data.IdentitasKurir.IdKurir,
+			}).Updates(&sot_models.Kurir{
+				VerifiedKurir: false,
+			}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal, Server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	go func(id_kurir int64, verif_ubah bool, IKK sot_models.InformasiKendaraanKurir, RW *environment.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
+		thresholdKurir := sot_threshold.KurirThreshold{
+			IdKurir: id_kurir,
+		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		if err := RW.Write.Unscoped().WithContext(konteks).Model(&sot_threshold.InformasiKendaraanKurirThreshold{}).Where(&sot_threshold.InformasiKendaraanKurirThreshold{
+			IdInformasiKendaraanKurir: IKK.ID,
+		}).Delete(&sot_threshold.InformasiKendaraanKurirThreshold{}).Error; err != nil {
+			fmt.Println("Gagal delete threshold informasi kurir")
+		}
+
+		if err := thresholdKurir.Decrement(konteks, RW.Write, stsk_kurir.InformasiKendaraanKurir); err != nil {
+			fmt.Println("gagal decrement threshold kurir kolom informasi kendaraan kurir")
+		}
+
+		informasiKendaraanKurirDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(IKK).SetTableName(IKK.TableName()).SetRole(mb_cud_seeders.Kurir)
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKendaraanKurirDeletePublish); err != nil {
+			fmt.Println("gagal publish delete informasi kendaraan kurir ke message broker")
+		}
+
+		if verif_ubah {
+			var K sot_models.Kurir
+			if err := RW.Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
+				ID: id_kurir,
+			}).Limit(1).Scan(&K).Error; err != nil {
+				fmt.Println("Gagal mengambil data kurir")
+			}
+
+			if K.ID == 0 {
+				return
+			}
+
+			kurirUpdatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName() + services).SetRole(mb_cud_seeders.Kurir)
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirUpdatePublish); err != nil {
+				fmt.Println("gagal publish update kurir ke message broker")
+			}
+		}
+
+	}(data.IdentitasKurir.IdKurir, ubah_verified, data_informasi_kendaraan_kurir, db, cud_publisher)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+
+}
+
 func AjukanInformasiKurir(ctx context.Context, data PayloadInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "AjukanInformasiKurir"
 
@@ -418,3 +537,122 @@ func EditInformasiKurir(ctx context.Context, data PayloadEditInformasiDataKurir,
 		Message:  "Berhasil.",
 	}
 } // passed
+
+func HapusInformasiKurir(ctx context.Context, data PayloadHapusInformasiDataKurir, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "HapusInformasiKurir"
+
+	if data.IdInformasiKurir <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id informasi kurir tidak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	kurir, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session)
+	if !status {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal kredensial kurir tidak valid",
+		}
+	}
+
+	var ubah_verified bool = kurir.VerifiedKurir
+
+	var data_informasi_kurir sot_models.InformasiKurir
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKurir{}).Where(&sot_models.InformasiKurir{
+		ID:      data.IdInformasiKurir,
+		IDkurir: data.IdentitasKurir.IdKurir,
+	}).Limit(1).Scan(&data_informasi_kurir).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if data_informasi_kurir.ID == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, data informasi kurir tidak ditemukan",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&sot_models.InformasiKurir{}).Where(&sot_models.InformasiKurir{
+			ID: data.IdInformasiKurir,
+		}).Delete(&sot_models.InformasiKurir{}).Error; err != nil {
+			return err
+		}
+
+		if ubah_verified {
+			if err := tx.Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
+				ID: data.IdentitasKurir.IdKurir,
+			}).Updates(&sot_models.Kurir{
+				VerifiedKurir: false,
+			}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal, Server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	go func(id_kurir int64, verif_ubah bool, IK sot_models.InformasiKurir, RW *environment.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
+		thresholdKurir := sot_threshold.KurirThreshold{
+			IdKurir: id_kurir,
+		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		if err := RW.Write.Unscoped().WithContext(konteks).Model(&sot_threshold.InformasiKurirThreshold{}).Where(&sot_threshold.InformasiKurirThreshold{
+			IdInformasiKurir: IK.ID,
+		}).Delete(&sot_threshold.InformasiKurirThreshold{}).Error; err != nil {
+			fmt.Println("Gagal delete threshold informasi kurir")
+		}
+
+		if err := thresholdKurir.Decrement(konteks, RW.Write, stsk_kurir.InformasiKurir); err != nil {
+			fmt.Println("gagal decrement threshold kurir kolom informasi kurir")
+		}
+
+		informasiKurirDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(IK).SetTableName(IK.TableName()).SetRole(mb_cud_seeders.Kurir)
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, informasiKurirDeletePublish); err != nil {
+			fmt.Println("gagal publish delete informasi kurir ke message broker")
+		}
+
+		if verif_ubah {
+			var K sot_models.Kurir
+			if err := RW.Read.WithContext(konteks).Model(&sot_models.Kurir{}).Where(&sot_models.Kurir{
+				ID: id_kurir,
+			}).Limit(1).Scan(&K).Error; err != nil {
+				fmt.Println("Gagal mengambil data kurir")
+			}
+
+			if K.ID == 0 {
+				return
+			}
+
+			kurirUpdatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName() + services).SetRole(mb_cud_seeders.Kurir)
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, kurirUpdatePublish); err != nil {
+				fmt.Println("gagal publish update kurir ke message broker")
+			}
+		}
+
+	}(data.IdentitasKurir.IdKurir, ubah_verified, data_informasi_kurir, db, cud_publisher)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+
+}

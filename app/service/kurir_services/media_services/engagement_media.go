@@ -1100,6 +1100,220 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 	}
 }
 
+func TambahMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadTambahMediaInformasiKurirSIMFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
+	const services string = "TambahMediaInformasiKurirSIMFoto"
+
+	if !helper.PhotoExtensionValidation(data.Ekstensi) {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+		}
+	}
+	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_data_informasi_kurir int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.InformasiKurir{}).Select("id").Where(&sot_models.InformasiKurir{
+		IDkurir: data.IdentitasKurir.IdKurir,
+	}).Limit(1).Scan(&id_data_informasi_kurir).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_data_informasi_kurir == 0 {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusNotFound,
+			Services: services,
+		}
+	}
+
+	var id_media_informasi_kurir_sim_foto int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKurirSIMFoto{}).Select("id").Where(&sot_models.MediaInformasiKurirSIMFoto{
+		IdInformasiKurir: id_data_informasi_kurir,
+	}).Limit(1).Scan(&id_media_informasi_kurir_sim_foto).Error; err != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	keyz := sot_models.MediaInformasiKurirSIMFoto{}.PathName() + strconv.Itoa(int(id_data_informasi_kurir)) + "/" + helper.GenerateMediaKeyPhoto() + "." + data.Ekstensi
+
+	url, err_url := ms.PresignedPutObject(ctx, media_storage_database_seeders.BucketFotoName, keyz, time.Minute*2)
+
+	if err_url != nil {
+		return &response.ResponseMediaUpload{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+		}
+	}
+
+	if id_media_informasi_kurir_sim_foto == 0 {
+		newMediaInformasiKurirSIMFoto := sot_models.MediaInformasiKurirSIMFoto{
+			IdInformasiKurir: id_data_informasi_kurir,
+			Key:              keyz,
+			Format:           data.Ekstensi,
+		}
+		if err := db.Write.WithContext(ctx).Create(&newMediaInformasiKurirSIMFoto).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		go func(Miksf sot_models.MediaInformasiKurirSIMFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
+				IdInformasiKurir: Miksf.IdInformasiKurir,
+			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
+
+			if err := informasiKurirThreshold.Increment(konteks, Trh, stsk_informasi_kurir.MediaInformasiKurirSimFoto); err != nil {
+				fmt.Println("Gagal incr count media informasi kurir sim foto ke threshold informasi kurir")
+			}
+
+			mediaInformasiKurirSIMFotoCreatePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Miksf).SetTableName(Miksf.TableName()).SetRole(mb_cud_seeders.Kurir)
+			if err := mb_cud_publisher.CreatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKurirSIMFotoCreatePublish); err != nil {
+				fmt.Println("Gagal publish create media informasi kurir sim foto ke message broker")
+			}
+		}(newMediaInformasiKurirSIMFoto, db.Write, cud_publisher)
+	} else {
+		if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKurirSIMFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
+			ID: id_media_informasi_kurir_sim_foto,
+		}).Updates(&sot_models.MediaInformasiKurirSIMFoto{
+			Key:    keyz,
+			Format: data.Ekstensi,
+		}).Error; err != nil {
+			return &response.ResponseMediaUpload{
+				Status:   http.StatusInternalServerError,
+				Services: services,
+			}
+		}
+
+		go func(IdMiksf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
+
+			var dataMediaInformasiKurirSIMFotoUpdated sot_models.MediaInformasiKurirSIMFoto
+			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKurirSIMFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
+				ID: IdMiksf,
+			}).Limit(1).Take(&dataMediaInformasiKurirSIMFotoUpdated).Error; err != nil {
+				fmt.Println("Gagal mengambil data media informasi kurir sim foto")
+				return
+			}
+
+			mediaInformasiKurirSIMFotoUpdatedPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dataMediaInformasiKurirSIMFotoUpdated).SetTableName(dataMediaInformasiKurirSIMFotoUpdated.TableName()).SetRole(mb_cud_seeders.Kurir)
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKurirSIMFotoUpdatedPublish); err != nil {
+				fmt.Println("Gagal publish update media informasi kurir sim foto ke message broker")
+			}
+		}(id_media_informasi_kurir_sim_foto, db.Read, cud_publisher)
+	}
+
+	return &response.ResponseMediaUpload{
+		Status:    http.StatusOK,
+		Services:  services,
+		Key:       keyz,
+		UrlUpload: url.String(),
+	}
+}
+
+func HapusMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadHapusMediaInformasiKurirSIMFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
+	const services string = "HapusMediaInformasiKurirSIMFoto"
+
+	if data.IdMediaInformasiKurirSIMFoto <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id media informasi kurir sim foto tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.KeyFoto) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, key foto tak boleh kosong",
+		}
+	}
+
+	if _, status := data.IdentitasKurir.Validating(ctx, db.Read, rds_session); !status {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data kurir tidak ditemukan",
+		}
+	}
+
+	var data_media_informasi_kurir_sim_foto sot_models.MediaInformasiKurirSIMFoto
+	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKurirSIMFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
+		ID:  data.IdMediaInformasiKurirSIMFoto,
+		Key: data.KeyFoto,
+	}).Limit(1).Scan(&data_media_informasi_kurir_sim_foto).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if data_media_informasi_kurir_sim_foto.ID == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusNotFound,
+			Services: services,
+			Message:  "Gagal data foto tidak ditemukan",
+		}
+	}
+
+	if err := ms.RemoveObject(ctx, media_storage_database_seeders.BucketFotoName, data.KeyFoto, minio.RemoveObjectOptions{ForceDelete: true}); err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
+		ID: data_media_informasi_kurir_sim_foto.ID,
+	}).Delete(&sot_models.MediaInformasiKurirKTPFoto{}).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	go func(Dmiksf sot_models.MediaInformasiKurirSIMFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
+			IdInformasiKurir: Dmiksf.IdInformasiKurir,
+		}
+
+		if err := informasiKurirThreshold.Decrement(konteks, Trh, stsk_informasi_kurir.MediaInformasiKurirSimFoto); err != nil {
+			fmt.Println("Gagal decr count media informasi kurir sim foto ke threshold informasi kurir")
+		}
+
+		mediaInformasiKurirSIMFotoDeletePublish := mb_cud_serializer.NewJsonPayload().SetPayload(Dmiksf).SetTableName(Dmiksf.TableName()).SetRole(mb_cud_seeders.Kurir)
+		if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, mediaInformasiKurirSIMFotoDeletePublish); err != nil {
+			fmt.Println("Gagal publish delete media informasi kurir ktp foto ke message broker")
+		}
+	}(data_media_informasi_kurir_sim_foto, db.Write, cud_publisher)
+
+	return &response.ResponseForm{
+		Status:   http.StatusOK,
+		Services: services,
+		Message:  "Berhasil",
+	}
+}
+
 func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPengirimanPickedUpFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaPengirimanPickedUpFoto"
 

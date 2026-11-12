@@ -424,6 +424,24 @@ func (MediaInformasiKurirKTPFoto) TableName() string {
 	return "media_informasi_kurir_ktp_foto"
 }
 
+type MediaInformasiKurirSIMFoto struct {
+	ID               int64          `gorm:"primaryKey;autoIncrement" json:"id_media_informasi_kurir_sim_foto"`
+	IdInformasiKurir int64          `gorm:"column:id_informasi_kurir;not null" json:"id_informasi_kurir"`
+	InformasiKurir   InformasiKurir `gorm:"foreignKey:IdInformasiKurir;references:ID" json:"-"`
+	Key              string         `gorm:"column:key;type:text;not null" json:"key"`
+	Format           string         `gorm:"column:format;type:varchar(20);not null" json:"format"`
+	CreatedAt        time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt        time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+}
+
+func (MediaInformasiKurirSIMFoto) PathName() string {
+	return "/media_informasi_kurir_sim_foto/"
+}
+
+func (MediaInformasiKurirSIMFoto) TableName() string {
+	return "media_informasi_kurir_sim_foto"
+}
+
 type MediaReviewFoto struct {
 	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id_media_review_foto"`
 	IdReview  int64     `gorm:"column:id_review;not null" json:"id_review"`

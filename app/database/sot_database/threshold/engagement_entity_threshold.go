@@ -790,6 +790,7 @@ type InformasiKurirThreshold struct {
 	InformasiKurir   sot_models.InformasiKurir `gorm:"foreignKey:IdInformasiKurir;references:ID" json:"-"`
 
 	MediaKtpFoto int32 `gorm:"column:media_informasi_kurir_ktp_foto;type:int4;default:0" json:"media_informasi_kurir_ktp_foto"`
+	MediaSimFoto int32 `gorm:"column:media_informasi_kurir_sim_foto;type:int4;default:0" json:"media_informasi_kurir_sim_foto"`
 }
 
 func (InformasiKurirThreshold) TableName() string {

@@ -27,6 +27,11 @@ type PayloadEditInformasiDataKendaraan struct {
 	NomorMesin           string                        `json:"nomor_mesin"`
 }
 
+type PayloadHapusInformasiDataKendaraan struct {
+	IdentitasKurir       identity_kurir.IdentitasKurir `json:"identitas_kurir"`
+	IdInformasiKendaraan int64                         `json:"id_informasi_kendaraan"`
+}
+
 type PayloadInformasiDataKurir struct {
 	DataIdentitasKurir identity_kurir.IdentitasKurir `json:"identitas_kurir"`
 	TanggalLahir       string                        `json:"tanggal_lahir"`
@@ -42,4 +47,9 @@ type PayloadEditInformasiDataKurir struct {
 	Alasan             string                        `json:"alasan"`
 	InformasiKtp       bool                          `json:"informasi_ktp"`
 	InformasiSim       bool                          `json:"informasi_sim"`
+}
+
+type PayloadHapusInformasiDataKurir struct {
+	IdentitasKurir   identity_kurir.IdentitasKurir `json:"identitas_kurir"`
+	IdInformasiKurir int64                         `json:"id_informasi_kurir"`
 }
