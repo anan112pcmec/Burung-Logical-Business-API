@@ -20,7 +20,6 @@ import (
 
 func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher, b *pengguna_barang_services.BatchViewUpdate) {
 	var hasil *response.ResponseForm
-	ctx := r.Context()
 
 	switch r.URL.Path {
 	case "/user/barang/likes-barang":
@@ -29,98 +28,98 @@ func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.LikesBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.LikesBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/view-barang":
 		var data pengguna_barang_services.PayloadViewBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.ViewBarang(ctx, b, data, db, rds_session)
+		hasil = pengguna_barang_services.ViewBarang(r.Context(), b, data, db, rds_session)
 	case "/user/barang/unlikes-barang":
 		var data pengguna_barang_services.PayloadUnlikeBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.UnlikeBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.UnlikeBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-barang/edit":
 		var data pengguna_barang_services.PayloadEditKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.EditKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.EditKomentarBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/edit":
 		var data pengguna_barang_services.PayloadEditChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.EditChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.EditChildKomentar(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/edit":
 		var data pengguna_barang_services.PayloadEditDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.EditKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.EditKeranjangBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/review/like":
 		var data pengguna_barang_services.PayloadLikeReviewBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.LikeReviewBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.LikeReviewBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/review/unlike":
 		var data pengguna_barang_services.PayloadUnlikeReviewBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.UnlikeReviewBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.UnlikeReviewBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/profiling/personal-update":
 		var data pengguna_profiling_services.PayloadPersonalProfilingPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_profiling_services.UbahPersonalProfilingPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_profiling_services.UbahPersonalProfilingPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/credential/update-password":
 		var data pengguna_credential_services.PayloadPreUbahPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.PreUbahPasswordPengguna(ctx, data, db, rds_auth, rds_session)
+		hasil = pengguna_credential_services.PreUbahPasswordPengguna(r.Context(), data, db, rds_auth, rds_session)
 	case "/user/credential/validate-password-otp":
 		var data pengguna_credential_services.PayloadValidateOTPPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaOtp(ctx, data, db, rds_auth, rds_session, mb_cud_publisher)
+		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaOtp(r.Context(), data, db, rds_auth, rds_session, mb_cud_publisher)
 	case "/user/credential/validate-password-pin":
 		var data pengguna_credential_services.PayloadValidatePinPasswordPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaPin(ctx, data, db, rds_auth, rds_session, mb_cud_publisher)
+		hasil = pengguna_credential_services.ValidateUbahPasswordPenggunaViaPin(r.Context(), data, db, rds_auth, rds_session, mb_cud_publisher)
 	case "/user/credential/update-pin":
 		var data pengguna_credential_services.PayloadUpdatePinPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.UpdateSecretPinPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_credential_services.UpdateSecretPinPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap":
 		var data pengguna_transaction_services.PayloadSnapTransaksiRequest
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.SnapTransaksi(ctx, data, db, rds_session)
+		hasil = pengguna_transaction_services.SnapTransaksi(r.Context(), data, db, rds_session)
 	case "/user/transaksi/payment-gateaway-snap-berhasil/va":
 		var data pengguna_transaction_services.PayloadLockTransaksiVa
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -170,21 +169,21 @@ func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 	// 		http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 	// 		return
 	// 	}
-	// 	hasil = pengguna_transaction_services.PendingTransaksi(ctx, data, db, rds_engagement)
+	// 	hasil = pengguna_transaction_services.PendingTransaksi(r.Context(), data, db, rds_engagement)
 	case "/user/social-media/engage-social-media":
 		var data pengguna_social_media_service.PayloadEngageTautkanSocialMedia
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_social_media_service.EngageTautkanSocialMediaPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_social_media_service.EngageTautkanSocialMediaPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/edit-alamat":
 		var data pengguna_alamat_services.PayloadEditAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_alamat_services.EditAlamatPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_alamat_services.EditAlamatPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

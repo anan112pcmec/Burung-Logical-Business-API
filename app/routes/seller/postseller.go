@@ -22,8 +22,6 @@ import (
 func PostSellerHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
 
-	ctx := r.Context()
-
 	switch r.URL.Path {
 	case "/seller/masukan_barang":
 		var data seller_service.PayloadMasukanBarangInduk
@@ -31,98 +29,98 @@ func PostSellerHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.MasukanBarangInduk(ctx, db, data, rds_session, mb_cud_publisher)
+		hasil = seller_service.MasukanBarangInduk(r.Context(), db, data, rds_session, mb_cud_publisher)
 	case "/seller/komentar-barang/tambah":
 		var data seller_service.PayloadMasukanKomentarBarangInduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.MasukanKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_service.MasukanKomentarBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/komentar-child/tambah":
 		var data seller_service.PayloadMasukanChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.MasukanChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_service.MasukanChildKomentar(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/komentar-child-mention/tambah":
 		var data seller_service.PayloadMentionChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.MentionChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_service.MentionChildKomentar(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/tambah_kategori_barang":
 		var data seller_service.PayloadTambahKategori
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_service.TambahKategoriBarang(ctx, db, data, rds_session, mb_cud_publisher)
+		hasil = seller_service.TambahKategoriBarang(r.Context(), db, data, rds_session, mb_cud_publisher)
 	case "/seller/credential/tambah-rekening":
 		var data seller_credential_services.PayloadTambahkanNorekSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_credential_services.TambahRekeningSeller(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_credential_services.TambahRekeningSeller(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/alamat/tambah-alamat-gudang":
 		var data seller_alamat_services.PayloadTambahAlamatGudang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_alamat_services.TambahAlamatGudang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_alamat_services.TambahAlamatGudang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/diskon/tambah-diskon":
 		var data seller_diskon_services.PayloadTambahDiskonProduk
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_diskon_services.TambahDiskonProduk(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_diskon_services.TambahDiskonProduk(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/diskon/masukan-barang":
 		var data seller_diskon_services.PayloadTetapkanDiskonPadaBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_diskon_services.TetapKanDiskonPadaBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_diskon_services.TetapKanDiskonPadaBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/etalase/tambah-etalase":
 		var data seller_etalase_services.PayloadMenambahEtalase
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_etalase_services.TambahEtalaseSeller(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_etalase_services.TambahEtalaseSeller(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/etalase/tambah-barang-ke-etalase":
 		var data seller_etalase_services.PayloadTambahkanBarangKeEtalase
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_etalase_services.TambahkanBarangKeEtalase(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_etalase_services.TambahkanBarangKeEtalase(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/jenis/ajukan-data-distributor":
 		var data jenis_seller_services.PayloadMasukanDataDistributor
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = jenis_seller_services.MasukanDataDistributor(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = jenis_seller_services.MasukanDataDistributor(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/jenis/ajukan-data-brand":
 		var data jenis_seller_services.PayloadMasukanDataBrand
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = jenis_seller_services.MasukanDataBrand(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = jenis_seller_services.MasukanDataBrand(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/seller/transaction/seller-rating-pengiriman-kurir":
 		var data seller_transaksi_services.PayloadSellerRatingPengirimanKurir
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = seller_transaksi_services.SellerRatingPengirimanKurir(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = seller_transaksi_services.SellerRatingPengirimanKurir(r.Context(), data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

@@ -15,9 +15,7 @@ import (
 )
 
 func PutUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
-
 	var hasil *response.ResponseMediaUpload
-	ctx := r.Context()
 
 	switch r.URL.Path {
 	case "/user/media/ubah-foto-profile":
@@ -26,21 +24,21 @@ func PutUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWr
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.UbahFotoProfilPengguna(ctx, data, db, ms, rds_session, mb_cud_publisher)
+		hasil = pengguna_media_services.UbahFotoProfilPengguna(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
 	case "/user/media/tambah-foto-review-barang":
 		var data pengguna_media_services.PayloadTambahMediaReviewFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.TambahMediaReviewFoto(ctx, data, db, ms, rds_session, mb_cud_publisher)
+		hasil = pengguna_media_services.TambahMediaReviewFoto(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
 	case "/user/media/tambah-video-review-barang":
 		var data pengguna_media_services.PayloadTambahMediaReviewVideo
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.TambahMediaReviewVideo(ctx, data, db, ms, rds_session, mb_cud_publisher)
+		hasil = pengguna_media_services.TambahMediaReviewVideo(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
 
 	}
 

@@ -22,7 +22,6 @@ import (
 
 func DeleteUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
-	ctx := r.Context()
 
 	switch r.URL.Path {
 	case "/user/barang/komentar-barang/hapus":
@@ -31,28 +30,28 @@ func DeleteUserHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.HapusKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.HapusKomentarBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/hapus":
 		var data pengguna_barang_services.PayloadHapusChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.HapusChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.HapusChildKomentar(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/hapus":
 		var data pengguna_barang_services.PayloadHapusDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.HapusKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.HapusKeranjangBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/hapus-alamat":
 		var data pengguna_alamat_services.PayloadHapusAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_alamat_services.HapusAlamatPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_alamat_services.HapusAlamatPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/batal-checkout-barang":
 		var data response_transaction_pengguna.ResponseDataCheckout
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
@@ -66,35 +65,35 @@ func DeleteUserHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.BatalTransaksi(ctx, data, db)
+		hasil = pengguna_transaction_services.BatalTransaksi(r.Context(), data, db)
 	case "/user/social-media/unfollow-seller":
 		var data pengguna_social_media_service.PayloadFollowOrUnfollowSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_social_media_service.UnfollowSeller(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_social_media_service.UnfollowSeller(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/wishlist/hapus-wishlist":
 		var data pengguna_wishlist_services.PayloadHapusWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_wishlist_services.HapusWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_wishlist_services.HapusWishlist(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/wishlist/hapus-barang-dari-wishlist":
 		var data pengguna_wishlist_services.PayloadHapusBarangDariWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_wishlist_services.HapusBarangDariWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_wishlist_services.HapusBarangDariWishlist(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/media/hapus-foto-profile":
 		var data pengguna_media_services.PayloadHapusFotoProfilPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_media_services.HapusFotoProfilPengguna(ctx, data, db, ms, rds_session, mb_cud_publisher)
+		hasil = pengguna_media_services.HapusFotoProfilPengguna(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

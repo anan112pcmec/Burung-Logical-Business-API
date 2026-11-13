@@ -20,7 +20,6 @@ import (
 
 func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
 	var hasil *response.ResponseForm
-	ctx := r.Context()
 
 	switch r.URL.Path {
 	case "/user/barang/komentar-barang/tambah":
@@ -29,14 +28,14 @@ func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseW
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.MasukanKomentarBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.MasukanKomentarBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/komentar-child/tambah":
 		var data pengguna_barang_services.PayloadMasukanChildKomentar
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.MasukanChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.MasukanChildKomentar(r.Context(), data, db, rds_session, mb_cud_publisher)
 
 	case "/user/barang/komentar-child-mention/tambah":
 		var data pengguna_barang_services.PayloadMentionChildKomentar
@@ -44,70 +43,70 @@ func PostUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseW
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.MentionChildKomentar(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.MentionChildKomentar(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/keranjang-barang/tambah":
 		var data pengguna_barang_services.PayloadTambahDataKeranjangBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.TambahKeranjangBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.TambahKeranjangBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/barang/review/tambah":
 		var data pengguna_barang_services.PayloadBerikanReviewBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_barang_services.BerikanReviewBarang(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_barang_services.BerikanReviewBarang(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/credential/membuat-pin":
 		var data pengguna_credential_services.PayloadMembuatPinPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_credential_services.MembuatSecretPinPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_credential_services.MembuatSecretPinPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/alamat/membuat-alamat":
 		var data pengguna_alamat_services.PayloadMasukanAlamatPengguna
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_alamat_services.MasukanAlamatPengguna(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_alamat_services.MasukanAlamatPengguna(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/checkout-barang":
 		var data pengguna_transaction_services.PayloadCheckoutBarang
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.CheckoutBarangUser(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_transaction_services.CheckoutBarangUser(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/social-media/follow-seller":
 		var data pengguna_social_media_service.PayloadFollowOrUnfollowSeller
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_social_media_service.FollowSeller(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_social_media_service.FollowSeller(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/wishlist/tambah-wishlist":
 		var data pengguna_wishlist_services.PayloadTambahWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_wishlist_services.TambahWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_wishlist_services.TambahWishlist(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/wishlist/tambah-barang-ke-wishlist":
 		var data pengguna_wishlist_services.PayloadTambahBarangKeWishlist
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_wishlist_services.TambahBarangKeWishlist(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_wishlist_services.TambahBarangKeWishlist(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/pengguna-rating-pengiriman-kurir":
 		var data pengguna_transaction_services.PayloadPenggunaRatingPengirimanKurir
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.PenggunaRatingPengirimanKurir(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = pengguna_transaction_services.PenggunaRatingPengirimanKurir(r.Context(), data, db, rds_session, mb_cud_publisher)
 	default:
 		hasil = &response.ResponseForm{
 			Status:   http.StatusBadRequest,

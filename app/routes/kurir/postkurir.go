@@ -16,7 +16,7 @@ import (
 )
 
 func PostKurirHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
-	ctx := r.Context()
+
 	var hasil *response.ResponseForm
 	switch r.URL.Path {
 	case "/kurir/informasi/ajukan-informasi-kendaraan":
@@ -25,7 +25,7 @@ func PostKurirHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_informasi_services.AjukanInformasiKendaraan(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = kurir_informasi_services.AjukanInformasiKendaraan(r.Context(), data, db, rds_session, mb_cud_publisher)
 
 	case "/kurir/informasi/ajukan-informasi-kurir":
 		var data kurir_informasi_services.PayloadInformasiDataKurir
@@ -33,7 +33,7 @@ func PostKurirHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_informasi_services.AjukanInformasiKurir(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = kurir_informasi_services.AjukanInformasiKurir(r.Context(), data, db, rds_session, mb_cud_publisher)
 
 	case "/kurir/alamat/masukan-alamat":
 		var data kurir_alamat_services.PayloadMasukanAlamatKurir
@@ -41,14 +41,14 @@ func PostKurirHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_alamat_services.MasukanAlamatKurir(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = kurir_alamat_services.MasukanAlamatKurir(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/kurir/rekening/masukan-rekening":
 		var data kurir_rekening_services.PayloadMasukanRekeningKurir
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_rekening_services.MasukanRekeningKurir(ctx, data, db, rds_session, mb_cud_publisher)
+		hasil = kurir_rekening_services.MasukanRekeningKurir(r.Context(), data, db, rds_session, mb_cud_publisher)
 
 	}
 	w.Header().Set("Content-Type", "application/json")
