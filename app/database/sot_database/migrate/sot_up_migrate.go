@@ -299,7 +299,7 @@ func UpTresholdData(db *gorm.DB) {
 
 func UpMediaData(db *gorm.DB) {
 	var wg sync.WaitGroup
-	errCh := make(chan error, 31)
+	errCh := make(chan error, 32)
 
 	sot_modelsToMigrate := []interface{}{
 		&sot_models.MediaPenggunaProfilFoto{},
@@ -325,6 +325,7 @@ func UpMediaData(db *gorm.DB) {
 		&sot_models.MediaInformasiKendaraanKurirBPKBFoto{},
 		&sot_models.MediaInformasiKendaraanKurirSTNKFoto{},
 		&sot_models.MediaInformasiKurirKTPFoto{},
+		&sot_models.MediaInformasiKurirSIMFoto{},
 		&sot_models.MediaReviewFoto{},
 		&sot_models.MediaReviewVideo{},
 		&sot_models.MediaTransaksiApprovedFoto{},

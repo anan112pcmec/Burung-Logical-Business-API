@@ -28,6 +28,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -83,13 +84,12 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 		}
 
 		go func(Mkpf sot_models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-			defer cancel()
-
 			thresholdKurir := sot_threshold.KurirThreshold{
 				IdKurir: Mkpf.IdKurir,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := thresholdKurir.Increment(konteks, Trh, stsk_kurir.MediaKurirProfilFoto); err != nil {
 				fmt.Println("Gagal incr count media kurir profil foto ke threshold kurir")
@@ -114,14 +114,13 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 		}
 
 		go func(IdMkpf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataKurirProfilFotoUpdated sot_models.MediaKurirProfilFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
 				ID: IdMkpf,
-			}).Limit(1).Take(&dataKurirProfilFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataKurirProfilFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data kurir profil foto")
 				return
 			}
@@ -139,7 +138,7 @@ func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, d
 		UrlUpload: minIOUrl,
 		Key:       keyz,
 	}
-}
+} // passed
 
 func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusKurirProfilFoto"
@@ -188,7 +187,7 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaKurirProfilFoto{}).Where(&sot_models.MediaKurirProfilFoto{
 		ID: data.IdMediaKurirProfilFoto,
 	}).Delete(&sot_models.MediaKurirProfilFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -199,13 +198,12 @@ func HapusKurirProfilFoto(ctx context.Context, data PayloadHapusKurirProfilFoto,
 	}
 
 	go func(Dmfpk sot_models.MediaKurirProfilFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		thresholdKurir := sot_threshold.KurirThreshold{
 			IdKurir: Dmfpk.IdKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdKurir.Decrement(konteks, Trh, stsk_kurir.MediaKurirProfilFoto); err != nil {
 			fmt.Println("Gagal decr media kurir profil foto ke threshold kurir")
@@ -293,13 +291,12 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 		}
 
 		go func(Mikkkf sot_models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-			defer cancel()
-
 			thresholdInformasiKendaraanKurir := sot_threshold.InformasiKendaraanKurirThreshold{
 				IdInformasiKendaraanKurir: Mikkkf.IdInformasiKendaraanKurir,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := thresholdInformasiKendaraanKurir.Increment(konteks, Trh, stsk_informasi_kendaraan_kurir.MediaInformasiKendaraanKurirKendaraanFoto); err != nil {
 				fmt.Println("Gagal incr count media informasi kendaraan kurir kendaraan foto ke threshold informasi kendaraan kurir")
@@ -324,14 +321,13 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 		}
 
 		go func(IdMikkkf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataInformasiKendaraanKurirKendaraanFotoUpdated sot_models.MediaInformasiKendaraanKurirKendaraanFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 				ID: IdMikkkf,
-			}).Limit(1).Take(&dataInformasiKendaraanKurirKendaraanFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataInformasiKendaraanKurirKendaraanFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data informasi kendaraan kurir kendaraan foto")
 				return
 			}
@@ -349,7 +345,7 @@ func TambahMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data P
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
 
 func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data PayloadHapusMediaInformasiKurirKendaraanFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusMediaInformasiKendaraanKurirKendaraanFoto"
@@ -406,7 +402,7 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{
 		ID: data_media_informasi_kendaraan_kurir_kendaraan_foto.ID,
 	}).Delete(&sot_models.MediaInformasiKendaraanKurirKendaraanFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -417,13 +413,12 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 	}
 
 	go func(Dmikkkf sot_models.MediaInformasiKendaraanKurirKendaraanFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		thresholdInformasiKendaraanKurir := sot_threshold.InformasiKendaraanKurirThreshold{
 			IdInformasiKendaraanKurir: Dmikkkf.IdInformasiKendaraanKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := thresholdInformasiKendaraanKurir.Decrement(konteks, Trh, stsk_informasi_kendaraan_kurir.MediaInformasiKendaraanKurirKendaraanFoto); err != nil {
 			fmt.Println("Gagal decr media informasi kendaraan kurir kendaraan foto ke threshold informasi kendaraan kurir")
@@ -440,7 +435,7 @@ func HapusMediaInformasiKendaraanKurirKendaraanFoto(ctx context.Context, data Pa
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // passed
 
 func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTambahMediaInformasiKendaraanKurirBPKBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahInformasiKendaraanKurirBPKBFoto"
@@ -511,13 +506,12 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 		}
 
 		go func(Mikkbf sot_models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-			defer cancel()
-
 			thresholdInformasiKendaraanKurir := sot_threshold.InformasiKendaraanKurirThreshold{
 				IdInformasiKendaraanKurir: Mikkbf.IdInformasiKendaraanKurir,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := thresholdInformasiKendaraanKurir.Increment(konteks, Trh, stsk_informasi_kendaraan_kurir.MediaInformasiKendaraanKurirBpkbFoto); err != nil {
 				fmt.Println("Gagal incr count media informasi kendaraan kurir bpkb foto ke threshold informasi kendaraan kurir")
@@ -542,14 +536,13 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 		}
 
 		go func(IdMikkbf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataInformasiKendaraanKurirBPKBFotoUpdated sot_models.MediaInformasiKendaraanKurirBPKBFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 				ID: IdMikkbf,
-			}).Limit(1).Take(&dataInformasiKendaraanKurirBPKBFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataInformasiKendaraanKurirBPKBFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data informasi kendaraan kurir bpkb foto")
 				return
 			}
@@ -566,7 +559,8 @@ func TambahInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadTamb
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // passed
+
 func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapusMediaInformasiKendaraanKurirBPKBFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusInformasiKendaraanKurirBPKBFoto"
 
@@ -625,11 +619,11 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 	var dataInformasiKendaraanKurirBpkbFoto sot_models.MediaInformasiKendaraanKurirBPKBFoto
 	if err := db.Read.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 		ID: id_media_informasi_kendaraan_kurir_bpkb_foto,
-	}).Limit(1).Take(&dataInformasiKendaraanKurirBpkbFoto).Error; err != nil {
+	}).Limit(1).Scan(&dataInformasiKendaraanKurirBpkbFoto).Error; err != nil {
 		fmt.Println("Gagal mendapatakn data informasi kendaraan kurir bpkb foto")
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{
 		ID: id_media_informasi_kendaraan_kurir_bpkb_foto,
 	}).Delete(&sot_models.MediaInformasiKendaraanKurirBPKBFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -640,13 +634,11 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 	}
 
 	go func(Ikkbf sot_models.MediaInformasiKendaraanKurirBPKBFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		informasiKendaraanThreshold := sot_threshold.InformasiKendaraanKurirThreshold{
 			IdInformasiKendaraanKurir: Ikkbf.IdInformasiKendaraanKurir,
 		}
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := informasiKendaraanThreshold.Decrement(konteks, Trh, stsk_informasi_kendaraan_kurir.MediaInformasiKendaraanKurirBpkbFoto); err != nil {
 			fmt.Println("Gagal decr count informasi kendaraan kurir bpkb foto ke threshold informasi kendaraan")
@@ -663,7 +655,7 @@ func HapusInformasiKendaraanKurirBPKBFoto(ctx context.Context, data PayloadHapus
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTambahMediaInformasiKendaraanKurirSTNKFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahInformasiKendaraanKurirSTNKFoto"
@@ -734,13 +726,12 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 		}
 
 		go func(Mikks sot_models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-			defer cancel()
-
 			informasiKendaraanThreshold := sot_threshold.InformasiKendaraanKurirThreshold{
 				IdInformasiKendaraanKurir: Mikks.IdInformasiKendaraanKurir,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := informasiKendaraanThreshold.Increment(konteks, Trh, stsk_informasi_kendaraan_kurir.MediaInformasiKendaraanKurirStnkFoto); err != nil {
 				fmt.Println("Gagal incr count informasi kendaraan kurir stnk foto ke threshold informasi kendaraan kurir")
@@ -765,14 +756,13 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 		}
 
 		go func(IdMikks int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataInformasiKendaraanKurirSTNKFotoUpdated sot_models.MediaInformasiKendaraanKurirSTNKFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 				ID: IdMikks,
-			}).Limit(1).Take(&dataInformasiKendaraanKurirSTNKFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataInformasiKendaraanKurirSTNKFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data informasi kendaraan kurir stnk foto")
 				return
 			}
@@ -790,7 +780,7 @@ func TambahInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadTamb
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
 
 func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapusMediaInformasiKendaraanKurirSTNKFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusInformasiKendaraanKurirSTNKFoto"
@@ -847,7 +837,7 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Where(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{
 		ID: data_media_informasi_kendaraan_kurir_stnk_foto.ID,
 	}).Delete(&sot_models.MediaInformasiKendaraanKurirSTNKFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -858,13 +848,12 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 	}
 
 	go func(Dmikks sot_models.MediaInformasiKendaraanKurirSTNKFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		informasiKendaraanThreshold := sot_threshold.InformasiKendaraanKurirThreshold{
 			IdInformasiKendaraanKurir: Dmikks.IdInformasiKendaraanKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := informasiKendaraanThreshold.Decrement(konteks, Trh, stsk_informasi_kendaraan_kurir.MediaInformasiKendaraanKurirStnkFoto); err != nil {
 			fmt.Println("Gagal decr count informasi kendaraan kurir stnk foto ke threshold informasi kendaraan kurir")
@@ -881,7 +870,7 @@ func HapusInformasiKendaraanKurirSTNKFoto(ctx context.Context, data PayloadHapus
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMediaInformasiKurirKTPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaInformasiKurirKTPFoto"
@@ -951,13 +940,12 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 		}
 
 		go func(Mikkf sot_models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-			defer cancel()
-
 			informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
 				IdInformasiKurir: Mikkf.IdInformasiKurir,
 			}
+
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
 
 			if err := informasiKurirThreshold.Increment(konteks, Trh, stsk_informasi_kurir.MediaInformasiKurirKtpFoto); err != nil {
 				fmt.Println("Gagal incr count media informasi kurir ktp foto ke threshold informasi kurir")
@@ -982,14 +970,13 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 		}
 
 		go func(IdMikkf int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			ctx_t := context.Background()
-			konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 			defer cancel()
 
 			var dataMediaInformasiKurirKTPFotoUpdated sot_models.MediaInformasiKurirKTPFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
 				ID: IdMikkf,
-			}).Limit(1).Take(&dataMediaInformasiKurirKTPFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataMediaInformasiKurirKTPFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data media informasi kurir ktp foto")
 				return
 			}
@@ -1007,7 +994,7 @@ func TambahMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadTambahMed
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
 
 func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMediaInformasiKurirKTPFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusMediaInformasiKurirKTPFoto"
@@ -1064,7 +1051,7 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirKTPFoto{
 		ID: data_media_informasi_kurir_ktp_foto.ID,
 	}).Delete(&sot_models.MediaInformasiKurirKTPFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -1075,13 +1062,12 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 	}
 
 	go func(Dmikkf sot_models.MediaInformasiKurirKTPFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
 			IdInformasiKurir: Dmikkf.IdInformasiKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := informasiKurirThreshold.Decrement(konteks, Trh, stsk_informasi_kurir.MediaInformasiKurirKtpFoto); err != nil {
 			fmt.Println("Gagal decr count media informasi kurir ktp foto ke threshold informasi kurir")
@@ -1098,7 +1084,7 @@ func HapusMediaInformasiKurirKTPFoto(ctx context.Context, data PayloadHapusMedia
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func TambahMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadTambahMediaInformasiKurirSIMFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaInformasiKurirSIMFoto"
@@ -1204,7 +1190,7 @@ func TambahMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadTambahMed
 			var dataMediaInformasiKurirSIMFotoUpdated sot_models.MediaInformasiKurirSIMFoto
 			if err := Read.WithContext(konteks).Model(&sot_models.MediaInformasiKurirSIMFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
 				ID: IdMiksf,
-			}).Limit(1).Take(&dataMediaInformasiKurirSIMFotoUpdated).Error; err != nil {
+			}).Limit(1).Scan(&dataMediaInformasiKurirSIMFotoUpdated).Error; err != nil {
 				fmt.Println("Gagal mengambil data media informasi kurir sim foto")
 				return
 			}
@@ -1222,7 +1208,7 @@ func TambahMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadTambahMed
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
 
 func HapusMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadHapusMediaInformasiKurirSIMFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusMediaInformasiKurirSIMFoto"
@@ -1279,7 +1265,7 @@ func HapusMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadHapusMedia
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
 		ID: data_media_informasi_kurir_sim_foto.ID,
 	}).Delete(&sot_models.MediaInformasiKurirKTPFoto{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -1290,12 +1276,12 @@ func HapusMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadHapusMedia
 	}
 
 	go func(Dmiksf sot_models.MediaInformasiKurirSIMFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-
 		informasiKurirThreshold := sot_threshold.InformasiKurirThreshold{
 			IdInformasiKurir: Dmiksf.IdInformasiKurir,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := informasiKurirThreshold.Decrement(konteks, Trh, stsk_informasi_kurir.MediaInformasiKurirSimFoto); err != nil {
 			fmt.Println("Gagal decr count media informasi kurir sim foto ke threshold informasi kurir")
@@ -1312,7 +1298,7 @@ func HapusMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadHapusMedia
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Berhasil
 
 func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPengirimanPickedUpFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaPengirimanPickedUpFoto"
@@ -1390,13 +1376,12 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 	}
 
 	go func(Mppuf sot_models.MediaPengirimanPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		pengirimanThreshold := sot_threshold.PengirimanNonEkspedisiThreshold{
 			IdPengiriman: Mppuf.IdPengiriman,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := pengirimanThreshold.Increment(konteks, Trh, stsk_pengiriman.MediaPengirimanPickedUpFoto); err != nil {
 			fmt.Println("Gagal incr count media pengiriman picked up foto ke threshold pengiriman")
@@ -1414,7 +1399,7 @@ func TambahMediaPengirimanPickedUpFoto(ctx context.Context, data PayloadTambahPe
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
 
 func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPengirimanSampaiFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaPengirimanSampaiFoto"
@@ -1492,13 +1477,12 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 	}
 
 	go func(Mpsf sot_models.MediaPengirimanSampaiFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		pengirimanThreshold := sot_threshold.PengirimanNonEkspedisiThreshold{
 			IdPengiriman: Mpsf.IdPengiriman,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := pengirimanThreshold.Increment(konteks, Trh, stsk_pengiriman.MediaPengirimanSampaiFoto); err != nil {
 			fmt.Println("Gagal incr count media pengiriman sampai foto ke threshold pengiriman")
@@ -1516,7 +1500,8 @@ func TambahMediaPengirimanSampaiFoto(ctx context.Context, data PayloadTambahPeng
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
+
 func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data PayloadTambahPengirimanEkspedisiPickedUpFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaPengirimanEkspedisiPickedUpFoto"
 
@@ -1593,13 +1578,12 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 	}
 
 	go func(Mpepuf sot_models.MediaPengirimanEkspedisiPickedUpFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		pengirimanEkspedisiThreshold := sot_threshold.PengirimanEkspedisiThreshold{
 			IdPengirimanEkspedisi: Mpepuf.IdPengirimanEkspedisi,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := pengirimanEkspedisiThreshold.Increment(konteks, Trh, stsk_pengiriman_ekspedisi.MediaPengirimanEkspedisiPickedUpFoto); err != nil {
 			fmt.Println("Gagal incr count media pengiriman ekspedisi picked up foto ke threshold pengiriman ekspedisi")
@@ -1617,7 +1601,7 @@ func TambahMediaPengirimanEkspedisiPickedUpFoto(ctx context.Context, data Payloa
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
 
 func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data PayloadTambahPengirimanEkspedisiSampaiAgentFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
 	const services string = "TambahMediaPengirimanEkspedisiSampaiAgentFoto"
@@ -1695,13 +1679,12 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 	}
 
 	go func(Mpesaf sot_models.MediaPengirimanEkspedisiSampaiAgentFoto, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		ctx_t := context.Background()
-		konteks, cancel := context.WithTimeout(ctx_t, settings.TimeoutContext)
-		defer cancel()
-
 		pengirimanEkspedisiThreshold := sot_threshold.PengirimanEkspedisiThreshold{
 			IdPengirimanEkspedisi: Mpesaf.IdPengirimanEkspedisi,
 		}
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
 
 		if err := pengirimanEkspedisiThreshold.Increment(konteks, Trh, stsk_pengiriman_ekspedisi.MediaPengirimanEkspedisiSampaiAgentFoto); err != nil {
 			fmt.Println("Gagal incr count media pengiriman ekspedisi sampai agent foto ke threshold pengiriman ekspedisi")
@@ -1719,4 +1702,4 @@ func TambahMediaPengirimanEkspedisiSampaiAgentFoto(ctx context.Context, data Pay
 		Key:       keyz,
 		UrlUpload: url.String(),
 	}
-}
+} // Passed
