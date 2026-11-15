@@ -16,6 +16,7 @@ import (
 	kurir_media_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/media_services"
 	kurir_pengiriman_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/pengiriman_services"
 	kurir_rekening_services "github.com/anan112pcmec/Burung-backend-1/app/service/kurir_services/rekening_services"
+
 )
 
 func DeleteKurirHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, ms *minio.Client, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher) {
@@ -92,12 +93,12 @@ func DeleteKurirHandler(db *environment.InternalDBReadWriteSystem, w http.Respon
 		}
 		hasil = kurir_media_services.HapusMediaInformasiKurirKTPFoto(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
 	case "/kurir/media/hapus-foto-informasi-kurir-sim":
-		var data kurir_media_services.PayloadHapusMediaInformasiKurirKTPFoto
+		var data kurir_media_services.PayloadHapusMediaInformasiKurirSIMFoto
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = kurir_media_services.HapusMediaInformasiKurirKTPFoto(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
+		hasil = kurir_media_services.HapusMediaInformasiKurirSIMFoto(r.Context(), data, db, ms, rds_session, mb_cud_publisher)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -28,7 +28,6 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
-
 )
 
 func UbahKurirProfilFoto(ctx context.Context, data PayloadUbahKurirProfilFoto, db *environment.InternalDBReadWriteSystem, ms *minio.Client, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseMediaUpload {
@@ -1265,9 +1264,9 @@ func HapusMediaInformasiKurirSIMFoto(ctx context.Context, data PayloadHapusMedia
 		}
 	}
 
-	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKurirKTPFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
+	if err := db.Write.Unscoped().WithContext(ctx).Model(&sot_models.MediaInformasiKurirSIMFoto{}).Where(&sot_models.MediaInformasiKurirSIMFoto{
 		ID: data_media_informasi_kurir_sim_foto.ID,
-	}).Delete(&sot_models.MediaInformasiKurirKTPFoto{}).Error; err != nil {
+	}).Delete(&sot_models.MediaInformasiKurirSIMFoto{}).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
