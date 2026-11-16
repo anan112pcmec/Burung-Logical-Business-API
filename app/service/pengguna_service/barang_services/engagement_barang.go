@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	barang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/barang"
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
 	keranjang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/keranjang"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
@@ -1105,7 +1106,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 	if err := db.Read.WithContext(ctx).Model(&sot_models.VarianBarang{}).Select("id").Where(&sot_models.VarianBarang{
 		IdKategori:    data.IdKategori,
 		IdBarangInduk: data.IdBarangInduk,
-		Status:        "Ready",
+		Status:        barang_enums.Ready,
 	}).Limit(int(data.Jumlah)).Scan(&id_stok).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
