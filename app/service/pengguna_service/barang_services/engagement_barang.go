@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	entity_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/entity"
+	keranjang_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/keranjang"
 	transaksi_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/transaksi"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
@@ -880,15 +881,17 @@ func HapusChildKomentar(ctx context.Context, data PayloadHapusChildKomentar, db 
 	}
 
 	go func(Kc sot_models.KomentarChild, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		komentarThreshold := sot_threshold.KomentarThreshold{
-			ID: Kc.IdKomentar,
-		}
 
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 
-		if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
-			fmt.Println("Gagal decrement komentar child ke threshold komentar")
+		if strings.TrimSpace(Kc.Mention) != "" {
+			komentarThreshold := sot_threshold.KomentarThreshold{
+				ID: Kc.IdKomentar,
+			}
+			if err := komentarThreshold.Decrement(konteks, Trh, stsk_komentar.KomentarChild); err != nil {
+				fmt.Println("Gagal decrement komentar child ke threshold komentar")
+			}
 		}
 
 		deleteKomentarChildPublish := mb_cud_serializer.NewJsonPayload().SetPayload(Kc).SetTableName(Kc.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -985,7 +988,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		IdSeller:      data.IdSeller,
 		IdBarangInduk: data.IdBarangInduk,
 		IdKategori:    data.IdKategori,
-		Status:        "Ready",
+		Status:        keranjang_enums.Ready,
 		Jumlah:        0,
 	}
 
