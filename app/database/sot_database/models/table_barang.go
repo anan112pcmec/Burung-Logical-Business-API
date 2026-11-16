@@ -30,6 +30,17 @@ func (BarangInduk) TableName() string {
 	return "barang_induk"
 }
 
+type ViewedBarangInduk struct {
+	ID            int64       `gorm:"primaryKey;autoIncrement" json:"id_viewed_barang_induk"`
+	IdBarangInduk int32       `gorm:"column:id_barang_induk;not null" json:"id_barang_induk_viewed_barang_induk"`
+	BarangInduk   BarangInduk `gorm:"foreignKey:IdBarangInduk;references:ID;constraint:OnDelete:CASCADE;" json:"-"`
+	Count         int64       `gorm:"column:count;not null;default:0" json:"count_viewed_barang_induk"`
+}
+
+func (v *ViewedBarangInduk) TableName() string {
+	return "viewed_barang_induk"
+}
+
 // Approved
 type KategoriBarang struct {
 	ID             int64          `gorm:"primaryKey;autoIncrement" json:"id_kategori_barang"`

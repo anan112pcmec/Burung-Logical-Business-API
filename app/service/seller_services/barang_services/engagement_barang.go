@@ -27,6 +27,7 @@ import (
 	mb_cud_serializer "github.com/anan112pcmec/Burung-backend-1/app/message_broker/serializer/cud_serializer"
 	"github.com/anan112pcmec/Burung-backend-1/app/response"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
+
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,6 +191,10 @@ func MasukanBarangInduk(ctx context.Context, db *environment.InternalDBReadWrite
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
 		if err := tx.WithContext(ctx).Create(&barang_induk).Error; err != nil {
+			return err
+		}
+
+		if err := tx.WithContext(ctx).Create(&sot_models.ViewedBarangInduk{IdBarangInduk: barang_induk.ID}).Error; err != nil {
 			return err
 		}
 
@@ -554,7 +559,6 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 
 	// Jalankan proses penghapusan dalam goroutine (asynchronous)
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-
 		// Ã°Å¸â€Â¸ Hapus varian (permanent delete)
 		if err := tx.Unscoped().Model(&sot_models.VarianBarang{}).Where(&sot_models.VarianBarang{IdBarangInduk: int32(data.IdBarangInduk)}).
 			Delete(&sot_models.VarianBarang{}).Error; err != nil {
@@ -573,6 +577,10 @@ func HapusBarangInduk(ctx context.Context, db *environment.InternalDBReadWriteSy
 			return fmt.Errorf("hapus barang induk gagal: %w", err)
 		}
 
+		if err := tx.Unscoped().Model(&sot_models.ViewedBarangInduk{}).Where(&sot_models.ViewedBarangInduk{IdBarangInduk: int32(data.IdBarangInduk)}).
+			Delete(&sot_models.ViewedBarangInduk{}).Error; err != nil {
+			return fmt.Errorf("hapus viewed barang induk gagal: %w", err)
+		}
 		return nil
 	}); err != nil {
 		return &response.ResponseForm{

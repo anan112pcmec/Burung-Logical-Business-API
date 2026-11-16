@@ -46,12 +46,12 @@ type BatchViewUpdate struct {
 	Limit           int64
 }
 
-func NewBatchViewUpdate(interval int64) *BatchViewUpdate {
+func NewBatchViewUpdate(interval int64) BatchViewUpdate {
 	dur := time.Duration(interval) * time.Second
 	if dur == 0 {
 		dur = 10 * time.Second
 	}
-	return &BatchViewUpdate{
+	return BatchViewUpdate{
 		UpdateTarget:    make(map[int64]int64),
 		UpdateExecution: make(chan map[int64]int64, 100),
 		duration:        dur,
@@ -60,42 +60,26 @@ func NewBatchViewUpdate(interval int64) *BatchViewUpdate {
 }
 
 // 1. Eksekusi update ke database secara asinkronus
-func (b *BatchViewUpdate) UpdateToDB(db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) {
-	konteks, batal := context.WithTimeout(context.Background(), settings.TimeoutDatabaseQuery)
-	defer batal()
+func (b *BatchViewUpdate) UpdateToDB(Write *gorm.DB) {
+
 	for dataToUpdate := range b.UpdateExecution {
 		if len(dataToUpdate) == 0 {
 			continue
 		}
+		konteks, batal := context.WithTimeout(context.Background(), settings.TimeoutDatabaseQuery)
 
 		fmt.Printf("[DB] Mengupdate %d data ke database...\n", len(dataToUpdate))
 		for id, views := range dataToUpdate {
-			if err := db.Write.WithContext(konteks).Model(&sot_models.BarangInduk{}).
-				Where("id = ?", id).
-				UpdateColumn("viewed", gorm.Expr(fmt.Sprintf("viewed + %v", views))).Error; err != nil {
-				fmt.Printf("Gagal memperbarui vies barang ber id %v sebanyak %v view baru", id, views)
+			if err := Write.WithContext(konteks).Model(&sot_models.ViewedBarangInduk{}).
+				Where(&sot_models.ViewedBarangInduk{IdBarangInduk: int32(id)}).
+				UpdateColumn("count", gorm.Expr(fmt.Sprintf("count + %v", views))).Error; err != nil {
+				fmt.Printf("Gagal memperbarui count barang ber id %v sebanyak %v count baru", id, views)
 
-				go func(id_barang_induk int64, read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-					konteks, batal := context.WithTimeout(context.Background(), settings.TimeoutContext)
-					defer batal()
-					var updatedBarangInduk sot_models.BarangInduk = sot_models.BarangInduk{
-						ID: 0,
-					}
-
-					if err := read.WithContext(konteks).Model(&sot_models.BarangInduk{}).Where(&sot_models.BarangInduk{
-						ID: int32(id_barang_induk),
-					}).Limit(1).Take(&updatedBarangInduk).Error; err != nil {
-						fmt.Println("Gagal mengambil data barang induk baru ", err)
-					}
-
-					updatedViewBarangIndukPublish := mb_cud_serializer.NewJsonPayload().SetPayload(updatedBarangInduk).SetTableName("UpdateViewBarangInduk").SetRole(mb_cud_seeders.Seller)
-					if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedViewBarangIndukPublish); err != nil {
-						fmt.Println("Gagal publish update view barang induk")
-					}
-				}(id, db.Read, cud_publisher)
 			}
 
 		}
+
+		batal()
 	}
 }
 
@@ -257,7 +241,7 @@ func LikesBarang(ctx context.Context, data PayloadLikesBarang, db *environment.I
 
 	go func(Lb sot_models.BarangDisukai, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		thresholdPengguna := sot_threshold.PenggunaThreshold{
-			ID: Lb.IdPengguna,
+			IdPengguna: Lb.IdPengguna,
 		}
 
 		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
@@ -363,7 +347,7 @@ func UnlikeBarang(ctx context.Context, data PayloadUnlikeBarang, db *environment
 			fmt.Println("Gagal decrement threshold pengguna likes barang")
 		}
 
-		if err := thresholdBarangInduk.Decrement(konteks, Trh, stsk_baranginduk.BarangDiDiskon); err != nil {
+		if err := thresholdBarangInduk.Decrement(konteks, Trh, stsk_baranginduk.BarangDisukai); err != nil {
 			fmt.Println("Gagal decrement threshold barang induk likes barang")
 		}
 
@@ -521,15 +505,15 @@ func EditKomentarBarang(ctx context.Context, data PayloadEditKomentarBarangInduk
 	}
 
 	go func(idKomen int64, Read *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		komentarData := sot_models.Komentar{}
-		if err := Read.WithContext(ctx).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
-			ID: idKomen,
-		}).Limit(1).Take(&komentarData); err != nil {
-			return
-		}
-
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
+
+		var komentarData sot_models.Komentar
+		if err := Read.WithContext(konteks).Model(&sot_models.Komentar{}).Where(&sot_models.Komentar{
+			ID: idKomen,
+		}).Limit(1).Scan(&komentarData); err != nil {
+			return
+		}
 
 		newUpdateKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(komentarData).SetTableName(komentarData.TableName()).SetRole(mb_cud_seeders.Pengguna)
 		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, newUpdateKomentarPublish); err != nil {
@@ -589,7 +573,7 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 
 	go func(K sot_models.Komentar, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
 		barangIndukThreshold := sot_threshold.BarangIndukThreshold{
-			ID: int64(K.IdBarangInduk),
+			IdBarangInduk: int64(K.IdBarangInduk),
 		}
 
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
@@ -597,6 +581,12 @@ func HapusKomentarBarang(ctx context.Context, data PayloadHapusKomentarBarangInd
 
 		if err := barangIndukThreshold.Decrement(konteks, Trh, stsk_baranginduk.Komentar); err != nil {
 			fmt.Println("Gagal decr komentar barang induk ke threshold barang induk")
+		}
+
+		if err := Trh.WithContext(konteks).Model(&sot_threshold.KomentarThreshold{}).Where(&sot_threshold.KomentarThreshold{
+			IdKomentar: K.ID,
+		}).Delete(&sot_threshold.KomentarThreshold{}).Error; err != nil {
+			fmt.Println("Gagal hapus threshold komentar")
 		}
 
 		newDeleteKomentarPublish := mb_cud_serializer.NewJsonPayload().SetPayload(K).SetTableName(K.TableName()).SetRole(mb_cud_seeders.Pengguna)
@@ -692,11 +682,11 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 		}
 	}
 
-	if !helper.Contains(data.UsernameMentioned, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}) || strings.Contains(data.UsernameMentioned, "_") {
+	if !helper.Contains(data.UsernameMentioned, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}) || !strings.Contains(data.UsernameMentioned, "_") {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
-			Message:  "Gagal, username tidak vali",
+			Message:  "Gagal, username tidak valid",
 		}
 	}
 
@@ -718,6 +708,7 @@ func MentionChildKomentar(ctx context.Context, data PayloadMentionChildKomentar,
 
 	newKomentar := sot_models.KomentarChild{
 		IdKomentar:  data.IdKomentar,
+		Mention:     data.UsernameMentioned,
 		IdEntity:    data.IdentitasPengguna.ID,
 		JenisEntity: entity_enums.Pengguna,
 		IsiKomentar: data.Komentar,
@@ -822,7 +813,7 @@ func EditChildKomentar(ctx context.Context, data PayloadEditChildKomentar, db *e
 		var dataKomentarChild sot_models.KomentarChild
 		if err := Read.WithContext(konteks).Model(&sot_models.KomentarChild{}).Where(&sot_models.KomentarChild{
 			ID: IdKc,
-		}).Limit(1).Take(&dataKomentarChild).Error; err != nil {
+		}).Limit(1).Scan(&dataKomentarChild).Error; err != nil {
 			return
 		}
 
@@ -955,7 +946,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 	var total_keranjang int
 	if err := db.Read.WithContext(ctx).Model(&sot_threshold.PenggunaThreshold{}).Select("keranjang").Where(&sot_threshold.PenggunaThreshold{
 		ID: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&total_keranjang).Error; err != nil {
+	}).Limit(1).Scan(&total_keranjang).Error; err != nil {
 		fmt.Println("Gagal mengambil data total keranjang")
 	}
 
@@ -1148,7 +1139,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 		var dataKeranjang sot_models.Keranjang
 		if err := Read.WithContext(konteks).Model(&sot_models.Keranjang{}).Where(&sot_models.Keranjang{
 			ID: IdKeranjang,
-		}).Limit(1).Take(&dataKeranjang).Error; err != nil {
+		}).Limit(1).Scan(&dataKeranjang).Error; err != nil {
 			return
 		}
 
