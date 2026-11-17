@@ -16,7 +16,7 @@ type PayloadTambahBarangKeWishlist struct {
 
 type PayloadHapusBarangDariWishlist struct {
 	IdentitasPengguna identity_pengguna.IdentityPengguna `json:"identitas_pengguna"`
-	IdWishlistProduct int64                              `json:"id_wishlist"`
+	IdWishlistProduct int64                              `json:"id_wishlist_produk"`
 	IdBarangInduk     int32                              `json:"id_barang_induk"`
 }
 

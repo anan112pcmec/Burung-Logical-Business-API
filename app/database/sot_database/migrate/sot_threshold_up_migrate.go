@@ -35,6 +35,7 @@ func UpThresholdTable(db *gorm.DB) {
 		sot_threshold.BidKurirDataThreshold{},
 		sot_threshold.DiskonProdukThreshold{},
 		sot_threshold.KomentarThreshold{},
+		sot_threshold.WishlistThreshold{},
 		sot_threshold.InformasiKurirThreshold{},
 		sot_threshold.RekeningSellerThreshold{},
 		sot_threshold.AlamatEkspedisiThreshold{},

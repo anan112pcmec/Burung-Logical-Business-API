@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	wishlist_enums "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/enums/wishlist"
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
 	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
 	stsk_baranginduk "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold/seeders/nama_kolom/barang_induk"
@@ -24,6 +26,22 @@ import (
 func TambahWishlist(ctx context.Context, data PayloadTambahWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahWishlistBaru"
 
+	if data.Visibility != wishlist_enums.Public && data.Visibility != wishlist_enums.Private {
+		return &response.ResponseForm{
+			Status:   http.StatusUnsupportedMediaType,
+			Services: services,
+			Message:  "jenis visibility tidak valid",
+		}
+	}
+
+	if strings.TrimSpace(data.Nama) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama wishlist tak boleh kosong",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -32,20 +50,12 @@ func TambahWishlist(ctx context.Context, data PayloadTambahWishlist, db *environ
 		}
 	}
 
-	if data.Visibility != "Public" && data.Visibility != "Private" {
-		return &response.ResponseForm{
-			Status:   http.StatusUnsupportedMediaType,
-			Services: services,
-			Message:  "jenis visibility tidak valid",
-		}
-	}
-
 	// validasi nama wishlist sama
 	var id_wishlist int64 = 0
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Select("id").Where(&sot_models.Wishlist{
 		IdPengguna: data.IdentitasPengguna.ID,
 		Nama:       data.Nama,
-	}).Limit(1).Take(&id_wishlist).Error; err != nil {
+	}).Limit(1).Scan(&id_wishlist).Error; err != nil {
 		fmt.Println("Gagal mendapatkan data error: ", err)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
@@ -109,10 +119,26 @@ func TambahWishlist(ctx context.Context, data PayloadTambahWishlist, db *environ
 		Services: services,
 		Message:  "Berhasil menambahkan wishlist baru",
 	}
-}
+} // Passed
 
 func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "TambahBarangKeWishlist"
+
+	if data.IdWishlist <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id wishlist tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id batang induk tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
 
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
@@ -124,10 +150,10 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 
 	// Validasi kepemilikan wishlist
 	var idWishlist int64 = 0
-	if err := db.Read.WithContext(ctx).Select("id").Where(&sot_models.Wishlist{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Select("id").Where(&sot_models.Wishlist{
 		ID:         data.IdWishlist,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&idWishlist).Error; err != nil {
+	}).Limit(1).Scan(&idWishlist).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusNotFound,
 			Services: services,
@@ -153,6 +179,25 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 			Status:   http.StatusConflict,
 			Services: services,
 			Message:  "Gagal kamu sudah memasukan barang itu ke dalam wishlist ini",
+		}
+	}
+
+	var id_barang_induk int64 = 0
+	if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("id").Where(&sot_models.BarangInduk{
+		ID: data.IdBarangInduk,
+	}).Limit(1).Scan(&id_barang_induk).Error; err != nil {
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
+		}
+	}
+
+	if id_barang_induk == 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusConflict,
+			Services: services,
+			Message:  "Gagal barang induk tak ditemukan",
 		}
 	}
 
@@ -205,6 +250,22 @@ func TambahBarangKeWishlist(ctx context.Context, data PayloadTambahBarangKeWishl
 func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusBarangDariWishlist"
 
+	if data.IdWishlistProduct <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id wishlist tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if data.IdBarangInduk <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id batang induk tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -214,7 +275,7 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 	}
 
 	var dataWishlistProduct sot_models.WishlistProduct
-	if err := db.Read.WithContext(ctx).Where(&sot_models.WishlistProduct{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.WishlistProduct{}).Where(&sot_models.WishlistProduct{
 		ID: data.IdWishlistProduct,
 	}).Limit(1).Scan(&dataWishlistProduct).Error; err != nil {
 		return &response.ResponseForm{
@@ -234,10 +295,10 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 
 	// Validasi kepemilikan lewat folder wishlist-nya menggunakan struct gorm
 	var dataWishlist sot_models.Wishlist
-	if err := db.Read.WithContext(ctx).Where(&sot_models.Wishlist{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
 		ID:         dataWishlistProduct.IdWishlist,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&dataWishlist).Error; err != nil {
+	}).Limit(1).Scan(&dataWishlist).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
 			Services: services,
@@ -245,7 +306,7 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Where(&sot_models.WishlistProduct{
+	if err := db.Write.Unscoped().WithContext(ctx).Where(&sot_models.WishlistProduct{
 		ID: data.IdWishlistProduct,
 	}).Delete(&sot_models.WishlistProduct{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -286,10 +347,34 @@ func HapusBarangDariWishlist(ctx context.Context, data PayloadHapusBarangDariWis
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func EditWishlist(ctx context.Context, data PayloadEditWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "EditWishlist"
+
+	if data.IdWishlist <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id wishlist tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
+	if strings.TrimSpace(data.Nama) == "" {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, nama wishlist tak boleh kosong",
+		}
+	}
+
+	if data.Visibility != wishlist_enums.Public && data.Visibility != wishlist_enums.Private {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, visibility tidak valid",
+		}
+	}
 
 	if _, err := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !err {
 		return &response.ResponseForm{
@@ -303,7 +388,7 @@ func EditWishlist(ctx context.Context, data PayloadEditWishlist, db *environment
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Select("id").Where(&sot_models.Wishlist{
 		ID:         data.IdWishlist,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&IdWishlist).Error; err != nil {
+	}).Limit(1).Scan(&IdWishlist).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -340,13 +425,14 @@ func EditWishlist(ctx context.Context, data PayloadEditWishlist, db *environment
 
 		if err := Read.WithContext(konteks).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
 			ID: IW,
-		}).Limit(1).Take(&WishlistData).Error; err != nil {
+		}).Limit(1).Scan(&WishlistData).Error; err != nil {
 			fmt.Println("Gagal mendapatkan data wishlist sebelum publish")
 			return
 		}
 
 		updateWishlistPublish := mb_cud_serializer.NewJsonPayload().SetPayload(WishlistData).SetRole(mb_cud_seeders.Pengguna).SetTableName(WishlistData.TableName())
-		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateWishlistPublish).Error; err != nil {
+
+		if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateWishlistPublish); err != nil {
 			fmt.Println("Gagal publish update EditWishlist ke publisher")
 		}
 
@@ -362,6 +448,14 @@ func EditWishlist(ctx context.Context, data PayloadEditWishlist, db *environment
 func HapusWishlist(ctx context.Context, data PayloadHapusWishlist, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "HapusWishlist"
 
+	if data.IdWishlist <= 0 {
+		return &response.ResponseForm{
+			Status:   http.StatusUnauthorized,
+			Services: services,
+			Message:  "Gagal, id wishlist tak boleh lebih kecil atau sama dengan 0",
+		}
+	}
+
 	if _, status := data.IdentitasPengguna.Validating(ctx, db.Read, rds_session); !status {
 		return &response.ResponseForm{
 			Status:   http.StatusUnauthorized,
@@ -371,10 +465,10 @@ func HapusWishlist(ctx context.Context, data PayloadHapusWishlist, db *environme
 	}
 
 	var dataWishlist sot_models.Wishlist
-	if err := db.Read.WithContext(ctx).Where(&sot_models.Wishlist{
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
 		ID:         data.IdWishlist,
 		IdPengguna: data.IdentitasPengguna.ID,
-	}).Limit(1).Take(&dataWishlist).Error; err != nil {
+	}).Limit(1).Scan(&dataWishlist).Error; err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -390,7 +484,7 @@ func HapusWishlist(ctx context.Context, data PayloadHapusWishlist, db *environme
 		}
 	}
 
-	if err := db.Write.WithContext(ctx).Where(&sot_models.Wishlist{
+	if err := db.Write.WithContext(ctx).Model(&sot_models.Wishlist{}).Where(&sot_models.Wishlist{
 		ID: data.IdWishlist,
 	}).Delete(&sot_models.Wishlist{}).Error; err != nil {
 		return &response.ResponseForm{
@@ -407,6 +501,12 @@ func HapusWishlist(ctx context.Context, data PayloadHapusWishlist, db *environme
 
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
+
+		if err := Trh.WithContext(konteks).Model(&sot_threshold.WishlistThreshold{}).Where(&sot_threshold.WishlistThreshold{
+			IdWishlist: W.ID,
+		}).Delete(&sot_threshold.WishlistThreshold{}).Error; err != nil {
+			fmt.Println("Gagal mengapus threshold wishlist", err)
+		}
 
 		if err := penggunaThreshold.Decrement(konteks, Trh, stsk_pengguna.Wishlist); err != nil {
 			fmt.Println("Gagal decrement wishlist counter ke pengguna threshold")
