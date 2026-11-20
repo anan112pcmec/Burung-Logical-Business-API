@@ -322,10 +322,10 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		for _, k := range Dk {
 			wg.Add(1)
 			go func(datakeranjang sot_models.Keranjang, t *gorm.DB, p *mb_cud_publisher.Publisher) {
-				defer wg.Done()
 				thresholdPengguna := sot_threshold.PenggunaThreshold{
 					IdPengguna: datakeranjang.IdPengguna,
 				}
+				defer wg.Done()
 
 				thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
 					IdBarangInduk: int64(datakeranjang.IdBarangInduk),
