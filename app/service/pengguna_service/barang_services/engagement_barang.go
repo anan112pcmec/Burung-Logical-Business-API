@@ -1040,7 +1040,7 @@ func TambahKeranjangBarang(ctx context.Context, data PayloadTambahDataKeranjangB
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Edit Keranjang Barang
@@ -1158,7 +1158,7 @@ func EditKeranjangBarang(ctx context.Context, data PayloadEditDataKeranjangBaran
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fungsi Hapus Keranjang Barang
@@ -1254,7 +1254,7 @@ func HapusKeranjangBarang(ctx context.Context, data PayloadHapusDataKeranjangBar
 		Services: services,
 		Message:  "Berhasil",
 	}
-}
+} // Passed
 
 func BerikanReviewBarang(ctx context.Context, data PayloadBerikanReviewBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "BerikanReviewBarang"

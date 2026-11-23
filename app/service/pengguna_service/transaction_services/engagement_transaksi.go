@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/midtrans/midtrans-go"
@@ -47,6 +47,19 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services/response_transaction_pengguna"
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
+
+type KeranjangDanStok struct {
+	Keranjang int
+	Stok      int
+}
+
+func (ks *KeranjangDanStok) IncrementKeranjang() {
+	ks.Keranjang++
+}
+
+func (ks *KeranjangDanStok) AssignCustom(c int) {
+	ks.Stok += c
+}
 
 func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "CheckoutBarangUser"
@@ -125,8 +138,9 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		}
 	}
 
-	totalDipesan := 0
 	dataLen := len(data.DataCheckout)
+
+	totalDipesan := 0
 	idKeranjang := make([]int64, 0, dataLen)
 	KeranjangData := make([]sot_models.Keranjang, 0, dataLen)
 
@@ -136,20 +150,18 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		if i < 0 || i >= dataLen {
 			continue
 		}
-		item := data.DataCheckout[i]
 
-		// Validasi item agar tidak nil atau field kosong (opsional)
-		if item.ID == 0 {
-			log.Printf("[CheckoutBarangUser] ID keranjang tidak valid pada indeks %d", i)
-			continue
-		}
-
-		totalDipesan += int(item.Jumlah)
-		idKeranjang = append(idKeranjang, item.ID)
+		totalDipesan += int(data.DataCheckout[i].Jumlah)
+		idKeranjang = append(idKeranjang, data.DataCheckout[i].ID)
 	}
 
-	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Where("id IN ?", idKeranjang).Limit(dataLen).Take(&KeranjangData).Error; err != nil {
+	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Where("id IN ?", idKeranjang).Limit(len(idKeranjang)).Take(&KeranjangData).Error; err != nil {
 		fmt.Println("Gagal mendapatkan data seluruh keranjang")
+		return &response.ResponseForm{
+			Status:   http.StatusInternalServerError,
+			Services: services,
+			Message:  "Gagal, data keranjang gagal diambil, coba lagi lain waktu",
+		}
 	}
 
 	responseData := make([]response_transaction_pengguna.CheckoutData, 0, dataLen)
@@ -187,7 +199,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		varianUpdates = append(varianUpdates, idsVarianStok...)
 
-		if BarangInduk[int64(data.DataCheckout[i].IdBarangInduk)].NamaBarang == "" {
+		if strings.TrimSpace(BarangInduk[int64(data.DataCheckout[i].IdBarangInduk)].NamaBarang) == "" {
 			barang := sot_models.BarangInduk{}
 
 			if err := db.Read.WithContext(ctx).Model(&sot_models.BarangInduk{}).Select("nama_barang", "id_seller", "jenis_barang").Where(&sot_models.BarangInduk{
@@ -203,9 +215,9 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 			BarangInduk[int64(data.DataCheckout[i].IdBarangInduk)] = barang
 		}
 
-		if KategoriBarang[data.DataCheckout[i].IdKategori].Nama == "" {
-			var kategori sot_models.KategoriBarang = sot_models.KategoriBarang{Nama: ""}
-			if err := db.Read.Model(&sot_models.KategoriBarang{}).Select("nama", "harga", "stok", "id_barang_induk", "id_alamat_gudang", "berat_gram").
+		if strings.TrimSpace(KategoriBarang[data.DataCheckout[i].IdKategori].Nama) == "" {
+			var kategori sot_models.KategoriBarang = sot_models.KategoriBarang{}
+			if err := db.Read.WithContext(ctx).Model(&sot_models.KategoriBarang{}).Select("nama", "harga", "stok", "id_barang_induk", "id_alamat_gudang", "berat_gram").
 				Where(&sot_models.KategoriBarang{ID: data.DataCheckout[i].IdKategori}).Limit(1).Scan(&kategori).Error; err != nil {
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
@@ -214,7 +226,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 				}
 			}
 
-			if kategori.Nama == "" {
+			if strings.TrimSpace(kategori.Nama) == "" {
 				return &response.ResponseForm{
 					Status:   http.StatusNotFound,
 					Services: services,
@@ -239,7 +251,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 				}
 			}
 
-			if namaSeller == "" {
+			if strings.TrimSpace(namaSeller) == "" {
 				return &response.ResponseForm{
 					Status:   http.StatusNotFound,
 					Services: services,
@@ -256,7 +268,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 			IdBarangInduk:    data.DataCheckout[i].IdBarangInduk,
 			IdKategoriBarang: data.DataCheckout[i].IdKategori,
 			Status:           enums_barang_di_diskon.Applied,
-		}).Limit(1).Take(&IdDiskon).Error; err != nil {
+		}).Limit(1).Scan(&IdDiskon).Error; err != nil {
 			fmt.Println(err)
 		}
 
@@ -281,7 +293,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		responseData = append(responseData, resp)
 	}
 
-	err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
 		// Update status varian sekaligus
 		if len(varianUpdates) > 0 {
@@ -313,59 +325,94 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		}
 
 		return nil
-	})
-
-	go func(Dk []sot_models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-		var wg sync.WaitGroup
-		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-		defer cancel()
-		for _, k := range Dk {
-			wg.Add(1)
-			go func(datakeranjang sot_models.Keranjang, t *gorm.DB, p *mb_cud_publisher.Publisher) {
-				thresholdPengguna := sot_threshold.PenggunaThreshold{
-					IdPengguna: datakeranjang.IdPengguna,
-				}
-				defer wg.Done()
-
-				thresholdBarangInduk := sot_threshold.BarangIndukThreshold{
-					IdBarangInduk: int64(datakeranjang.IdBarangInduk),
-				}
-
-				thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{
-					IdKategoriBarang: datakeranjang.IdKategori,
-				}
-
-				if err := thresholdPengguna.Decrement(konteks, t, stsk_pengguna.Keranjang); err != nil {
-					fmt.Println("Gagal decr count keranjang ke pengguna threshold")
-				}
-
-				if err := thresholdBarangInduk.Decrement(konteks, t, stsk_baranginduk.Keranjang); err != nil {
-					fmt.Println("Gagal decr count keranjang ke barang induk threshold")
-				}
-
-				if err := thresholdKategoriBarang.Decrement(konteks, t, stsk_kategori_barang.Keranjang); err != nil {
-					fmt.Println("Gagal decr count keranjang ke kategori barang threshold")
-				}
-
-				deleteKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(datakeranjang).SetTableName(datakeranjang.TableName()).SetRole(mb_cud_seeders.Pengguna)
-				if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, p, deleteKeranjangPublish); err != nil {
-					fmt.Println("Gagal publish delete keranjang ke message broker")
-				}
-			}(k, Trh, publisher)
-		}
-
-		wg.Wait()
-
-	}(KeranjangData, db.Write, cud_publisher)
-
-	if err != nil {
-		log.Printf("[%s] Gagal checkout: %v", services, err)
+	}); err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
-			Message:  "Terjadi Kesalahan pada server, Silahkan coba lagi lain waktu",
+			Message:  "Gagal, server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Dk []sot_models.Keranjang, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdPengguna := sot_threshold.PenggunaThreshold{
+			IdPengguna: Dk[0].IdPengguna,
+		}
+
+		thresholdBarangInduk := sot_threshold.BarangIndukThreshold{}
+		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{}
+
+		idsBIk := make(map[int32]int, 0)
+		idsKBks := make(map[int64]*KeranjangDanStok, 0)
+
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+		for _, k := range Dk {
+
+			idsBIk[k.IdBarangInduk]++
+
+			kategoriItem, ok := idsKBks[k.IdKategori]
+			if !ok || kategoriItem == nil {
+				kategoriItem = &KeranjangDanStok{}
+				idsKBks[k.IdKategori] = kategoriItem
+			}
+
+			kategoriItem.IncrementKeranjang()
+			kategoriItem.AssignCustom(int(k.Jumlah))
+
+			deleteKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName()).SetRole(mb_cud_seeders.Pengguna)
+			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKeranjangPublish); err != nil {
+				fmt.Println("Gagal publish delete keranjang ke message broker")
+			}
+		}
+
+		for id, count := range idsBIk {
+			thresholdBarangInduk.IdBarangInduk = int64(id)
+			thresholdBarangInduk.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_baranginduk.Keranjang,
+					Count:     count,
+				},
+			})
+		}
+
+		for id, KdJ := range idsKBks {
+			thresholdKategoriBarang.IdKategoriBarang = id
+			thresholdKategoriBarang.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_kategori_barang.Keranjang,
+					Count:     KdJ.Keranjang,
+				},
+				{
+					FieldName: stsk_kategori_barang.Ready,
+					Count:     KdJ.Stok,
+				},
+			})
+			thresholdKategoriBarang.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_kategori_barang.Dipesan,
+					Count:     KdJ.Stok,
+				},
+			})
+		}
+
+		if err := thresholdPengguna.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+			{
+				FieldName: stsk_pengguna.Keranjang,
+				Count:     len(Dk),
+			},
+		}); err != nil {
+			fmt.Println("Gagal decr count keranjang ke pengguna threshold")
+		}
+
+	}(KeranjangData, db.Write, cud_publisher)
+
+	// Pengaman Jika dalam 20 menit tak ada umpan balik
+	go func(d []response_transaction_pengguna.CheckoutData, dtb *environment.InternalDBReadWriteSystem, publisher *mb_cud_publisher.Publisher) {
+		_ = <-time.Tick(time.Minute * 20)
+		_ = BatalCheckoutUser(response_transaction_pengguna.ResponseDataCheckout{
+			DataResponse: responseData,
+		}, dtb, publisher)
+	}(responseData, db, cud_publisher)
 
 	// Hapus keranjang
 
@@ -384,13 +431,15 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 // Befungsi Untuk MembatalkanCheckout yang telah dilakukan
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, db *environment.InternalDBReadWriteSystem) *response.ResponseForm {
+func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, db *environment.InternalDBReadWriteSystem, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "BatalCheckoutKeranjang"
 
 	var varianIDs []int64
+	var id_kategoris []int64 = make([]int64, len(data.DataResponse))
 	kategoriUpdates := make(map[int32]int32)
 
 	for _, keranjang := range data.DataResponse {
+		id_kategoris = append(id_kategoris, keranjang.IdKategoriBarang)
 		var varian_id []int64
 		if err := db.Read.Model(&sot_models.VarianBarang{}).
 			Where(sot_models.VarianBarang{
@@ -411,7 +460,7 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 		kategoriUpdates[int32(keranjang.IdKategoriBarang)] += keranjang.Dipesan
 	}
 
-	err := db.Write.Transaction(func(tx *gorm.DB) error {
+	if err := db.Write.Transaction(func(tx *gorm.DB) error {
 		// Update status semua varian sekaligus
 		if len(varianIDs) > 0 {
 			if err := tx.Model(&sot_models.VarianBarang{}).
@@ -435,15 +484,51 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 		}
 
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
 			Message:  "Gagal server sedang sibuk coba lagi lain waktu",
 		}
 	}
+
+	go func(Ikb []int64, KU map[int32]int32, Trh *gorm.DB, publisher *mb_cud_publisher.Publisher) {
+		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{}
+		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+		defer cancel()
+
+		total_datanya := len(Ikb)
+
+		for kbi, kbs := range KU {
+			thresholdKategoriBarang.IdKategoriBarang = int64(kbi)
+			thresholdKategoriBarang.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+
+				{
+					FieldName: stsk_kategori_barang.Ready,
+					Count:     int(kbs),
+				},
+			})
+			thresholdKategoriBarang.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+				{
+					FieldName: stsk_kategori_barang.Dipesan,
+					Count:     int(kbs),
+				},
+			})
+		}
+
+		var data_kategori []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, total_datanya)
+		if err := Trh.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where("id IN ?", Ikb).Scan(&data_kategori).Limit(total_datanya).Error; err != nil {
+			fmt.Println("Gagal mengambil data kategori barang")
+		} else {
+			for _, dk := range data_kategori {
+				updateKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(dk).SetTableName(dk.TableName()).SetRole(mb_cud_seeders.Pengguna)
+				if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updateKategoriBarangPublish); err != nil {
+					fmt.Println("Gagal publish update kategori barang ke message broker")
+				}
+			}
+		}
+
+	}(id_kategoris, kategoriUpdates, db.Write, cud_publisher)
 
 	return &response.ResponseForm{
 		Status:   http.StatusOK,
@@ -458,7 +543,7 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 // pendukungnya)
 // ////////////////////////////////////////////////////////////////////////////////////
 
-func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client) *response.ResponseForm {
+func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "SnapTransaksiUser"
 	fmt.Println("[TRACE] Start SnapTransaksi")
 
@@ -538,7 +623,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 
 		if errcheck {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+			_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 			return &response.ResponseForm{
 				Status:   http.StatusUnavailableForLegalReasons,
 				Services: services,
@@ -563,7 +648,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	// Defensive: Validate PaymentCode generation
 	if err_payment != nil || PaymentCode == "" {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -573,7 +658,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	// Defensive: Validate address information
 	if data.AlamatInformation.NamaAlamat == "" || data.AlamatInformation.Kota == "" {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
@@ -617,7 +702,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 	default:
 		// Defensive: Handle invalid payment method
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
@@ -645,7 +730,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 	for i := 0; i < lenData; i++ {
 		// Defensive: Validate price and weight
 		if data.DataCheckout.DataResponse[i].HargaKategori <= 0 {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+			_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 			return &response.ResponseForm{
 				Status:   http.StatusBadRequest,
 				Services: services,
@@ -654,7 +739,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 
 		if data.DataCheckout.DataResponse[i].BeratKategori <= 0 {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+			_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 			return &response.ResponseForm{
 				Status:   http.StatusBadRequest,
 				Services: services,
@@ -681,7 +766,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatGudang{}).Where(&sot_models.AlamatGudang{
 				ID: data.DataCheckout.DataResponse[i].IdAlamatGudang,
 			}).Limit(1).Take(&alamat).Error; err != nil {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return &response.ResponseForm{
 						Status:   http.StatusNotFound,
@@ -716,7 +801,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			if err := db.Read.WithContext(ctx).Model(&sot_models.AlamatEkspedisi{}).Select("id").Where(&sot_models.AlamatEkspedisi{
 				Kota: AlamatGudang[data.DataCheckout.DataResponse[i].IdAlamatGudang].Kota,
 			}).Order("id DESC").Limit(1).Scan(&id_alamat_eks).Error; err != nil {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
@@ -725,7 +810,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 
 			if id_alamat_eks == 0 {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusNotFound,
 					Services: services,
@@ -735,7 +820,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 			// Defensive: Validate ekspedisi data exists
 			if _, cityExists := data_cache.DataAlamatEkspedisi[AlamatGudang[data.DataCheckout.DataResponse[i].IdAlamatGudang].Kota]; !cityExists {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusNotFound,
 					Services: services,
@@ -744,7 +829,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			}
 
 			if _, addrExists := data_cache.DataAlamatEkspedisi[AlamatGudang[data.DataCheckout.DataResponse[i].IdAlamatGudang].Kota][id_alamat_eks]; !addrExists {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusNotFound,
 					Services: services,
@@ -767,7 +852,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 		// Defensive: Validate coordinates
 		if key.TitikMulaiLong == 0 || key.TitikMulaiLat == 0 || key.TitikTujuanLong == 0 || key.TitikTujuanLat == 0 {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+			_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 			return &response.ResponseForm{
 				Status:   http.StatusBadRequest,
 				Services: services,
@@ -782,7 +867,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 		// Defensive: Validate distance calculation
 		if !status {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+			_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 			return &response.ResponseForm{
 				Status:   http.StatusInternalServerError,
 				Services: services,
@@ -791,7 +876,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 
 		if Jarak <= 0 {
-			_ = BatalCheckoutUser(data.DataCheckout, db)
+			_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 			return &response.ResponseForm{
 				Status:   http.StatusBadRequest,
 				Services: services,
@@ -832,7 +917,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 			destinationCity, destExists := ekspedisi.JawaCities[data.AlamatInformation.Kota]
 
 			if !originExists || !destExists {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusBadRequest,
 					Services: services,
@@ -842,7 +927,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 			weight := float64(data.DataCheckout.DataResponse[i].BeratKategori) * float64(data.DataCheckout.DataResponse[i].Dipesan)
 			if weight <= 0 {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusBadRequest,
 					Services: services,
@@ -862,7 +947,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 			// Defensive: Validate ekspedisi response
 			if len(res.Data) == 0 {
-				_ = BatalCheckoutUser(data.DataCheckout, db)
+				_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 				return &response.ResponseForm{
 					Status:   http.StatusInternalServerError,
 					Services: services,
@@ -946,7 +1031,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	// Defensive: Validate total amount
 	if total <= 0 {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusBadRequest,
 			Services: services,
@@ -979,7 +1064,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	SnapResponse, SnapStatus := ValidateTransaksi(SnapRequest)
 	if !SnapStatus {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -989,7 +1074,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 
 	// Defensive: Validate SnapResponse
 	if SnapResponse == nil {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
@@ -998,7 +1083,7 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 	}
 
 	if SnapResponse.Token == "" {
-		_ = BatalCheckoutUser(data.DataCheckout, db)
+		_ = BatalCheckoutUser(data.DataCheckout, db, cud_publisher)
 		return &response.ResponseForm{
 			Status:   http.StatusInternalServerError,
 			Services: services,
