@@ -48,22 +48,15 @@ import (
 	"github.com/anan112pcmec/Burung-backend-1/app/settings"
 )
 
-type KeranjangDanStok struct {
-	Keranjang int
-	Stok      int
-}
-
-func (ks *KeranjangDanStok) IncrementKeranjang() {
-	ks.Keranjang++
-}
-
-func (ks *KeranjangDanStok) AssignCustom(c int) {
-	ks.Stok += c
-}
-
 func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *environment.InternalDBReadWriteSystem, rds_session *redis.Client, cud_publisher *mb_cud_publisher.Publisher) *response.ResponseForm {
 	const services string = "CheckoutBarangUser"
 	log.Printf("[%s] Memulai proses checkout untuk user ID: %v", services, data.IdentitasPengguna.ID)
+
+	dataLen := len(data.DataCheckout)
+
+	totalDipesan := 0
+	idKeranjang := make([]int64, 0, dataLen)
+	KeranjangData := make([]sot_models.Keranjang, 0, dataLen)
 
 	for _, d := range data.DataCheckout {
 		if d.ID <= 0 {
@@ -118,6 +111,9 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 				Message:  "Gagal, status tidak ready",
 			}
 		}
+
+		totalDipesan += int(d.Jumlah)
+		idKeranjang = append(idKeranjang, d.ID)
 	}
 
 	if !helper.JenisLayananKurirValidation(data.JenisLayananKurir) {
@@ -136,23 +132,6 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 			Services: services,
 			Message:  "Gagal identitas pengguna tidak ditemukan",
 		}
-	}
-
-	dataLen := len(data.DataCheckout)
-
-	totalDipesan := 0
-	idKeranjang := make([]int64, 0, dataLen)
-	KeranjangData := make([]sot_models.Keranjang, 0, dataLen)
-
-	// Loop menggunakan dataLen agar aman, tidak baca len() berulang
-	for i := 0; i < dataLen; i++ {
-		// tambahan defensive: pastikan index valid sebelum akses
-		if i < 0 || i >= dataLen {
-			continue
-		}
-
-		totalDipesan += int(data.DataCheckout[i].Jumlah)
-		idKeranjang = append(idKeranjang, data.DataCheckout[i].ID)
 	}
 
 	if err := db.Read.WithContext(ctx).Model(&sot_models.Keranjang{}).Where("id IN ?", idKeranjang).Limit(len(idKeranjang)).Take(&KeranjangData).Error; err != nil {
@@ -239,7 +218,7 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		kategoriUpdates[int32(data.DataCheckout[i].IdKategori)] += int32(data.DataCheckout[i].Jumlah)
 
-		if NamaSeller[int64(data.DataCheckout[i].IdSeller)] == "" {
+		if strings.TrimSpace(NamaSeller[int64(data.DataCheckout[i].IdSeller)]) == "" {
 			var namaSeller string = ""
 			if err := db.Read.Model(&sot_models.Seller{}).Select("nama").
 				Where(&sot_models.Seller{ID: data.DataCheckout[i].IdSeller}).
@@ -294,8 +273,6 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 	}
 
 	if err := db.Write.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-
-		// Update status varian sekaligus
 		if len(varianUpdates) > 0 {
 			if err := tx.Model(&sot_models.VarianBarang{}).
 				Where("id IN ?", varianUpdates).
@@ -342,22 +319,16 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 		thresholdKategoriBarang := sot_threshold.KategoriBarangThreshold{}
 
 		idsBIk := make(map[int32]int, 0)
-		idsKBks := make(map[int64]*KeranjangDanStok, 0)
+		idsKBk := make(map[int64]int, 0)
+		idsKBs := make(map[int64]int, 0)
 
 		konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
 		defer cancel()
 		for _, k := range Dk {
 
 			idsBIk[k.IdBarangInduk]++
-
-			kategoriItem, ok := idsKBks[k.IdKategori]
-			if !ok || kategoriItem == nil {
-				kategoriItem = &KeranjangDanStok{}
-				idsKBks[k.IdKategori] = kategoriItem
-			}
-
-			kategoriItem.IncrementKeranjang()
-			kategoriItem.AssignCustom(int(k.Jumlah))
+			idsKBk[k.IdKategori]++
+			idsKBs[k.IdKategori] += int(k.Jumlah)
 
 			deleteKeranjangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(k).SetTableName(k.TableName()).SetRole(mb_cud_seeders.Pengguna)
 			if err := mb_cud_publisher.DeletePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, deleteKeranjangPublish); err != nil {
@@ -367,32 +338,64 @@ func CheckoutBarangUser(ctx context.Context, data PayloadCheckoutBarang, db *env
 
 		for id, count := range idsBIk {
 			thresholdBarangInduk.IdBarangInduk = int64(id)
-			thresholdBarangInduk.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+			if err := thresholdBarangInduk.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_baranginduk.Keranjang,
 					Count:     count,
 				},
-			})
+			}); err != nil {
+				fmt.Println("Gagal decrement threshold barang induk field keranjang")
+			}
 		}
 
-		for id, KdJ := range idsKBks {
+		for id, ck := range idsKBk {
 			thresholdKategoriBarang.IdKategoriBarang = id
-			thresholdKategoriBarang.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
+			if err := thresholdKategoriBarang.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Keranjang,
-					Count:     KdJ.Keranjang,
+					Count:     ck,
 				},
+			}); err != nil {
+				fmt.Println("Gagal decrement threshold kategori barang field keranjang")
+			}
+		}
+
+		ikb := make([]int64, 0, len(idsKBs))
+
+		for id, cs := range idsKBs {
+			thresholdKategoriBarang.IdKategoriBarang = id
+			if err := thresholdKategoriBarang.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Ready,
-					Count:     KdJ.Stok,
+					Count:     cs,
 				},
-			})
-			thresholdKategoriBarang.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
+			}); err != nil {
+				fmt.Println("Gagal decrement threshold kategori barang field barang Ready")
+			}
+
+			if err := thresholdKategoriBarang.CustomIncrement(konteks, Trh, []sot_threshold.CustomCounter{
 				{
 					FieldName: stsk_kategori_barang.Dipesan,
-					Count:     KdJ.Stok,
+					Count:     cs,
 				},
-			})
+			}); err != nil {
+				fmt.Println("Gagal increment threshold kategori barang field barang dipesan")
+			}
+
+			ikb = append(ikb, id)
+		}
+
+		var kbs []sot_models.KategoriBarang = make([]sot_models.KategoriBarang, 0, len(ikb))
+		if err := Trh.WithContext(konteks).Model(&sot_models.KategoriBarang{}).Where("id IN ?", ikb).Scan(&kbs).Limit(1).Error; err != nil {
+			fmt.Println("Gagal mengambil data kategori")
+
+		}
+
+		for _, kb := range kbs {
+			updatedKategoriBarangPublish := mb_cud_serializer.NewJsonPayload().SetPayload(kb).SetRole(mb_cud_seeders.Pengguna).SetTableName(kb.TableName())
+			if err := mb_cud_publisher.UpdatePublish[*mb_cud_serializer.PublishPayloadJson](konteks, publisher, updatedKategoriBarangPublish); err != nil {
+				fmt.Println("Gagal publish update kategori barang ke message broker")
+			}
 		}
 
 		if err := thresholdPengguna.CustomDecrement(konteks, Trh, []sot_threshold.CustomCounter{
@@ -461,7 +464,6 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 	}
 
 	if err := db.Write.Transaction(func(tx *gorm.DB) error {
-		// Update status semua varian sekaligus
 		if len(varianIDs) > 0 {
 			if err := tx.Model(&sot_models.VarianBarang{}).
 				Where("id IN ?", varianIDs).
@@ -474,7 +476,6 @@ func BatalCheckoutUser(data response_transaction_pengguna.ResponseDataCheckout, 
 			}
 		}
 
-		// Update stok kategori secara atomic
 		for kategoriID, totalDikembalikan := range kategoriUpdates {
 			if err := tx.Model(&sot_models.KategoriBarang{}).
 				Where("id = ?", kategoriID).

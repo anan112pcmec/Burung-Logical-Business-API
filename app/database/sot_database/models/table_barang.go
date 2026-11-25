@@ -80,7 +80,7 @@ type VarianBarang struct {
 	Kategori      KategoriBarang `gorm:"foreignKey:IdKategori;references:ID;constraint:OnDelete:CASCADE;" json:"-"`
 	IdTransaksi   int64          `gorm:"column:id_transaksi;type:int8" json:"id_transksi_varian_barang,omitempty"`
 	Sku           string         `gorm:"column:sku;type:varchar(100);not null" json:"Sku_varian_barang,omitempty"`
-	Status        string         `gorm:"column:status;type:status_varian;not null;default:'Ready'" json:"status_varian_barang,omitempty"`
+	Status        string         `gorm:"column:status;type:status_varian;not null;default:'Down'" json:"status_varian_barang,omitempty"`
 	HoldBy        int64          `gorm:"column:hold_by;type:int8;default:0" json:"hold_by_varian_barang"`
 	HolderEntity  string         `gorm:"column:holder_entity;type:varchar(30)" json:"holder_entity_varian_barang"`
 }

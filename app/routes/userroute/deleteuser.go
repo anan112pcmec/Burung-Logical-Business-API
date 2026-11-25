@@ -58,7 +58,7 @@ func DeleteUserHandler(db *environment.InternalDBReadWriteSystem, w http.Respons
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.BatalCheckoutUser(data, db)
+		hasil = pengguna_transaction_services.BatalCheckoutUser(data, db, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap-gagal":
 		var data response_transaction_pengguna.SnapTransaksi
 		if err := helper.DecodeJSONBody(r, &data); err != nil {

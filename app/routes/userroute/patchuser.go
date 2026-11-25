@@ -17,6 +17,7 @@ import (
 	pengguna_social_media_service "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/social_media_services"
 	pengguna_transaction_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/transaction_services"
 	pengguna_wishlist_services "github.com/anan112pcmec/Burung-backend-1/app/service/pengguna_service/wishlist_services"
+
 )
 
 func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.ResponseWriter, r *http.Request, rds_auth, rds_session *redis.Client, mb_cud_publisher *mb_cud_publisher.Publisher, b *pengguna_barang_services.BatchViewUpdate) {
@@ -120,7 +121,7 @@ func PatchUserHandler(db *environment.InternalDBReadWriteSystem, w http.Response
 			http.Error(w, "Gagal parsing JSON: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		hasil = pengguna_transaction_services.SnapTransaksi(r.Context(), data, db, rds_session)
+		hasil = pengguna_transaction_services.SnapTransaksi(r.Context(), data, db, rds_session, mb_cud_publisher)
 	case "/user/transaksi/payment-gateaway-snap-berhasil/va":
 		var data pengguna_transaction_services.PayloadLockTransaksiVa
 		if err := helper.DecodeJSONBody(r, &data); err != nil {
