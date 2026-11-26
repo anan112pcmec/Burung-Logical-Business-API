@@ -890,21 +890,21 @@ func SnapTransaksi(ctx context.Context, data PayloadSnapTransaksiRequest, db *en
 		}
 
 		// Defensive: Validate delivery service type
-		validLayanan := map[string]bool{"reguler": true, "express": true, "instant": true}
+		validLayanan := map[string]bool{"Reguler": true, "Express": true, "Instant": true}
 		if !validLayanan[data.LayananPengirimanKurir] {
-			data.LayananPengirimanKurir = "reguler"
+			data.LayananPengirimanKurir = "Reguler"
 		}
 
 		var Tarif int64 = int64(KebijakanSistem.TarifPengirimanRegulerPerKm)
 		switch data.LayananPengirimanKurir {
-		case "express":
+		case "Express":
 			if Jarak > float64(KebijakanSistem.MaxJarakKmExpress) {
-				data.LayananPengirimanKurir = "reguler"
+				data.LayananPengirimanKurir = "Reguler"
 			}
 			Tarif = int64(KebijakanSistem.TarifPengirimanExpressPerKm)
-		case "instant":
+		case "Instant":
 			if Jarak > float64(KebijakanSistem.MaxJarakKmInstant) {
-				data.LayananPengirimanKurir = "reguler"
+				data.LayananPengirimanKurir = "Reguler"
 			}
 			Tarif = int64(KebijakanSistem.TarifPengirimanInstantPerKm)
 		}

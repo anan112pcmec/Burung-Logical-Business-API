@@ -9,8 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	sot_models "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/models"
-	sot_threshold "github.com/anan112pcmec/Burung-backend-1/app/database/sot_database/threshold"
-
 )
 
 func (i *IdentitySeller) GetSessionKey() string {
@@ -26,26 +24,6 @@ type IdentitySeller struct {
 	IdSeller    int32  `json:"id_seller"`
 	Username    string `json:"username_seller"`
 	EmailSeller string `json:"email_seller"`
-}
-
-func (i IdentitySeller) UpThreshold(ctx context.Context, db *gorm.DB) bool {
-
-	var id_data_order int64 = 0
-	if err := db.WithContext(ctx).Model(&sot_threshold.ThresholdOrderSeller{}).Select("id").Where(&sot_threshold.ThresholdOrderSeller{
-		IdSeller: i.IdSeller,
-	}).Limit(1).Scan(&id_data_order).Error; err != nil {
-		return false
-	}
-
-	if id_data_order == 0 {
-		if err := db.WithContext(ctx).Create(&sot_threshold.ThresholdOrderSeller{
-			IdSeller: i.IdSeller,
-		}).Error; err != nil {
-			return false
-		}
-	}
-
-	return true
 }
 
 func (i *IdentitySeller) FallbackDB(ctx context.Context, db *gorm.DB) (model sot_models.Seller, status bool) {

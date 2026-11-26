@@ -817,14 +817,21 @@ func ValidateSellerRegistration(ctx context.Context, db *environment.InternalDBR
 		}
 	} else {
 		go func(s sot_models.Seller, Write *gorm.DB, publisher *mb_cud_publisher.Publisher) {
-			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
-			defer cancel()
-
 			sellerThreshold := sot_threshold.SellerThreshold{
 				IdSeller: int64(s.ID),
 			}
 
+			sellerOrderThreshold := sot_threshold.ThresholdOrderSeller{
+				IdSeller: int64(s.ID),
+			}
+			konteks, cancel := context.WithTimeout(context.Background(), settings.TimeoutContext)
+			defer cancel()
+
 			if err := sellerThreshold.Inisialisasi(konteks, Write); err != nil {
+				fmt.Println("Gagal membuat threshold seller")
+			}
+
+			if err := sellerOrderThreshold.Inisialisasi(konteks, Write); err != nil {
 				fmt.Println("Gagal membuat threshold seller")
 			}
 

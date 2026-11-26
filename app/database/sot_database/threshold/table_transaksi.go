@@ -109,7 +109,7 @@ func (t *TransaksiThreshold) CustomDecrement(ctx context.Context, db *gorm.DB, k
 
 type ThresholdOrderSeller struct {
 	ID         int64             `gorm:"primaryKey;autoIncrement" json:"id_threshold_order_seller"`
-	IdSeller   int32             `gorm:"column:id_seller;not null" json:"id_seller_threshold_order_seller"`
+	IdSeller   int64             `gorm:"column:id_seller;not null" json:"id_seller_threshold_order_seller"`
 	Seller     sot_models.Seller `gorm:"foreignKey:IdSeller;references:ID" json:"-"`
 	Dibatalkan int64             `gorm:"column:dibatalkan;type:int8;not null;default:0" json:"dibatalkan_threshold_order_seller"`
 	Dibayar    int64             `gorm:"column:dibayar;type:int8;not null;default:0" json:"dibayar_threshold_order_seller"`
@@ -118,6 +118,92 @@ type ThresholdOrderSeller struct {
 	Dikirim    int64             `gorm:"column:dikirim;type:int8;not null;default:0" json:"dikirim_threshold_order_seller"`
 	Sampai     int64             `gorm:"column:sampai;type:int8;not null;default:0" json:"sampai_threshold_order_seller"`
 	Total      int64             `gorm:"column:total;type:int8;not null;default:0" json:"total_threshold_order_seller"`
+}
+
+func (*ThresholdOrderSeller) TableName() string {
+	return sot_threshold_seeders_nama.ThresholdOrderSeller
+}
+
+func (p *ThresholdOrderSeller) Inisialisasi(ctx context.Context, db *gorm.DB) error {
+	var id_data_threshold int64 = 0
+	if err := db.WithContext(ctx).Model(&ThresholdOrderSeller{}).Select("id").Where(&ThresholdOrderSeller{
+		IdSeller: p.IdSeller,
+	}).Limit(1).Scan(&id_data_threshold).Error; err != nil {
+		return err
+	}
+
+	if id_data_threshold != 0 {
+		return fmt.Errorf("gagal sudah memiliki threshold")
+	}
+
+	return db.WithContext(ctx).Create(&ThresholdOrderSeller{
+		IdSeller: p.IdSeller,
+	}).Error
+}
+
+func (p *ThresholdOrderSeller) Increment(ctx context.Context, db *gorm.DB, koloms ...string) error {
+
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s + ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&ThresholdOrderSeller{}).Where(&ThresholdOrderSeller{
+		IdSeller: p.IdSeller,
+	}).Updates(updates).Error
+}
+
+func (p *ThresholdOrderSeller) Decrement(ctx context.Context, db *gorm.DB, koloms ...string) error {
+	if len(koloms) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(koloms))
+	for _, kolom := range koloms {
+		updates[kolom] = gorm.Expr(fmt.Sprintf("%s - ?", kolom), 1)
+	}
+
+	return db.WithContext(ctx).Model(&ThresholdOrderSeller{}).Where(&ThresholdOrderSeller{
+		IdSeller: p.IdSeller,
+	}).Updates(updates).Error
+}
+
+func (p *ThresholdOrderSeller) CustomIncrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s + ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&ThresholdOrderSeller{}).Where(&ThresholdOrderSeller{
+		IdSeller: p.IdSeller,
+	}).Updates(
+		updates,
+	).Error
+}
+
+func (p *ThresholdOrderSeller) CustomDecrement(ctx context.Context, db *gorm.DB, kj []CustomCounter) error {
+	if len(kj) == 0 {
+		return fmt.Errorf("gagal data kosong")
+	}
+
+	updates := make(map[string]interface{}, len(kj))
+	for _, kolom := range kj {
+		updates[kolom.FieldName] = gorm.Expr(fmt.Sprintf("%s - ?", kolom.FieldName), kolom.Count)
+	}
+
+	return db.WithContext(ctx).Model(&ThresholdOrderSeller{}).Where(&ThresholdOrderSeller{
+		IdSeller: p.IdSeller,
+	}).Updates(
+		updates,
+	).Error
 }
 
 type PembayaranThreshold struct {

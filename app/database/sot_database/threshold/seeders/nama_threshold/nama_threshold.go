@@ -30,6 +30,7 @@ const (
 	DiskonProdukThreshold    string = "diskon_produk_threshold"
 	RekeningSellerThreshold  string = "rekening_seller_threshold"
 	AlamatGudangThreshold    string = "alamat_gudang_threshold"
+	ThresholdOrderSeller     string = "threshold_order_seller"
 
 	// Engagement Pengguna Dan Seller
 	KomentarThreshold string = "komentar_threshold"
